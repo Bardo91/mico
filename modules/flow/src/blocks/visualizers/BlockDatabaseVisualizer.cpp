@@ -132,7 +132,8 @@ namespace mico{
         iPolicy_->registerCallback({"v_entity"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){
                                     if(idle_){
-                                    std::vector<std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>> entities = std::any_cast<std::vector<std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>>>(_data["v_entity"]); 
+                                        printf("New v_entity");
+                                        std::vector<std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>> entities = std::any_cast<std::vector<std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>>>(_data["v_entity"]); 
                                         for(auto &e: entities){
                                             auto dfs = e->dfs();
                                             updateRender(e->id(), e->cloud(dfs[0]), e->pose(dfs[0]));

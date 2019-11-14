@@ -23,6 +23,7 @@
 #include <mico/flow/Policy.h>
 #include <mico/flow/OutPipe.h>
 
+#include <chrono>
 namespace mico{
 
     BlockDarknet::BlockDarknet(){
@@ -47,7 +48,6 @@ namespace mico{
                                                 idle_ = true;
                                                 return;
                                             }
-                                            
                                             // vector of detected entities 
                                             std::vector<std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>> entities;
 
@@ -61,10 +61,10 @@ namespace mico{
                                                          numEntities, detection[0], detection[1], {detection[2],detection[3],detection[4],detection[5]}));                                                                                          
                                                     entities.push_back(e);
                                                     numEntities++;
-                                                    //cv::Rect rec(detection[2], detection[3], detection[4] -detection[2], detection[5]-detection[3]);
-                                                    ////cv::putText(image, "Confidence" + std::to_string(detection[1]), cv::Point2i(detection[2], detection[3]),1,2,cv::Scalar(0,255,0));
-                                                    //cv::putText(image, "ObjectId: " + std::to_string(detection[0]), cv::Point2i(detection[2], detection[3]),1,2,cv::Scalar(0,255,0));
-                                                    //cv::rectangle(image, rec, cv::Scalar(0,255,0));
+                                                    cv::Rect rec(detection[2], detection[3], detection[4] -detection[2], detection[5]-detection[3]);
+                                                    //cv::putText(image, "Confidence" + std::to_string(detection[1]), cv::Point2i(detection[2], detection[3]),1,2,cv::Scalar(0,255,0));
+                                                    cv::putText(image, "ObjectId: " + std::to_string(detection[0]), cv::Point2i(detection[2], detection[3]),1,2,cv::Scalar(0,255,0));
+                                                    cv::rectangle(image, rec, cv::Scalar(0,255,0));
                                                 }
                                             }
 
@@ -74,7 +74,7 @@ namespace mico{
                                             // send entities
                                             if(opipes_["v_entity"]->registrations() !=0 )
                                                 opipes_["v_entity"]->flush(entities);
-
+                                            
                                         }else{
                                             std::cout << "No weights and cfg provided to Darknet\n";
                                         }
@@ -102,6 +102,8 @@ namespace mico{
                                                 idle_ = true;
                                                 return;
                                             }
+                                            auto strt = std::chrono::steady_clock::now();
+
                                             // vector of detected entities 
                                             std::vector<std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>> entities;
 
@@ -128,18 +130,29 @@ namespace mico{
                                                                 // mising descriptors
                                                             }
                                                         }
+                                                        printf("Entity cloud size: %i \n", entityCloud->size());
+                                                        e->projections(df->id(), entityProjections);
+                                                        e->cloud(df->id(), entityCloud);
+                                                        e->computePCA(df->id());
+                                                        entities.push_back(e);
+                                                        numEntities++;
                                                     }
-                                                    e->projections(df->id(), featureProjections);
-                                                    e->cloud(df->id(), featureCloud);
-                                                    e->computePCA(df->id());
-                                                    entities.push_back(e);
-                                                    numEntities++;
+                                                    
+                                                    //cv::Rect rec(detection[2], detection[3], detection[4] -detection[2], detection[5]-detection[3]);
+                                                    ////cv::putText(image, "Confidence" + std::to_string(detection[1]), cv::Point2i(detection[2], detection[3]),1,2,cv::Scalar(0,255,0));
+                                                    //cv::putText(image, "ObjectId: " + std::to_string(detection[0]), cv::Point2i(detection[2], detection[3]),1,2,cv::Scalar(0,255,0));
+                                                    //cv::rectangle(image, rec, cv::Scalar(0,255,0));
+
                                                 }
                                             }
                                             // send entities
                                             if(opipes_["v_entity"]->registrations() !=0 )
                                                 opipes_["v_entity"]->flush(entities);
-
+                                            // send image with detections
+                                            if(opipes_["color"]->registrations() !=0 )
+                                                opipes_["color"]->flush(image);
+                                            //auto end = std::chrono::steady_clock::now();
+                                            //printf("Detector: Elapsed time in milliseconds : %i", std::chrono::duration_cast<std::chrono::milliseconds>(end - strt).count());
                                         }else{
                                             std::cout << "No weights and cfg provided to Darknet\n";
                                         }
