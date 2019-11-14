@@ -27,7 +27,7 @@ namespace mico {
     //---------------------------------------------------------------------------------------------------------------------
     template<typename PointType_>
     bool StereoCameraRealSense::cloud(pcl::PointCloud<PointType_> &_cloud) {
-        if (!mUseUncolorizedPoints) {
+        if (!mSetDenseCloud) {
             std::cout << "[STEREOCAMERA][REALSENSE] Cannot compute the normals if points out of the colorized region are ignored. Please set the \"UseUncolorizedPoints\" to true in the configuration of the camera" << std::endl;
             return false;
         }
