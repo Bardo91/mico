@@ -201,6 +201,7 @@ namespace mico {
             
             pcl::PointXYZ position(ePose(0, 3), ePose(1, 3), ePose(2, 3));
             mViewer->addText3D(std::to_string(id), position, 0.015, 1,0,0, "e_text_" + std::to_string(id));
+            printf("Entity %i cloud size: %i \n", e->id(),e->cloud(firstDf)->size());
 
             // Draw cloud
             if (e->cloud(firstDf) != nullptr){ 
@@ -421,6 +422,9 @@ namespace mico {
         // #else
         //     std::cout << "DBOW 2 not installed, or library not compiled with it. Cant compute dictionarty." << std::endl;
         // #endif
+        }
+        else if (_event.keyDown() && _event.getKeySym() == "r") {
+            mViewer->setCameraPosition (1.59696, 0.285761, -3.40482, -0.084178, -0.989503, -0.117468);
         }
     };
 

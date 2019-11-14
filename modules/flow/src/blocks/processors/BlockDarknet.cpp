@@ -112,6 +112,7 @@ namespace mico{
                                             // detection -> label, confidence, left, top, right, bottom
 
                                             pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr featureCloud = df->featureCloud();
+                                            pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr denseCloud = df->cloud();
                                             std::vector<cv::Point2f> featureProjections = df->featureProjections();
 
                                             for(auto &detection: detections){
@@ -122,15 +123,24 @@ namespace mico{
                                                     std::vector<cv::Point2f> entityProjections;
 
                                                     if(featureProjections.size() > 0 && featureCloud != nullptr){
-                                                        for(auto it = featureProjections.begin(); it != featureProjections.end(); it++ ){
-                                                            if( it->x > detection[2] && it->x < detection[4] && it->y > detection[3] && it->y < detection[5]){
-                                                                entityProjections.push_back(*it);
-                                                                auto index = it - featureProjections.begin();
-                                                                entityCloud->push_back(featureCloud->points[index]);
-                                                                // mising descriptors
+                                                        // for(auto it = featureProjections.begin(); it != featureProjections.end(); it++ ){
+                                                        //     if( it->x > detection[2] && it->x < detection[4] && it->y > detection[3] && it->y < detection[5]){
+                                                        //         entityProjections.push_back(*it);
+                                                                
+                                                        //         // auto index = it - featureProjections.begin();
+                                                        //         // entityCloud->push_back(featureCloud->points[index]);
+                                                                
+                                                        //         // mising descriptors
+                                                        //     }
+                                                        // }
+
+                                                        for (int dy = detection[3]; dy < detection[5]; dy++) {
+                                                            for (int dx = detection[2]; dx < detection[4]; dx++) {
+                                                                pcl::PointXYZRGBNormal p = denseCloud->at(dx,dy);
+                                                                if(p.x != NAN && p.y != NAN && p.z != NAN)
+                                                                    entityCloud->push_back(p);
                                                             }
                                                         }
-                                                        printf("Entity cloud size: %i \n", entityCloud->size());
                                                         e->projections(df->id(), entityProjections);
                                                         e->cloud(df->id(), entityCloud);
                                                         e->computePCA(df->id());
