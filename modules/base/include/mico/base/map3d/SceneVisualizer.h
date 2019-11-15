@@ -52,7 +52,7 @@ namespace mico {
         void checkAndRedrawCf();
 
 #ifdef HAS_DARKNET
-        void drawEntity(std::vector<std::shared_ptr<mico::Entity<PointType_>>> _entity, bool _drawCube, float _opacity);
+        void drawEntity(std::vector<std::shared_ptr<mico::Entity<PointType_>>> _entity, bool _drawPoints, bool _drawCube, float _opacity);
 #endif
         // Draw every word optimized
         bool draw3DMatches(pcl::PointCloud<PointType_> _pc1, pcl::PointCloud<PointType_> _pc2);

@@ -123,29 +123,33 @@ namespace mico{
                                                     std::vector<cv::Point2f> entityProjections;
 
                                                     if(featureProjections.size() > 0 && featureCloud != nullptr){
-                                                        // for(auto it = featureProjections.begin(); it != featureProjections.end(); it++ ){
-                                                        //     if( it->x > detection[2] && it->x < detection[4] && it->y > detection[3] && it->y < detection[5]){
-                                                        //         entityProjections.push_back(*it);
+                                                        // feature cloud
+                                                        for(auto it = featureProjections.begin(); it != featureProjections.end(); it++ ){
+                                                            if( it->x > detection[2] && it->x < detection[4] && it->y > detection[3] && it->y < detection[5]){
+                                                                entityProjections.push_back(*it);
                                                                 
-                                                        //         // auto index = it - featureProjections.begin();
-                                                        //         // entityCloud->push_back(featureCloud->points[index]);
+                                                                auto index = it - featureProjections.begin();
+                                                                entityCloud->push_back(featureCloud->points[index]);
                                                                 
-                                                        //         // mising descriptors
-                                                        //     }
-                                                        // }
-
-                                                        for (int dy = detection[3]; dy < detection[5]; dy++) {
-                                                            for (int dx = detection[2]; dx < detection[4]; dx++) {
-                                                                pcl::PointXYZRGBNormal p = denseCloud->at(dx,dy);
-                                                                if(!boost::math::isnan(p.x) && !boost::math::isnan(p.y) && !boost::math::isnan(p.z)){
-                                                                    if(!boost::math::isnan(-p.x) && !boost::math::isnan(-p.y) && !boost::math::isnan(-p.z))
-                                                                        entityCloud->push_back(p);
-                                                                }
+                                                                // mising descriptors
                                                             }
                                                         }
 
+                                                        // // dense cloud
+                                                        // for (int dy = detection[3]; dy < detection[5]; dy++) {
+                                                        //     for (int dx = detection[2]; dx < detection[4]; dx++) {
+                                                        //         pcl::PointXYZRGBNormal p = denseCloud->at(dx,dy);
+                                                        //         if(!boost::math::isnan(p.x) && !boost::math::isnan(p.y) && !boost::math::isnan(p.z)){
+                                                        //             if(!boost::math::isnan(-p.x) && !boost::math::isnan(-p.y) && !boost::math::isnan(-p.z))
+                                                        //                 entityCloud->push_back(p);
+                                                        //         }
+                                                        //     }
+                                                        // }
+
                                                         e->projections(df->id(), entityProjections);
                                                         if(entityCloud->size() > 3){
+                                                            pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr transformedEntityCloud(new pcl::PointCloud<pcl::PointXYZRGBNormal>());
+                                                            pcl::transformPointCloud(*entityCloud, *transformedEntityCloud, df->pose());
                                                             e->cloud(df->id(), entityCloud);
                                                             Eigen::Matrix4f dfPose = df->pose();
                                                             e->updateCovisibility(df->id(), dfPose);
