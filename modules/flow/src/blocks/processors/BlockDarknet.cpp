@@ -22,7 +22,7 @@
 #include <mico/flow/blocks/processors/BlockDarknet.h>
 #include <mico/flow/Policy.h>
 #include <mico/flow/OutPipe.h>
-
+#include <boost/math/special_functions/fpclassify.hpp>
 #include <chrono>
 namespace mico{
 
@@ -58,9 +58,9 @@ namespace mico{
                                                 // confidence threshold 
                                                 if(detection[1]>confidenceThreshold){
                                                     std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>> e(new mico::Entity<pcl::PointXYZRGBNormal>(
-                                                         numEntities, detection[0], detection[1], {detection[2],detection[3],detection[4],detection[5]}));                                                                                          
+                                                         numEntities_, detection[0], detection[1], {detection[2],detection[3],detection[4],detection[5]}));                                                                                          
                                                     entities.push_back(e);
-                                                    numEntities++;
+                                                    numEntities_++;
                                                     cv::Rect rec(detection[2], detection[3], detection[4] -detection[2], detection[5]-detection[3]);
                                                     //cv::putText(image, "Confidence" + std::to_string(detection[1]), cv::Point2i(detection[2], detection[3]),1,2,cv::Scalar(0,255,0));
                                                     cv::putText(image, "ObjectId: " + std::to_string(detection[0]), cv::Point2i(detection[2], detection[3]),1,2,cv::Scalar(0,255,0));
@@ -102,7 +102,7 @@ namespace mico{
                                                 idle_ = true;
                                                 return;
                                             }
-                                            auto strt = std::chrono::steady_clock::now();
+                                            // auto strt = std::chrono::steady_clock::now();
 
                                             // vector of detected entities 
                                             std::vector<std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>> entities;
@@ -118,7 +118,7 @@ namespace mico{
                                             for(auto &detection: detections){
                                                if(detection[1] > confidenceThreshold){
                                                     std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>> e(new mico::Entity<pcl::PointXYZRGBNormal>(
-                                                         numEntities, df->id(), detection[0], detection[1], {detection[2],detection[3],detection[4],detection[5]}));  
+                                                         numEntities_, df->id(), detection[0], detection[1], {detection[2],detection[3],detection[4],detection[5]}));  
                                                     pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr entityCloud(new pcl::PointCloud<pcl::PointXYZRGBNormal>());
                                                     std::vector<cv::Point2f> entityProjections;
 
@@ -137,22 +137,21 @@ namespace mico{
                                                         for (int dy = detection[3]; dy < detection[5]; dy++) {
                                                             for (int dx = detection[2]; dx < detection[4]; dx++) {
                                                                 pcl::PointXYZRGBNormal p = denseCloud->at(dx,dy);
-                                                                //if(p.x != NAN && p.y != NAN && p.z != NAN)
-                                                                entityCloud->push_back(p);
+                                                                if(!boost::math::isnan(p.x) && !boost::math::isnan(p.y) && !boost::math::isnan(p.z)){
+                                                                    if(!boost::math::isnan(-p.x) && !boost::math::isnan(-p.y) && !boost::math::isnan(-p.z))
+                                                                        entityCloud->push_back(p);
+                                                                }
                                                             }
                                                         }
                                                         e->projections(df->id(), entityProjections);
-
-                                                        // filter NaN from PointCloud
-                                                        pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr filteredEntityCloud(new pcl::PointCloud<pcl::PointXYZRGBNormal>());
-                                                        std::vector<int> indices;
-                                                        pcl::removeNaNFromPointCloud(*entityCloud, *filteredEntityCloud, indices);
-
-                                                        if(filteredEntityCloud->size() > 3){
-                                                            e->cloud(df->id(), filteredEntityCloud);
-                                                            e->computePCA(df->id());
-                                                            entities.push_back(e);
-                                                            numEntities++;
+                                                        if(entityCloud->size() > 3){
+                                                            e->cloud(df->id(), entityCloud);
+                                                            Eigen::Matrix4f dfPose = df->pose();
+                                                            e->updateCovisibility(df->id(), dfPose);
+                                                            if(e->computePCA(df->id())){
+                                                                entities.push_back(e);
+                                                                numEntities_++;
+                                                            }
                                                         }
                                                     }
                                                     
@@ -225,7 +224,6 @@ namespace mico{
 
         hasParameters_ = true;  
         if(detector_.init(cfgFile,weightsFile)){
-            std::cout << "Good init\n";
             return true;
         }
         else{

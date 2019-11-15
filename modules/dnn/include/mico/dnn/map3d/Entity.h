@@ -28,7 +28,7 @@
 #include <pcl/common/pca.h>
 #include <pcl/common/centroid.h>
 #include <pcl/common/common.h>
-
+#include <cmath>
 #include <opencv2/opencv.hpp>
 
 namespace mico
@@ -66,7 +66,7 @@ public:
     void descriptors(int _dataframeId, cv::Mat _descriptors);
     cv::Mat descriptors(int _dataframeId);
 
-    std::vector<size_t> dfs();
+    std::vector<int> dfs();
 
     void updateCovisibility(int _dataframeId, Eigen::Matrix4f &_pose);
 
@@ -74,7 +74,7 @@ private:
     Entity(){};
 
     size_t id_;
-    std::vector<size_t> dfs_;
+    std::vector<int> dfs_;
 
     /// spatial data
     std::map<int, Eigen::Matrix4f> poses_;

@@ -41,6 +41,7 @@ namespace mico {
         // Compute principal directions
         Eigen::Vector4f pcaCentroid;
         pcl::compute3DCentroid<pcl::PointXYZRGBNormal>(*clouds_[_dataframeId], pcaCentroid);
+        //std::cout << "Entity: " << id_ << " centroid from df: " << _dataframeId << ": " << pcaCentroid << "\n";
         Eigen::Matrix3f covariance;
         pcl::computeCovarianceMatrixNormalized<pcl::PointXYZRGBNormal>(*clouds_[_dataframeId], pcaCentroid, covariance);
         Eigen::SelfAdjointEigenSolver<Eigen::Matrix3f> eigen_solver(covariance, Eigen::ComputeEigenvectors);
@@ -75,13 +76,17 @@ namespace mico {
         const Eigen::Quaternionf bboxQuaternion(eigenVectorsPCA);
         const Eigen::Vector3f bboxTransform = eigenVectorsPCA * meanDiagonal + pcaCentroid.head<3>();
 
+        if(std::isnan(bboxTransform(0)) || std::isnan(bboxTransform(1)) || std::isnan(bboxTransform(2)) )
+            return false; 
+
         Eigen::Matrix4f pose = Eigen::Matrix4f::Identity();
         pose.block(0,0,3,3) = bboxQuaternion.toRotationMatrix();
         pose.block(0,3,3,1) = bboxTransform;
-
+        std::cout << "Entity: " << id_ << " pose from df: " << _dataframeId << ": " << pose << "\n";
         poses_[_dataframeId] = pose * covisibility_[_dataframeId];   // to global pose 666 check this
         positions_[_dataframeId] = bboxTransform;
         orientations_[_dataframeId] = bboxQuaternion;
+        return true;
         // visu->addCube(bboxTransform, bboxQuaternion, maxPoint.x - minPoint.x, maxPoint.y - minPoint.y, maxPoint.z - minPoint.z, "bbox1", mesh_vp_2);
     }
 
@@ -176,7 +181,7 @@ namespace mico {
     };
 
     template<typename PointType_>    
-    inline std::vector<size_t> Entity<PointType_>::dfs(){
+    inline std::vector<int> Entity<PointType_>::dfs(){
         return dfs_;
     };
 }
