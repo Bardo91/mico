@@ -57,7 +57,7 @@ namespace mico {
 
 
     template<typename PointType_>
-    inline std::unordered_map<int, std::shared_ptr<Word<PointType_>>> Dataframe<PointType_>::words(){
+    inline std::map<int, std::shared_ptr<Word<PointType_>>> Dataframe<PointType_>::words(){
         return wordsReference_;
     }
 

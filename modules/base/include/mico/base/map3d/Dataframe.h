@@ -60,7 +60,7 @@ namespace mico {
         void eraseWord(std::shared_ptr<Word<PointType_>> &_word);
         
         std::shared_ptr<Word<PointType_>> word(int _id);
-        std::unordered_map<int, std::shared_ptr<Word<PointType_>>> words();
+        std::map<int, std::shared_ptr<Word<PointType_>>> words();
 
         /// Update multimatchesInliersCfs when a df becomes a cluster.
         void updateMMI(int _dfId, int _cfId);
@@ -163,7 +163,7 @@ namespace mico {
 
         // Cross reference of features in the other DFs
         std::map<int, std::vector<cv::DMatch>>         multimatchesInliersDfs_;
-        std::unordered_map<int, std::shared_ptr<Word<PointType_>>>          wordsReference_;
+        std::map<int, std::shared_ptr<Word<PointType_>>>          wordsReference_;
 
         // Reference of which other df is observed from this one.
         std::vector<Dataframe<PointType_>::Ptr> covisibility_;

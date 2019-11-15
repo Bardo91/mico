@@ -39,7 +39,7 @@ namespace mico{
                                         std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> df = std::any_cast<std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>>>(_data["dataframe"]);
 
                                         if(database_.addDataframe(df)){ // New dataframe created 
-                                            opipes_["dataframe"]->flush(database_.mLastDataframe);
+                                            opipes_["dataframe"]->flush(database_.lastDataframe());
                                         }
                                         idle_ = true;
                                     }
