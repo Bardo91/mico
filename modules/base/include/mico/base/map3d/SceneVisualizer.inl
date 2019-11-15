@@ -197,55 +197,54 @@ namespace mico {
             }
 
             Eigen::Matrix4f ePose = e->pose(firstDf);
-            mViewer->addCoordinateSystem(0.03, Eigen::Affine3f(ePose), "e_cs_" + std::to_string(id));
+            mViewer->addCoordinateSystem(0.1, Eigen::Affine3f(ePose), "e_cs_" + std::to_string(id));
             
             pcl::PointXYZ position(ePose(0, 3), ePose(1, 3), ePose(2, 3));
             mViewer->addText3D(std::to_string(id), position, 0.015, 1,0,0, "e_text_" + std::to_string(id));
 
-            // Draw cloud
-            if (e->cloud(firstDf) != nullptr){ 
-                if(mUseOctree){
-                    pcl::PointCloud<PointType_> cloud;
-                    pcl::transformPointCloudWithNormals(*e->cloud(firstDf), cloud, ePose);
-                    mOctreeVis.setInputCloud (cloud.makeShared());
-                    mOctreeVis.addPointsFromInputCloud ();
+            // // Draw cloud
+            // if (e->cloud(firstDf) != nullptr){ 
+            //     if(mUseOctree){
+            //         pcl::PointCloud<PointType_> cloud;
+            //         pcl::transformPointCloudWithNormals(*e->cloud(firstDf), cloud, ePose);
+            //         mOctreeVis.setInputCloud (cloud.makeShared());
+            //         mOctreeVis.addPointsFromInputCloud ();
 
-                    OctreeIterator treeIt;
-                    OctreeIterator treeItEnd = mOctreeVis.end();
+            //         OctreeIterator treeIt;
+            //         OctreeIterator treeItEnd = mOctreeVis.end();
                     
-                    // int depth = mOctreeVis.getTreeDepth() / 1.25;
+            //         // int depth = mOctreeVis.getTreeDepth() / 1.25;
 
-                    pcl::PointCloud<PointType_> denseCloud;
-                    PointType_ pt;
-                    Eigen::Vector3f voxel_min, voxel_max;
-                    for (treeIt = mOctreeVis.begin(mOctreeDepth); treeIt!=treeItEnd; ++treeIt) {
-                        mOctreeVis.getVoxelBounds(treeIt, voxel_min, voxel_max);
+            //         pcl::PointCloud<PointType_> denseCloud;
+            //         PointType_ pt;
+            //         Eigen::Vector3f voxel_min, voxel_max;
+            //         for (treeIt = mOctreeVis.begin(mOctreeDepth); treeIt!=treeItEnd; ++treeIt) {
+            //             mOctreeVis.getVoxelBounds(treeIt, voxel_min, voxel_max);
 
-                        pt.x = (voxel_min.x() + voxel_max.x()) / 2.0f;
-                        pt.y = (voxel_min.y() + voxel_max.y()) / 2.0f;
-                        pt.z = (voxel_min.z() + voxel_max.z()) / 2.0f;
+            //             pt.x = (voxel_min.x() + voxel_max.x()) / 2.0f;
+            //             pt.y = (voxel_min.y() + voxel_max.y()) / 2.0f;
+            //             pt.z = (voxel_min.z() + voxel_max.z()) / 2.0f;
                         
-                        denseCloud.push_back(pt);
-                    }
+            //             denseCloud.push_back(pt);
+            //         }
 
-                    mViewer->addPointCloud<PointType_>(denseCloud.makeShared(), "octree");
-                    mViewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "octree");
-                }
-                else{
-                    pcl::PointCloud<PointType_> cloudDrawn;
-                    if(mUseVoxel){
-                        mVoxeler.setInputCloud (e->cloud(firstDf));
-                        mVoxeler.filter (cloudDrawn);
-                        mViewer->addPointCloud<PointType_>(cloudDrawn.makeShared(), "e_cloud_" + std::to_string(id));
-                    }else{
-                        mViewer->addPointCloud<PointType_>(e->cloud(firstDf), "e_cloud_" + std::to_string(id));
-                    }
-                    mViewer->updatePointCloudPose("e_cloud_" + std::to_string(id), Eigen::Affine3f(ePose));
-                }
-            }
+            //         mViewer->addPointCloud<PointType_>(denseCloud.makeShared(), "octree");
+            //         mViewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "octree");
+            //     }
+            //     else{
+            //         pcl::PointCloud<PointType_> cloudDrawn;
+            //         if(mUseVoxel){
+            //             mVoxeler.setInputCloud (e->cloud(firstDf));
+            //             mVoxeler.filter (cloudDrawn);
+            //             mViewer->addPointCloud<PointType_>(cloudDrawn.makeShared(), "e_cloud_" + std::to_string(id));
+            //         }else{
+            //             mViewer->addPointCloud<PointType_>(e->cloud(firstDf), "e_cloud_" + std::to_string(id));
+            //         }
+            //         mViewer->updatePointCloudPose("e_cloud_" + std::to_string(id), Eigen::Affine3f(ePose));
+            //     }
+            // }
             // Draw cube
             if (e->cloud(firstDf) != nullptr){
-                printf("Entity %i cloud size: %i \n", e->id(),e->cloud(firstDf)->size());
                 const Eigen::Matrix3f rotMat = ePose.block(0,0,3,3);
                 const Eigen::Quaternionf bboxQuaternion(rotMat);
                 const Eigen::Vector3f bboxTransform = ePose.block(0,3,3,1);

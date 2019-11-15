@@ -82,8 +82,9 @@ namespace mico {
         Eigen::Matrix4f pose = Eigen::Matrix4f::Identity();
         pose.block(0,0,3,3) = bboxQuaternion.toRotationMatrix();
         pose.block(0,3,3,1) = bboxTransform;
-        std::cout << "Entity: " << id_ << " pose from df: " << _dataframeId << ": " << pose << "\n";
-        poses_[_dataframeId] = pose * covisibility_[_dataframeId];   // to global pose 666 check this
+        //std::cout << "Entity: " << id_ << " pose from df: " << _dataframeId << ": " << pose << "\n";
+        poses_[_dataframeId] = pose;   // to global pose 666 check this
+        // poses_[_dataframeId] = pose * covisibility_[_dataframeId];   // to global pose 666 check this
         positions_[_dataframeId] = bboxTransform;
         orientations_[_dataframeId] = bboxQuaternion;
         return true;
@@ -95,7 +96,7 @@ namespace mico {
         covisibility_[_dataframeId] = _pose;
 
         // check for new dataframe
-        if(std::find(dfs_.begin(), dfs_.end(), _dataframeId) != dfs_.end())
+        if(std::find(dfs_.begin(), dfs_.end(), _dataframeId) == dfs_.end())
             dfs_.push_back(_dataframeId);
     }
     
@@ -120,7 +121,7 @@ namespace mico {
     inline void Entity<PointType_>::projections(int _dataframeId, std::vector<cv::Point2f> _projections){
         projections_[_dataframeId] = _projections;
         // check for new dataframe
-        if(std::find(dfs_.begin(), dfs_.end(), _dataframeId) != dfs_.end())
+        if(std::find(dfs_.begin(), dfs_.end(), _dataframeId) == dfs_.end())
             dfs_.push_back(_dataframeId);
     }
 
@@ -133,7 +134,7 @@ namespace mico {
     inline void Entity<PointType_>::descriptors(int _dataframeId, cv::Mat _descriptors){
         descriptors_[_dataframeId] = _descriptors.clone();
         // check for new dataframe
-        if(std::find(dfs_.begin(), dfs_.end(), _dataframeId) != dfs_.end())
+        if(std::find(dfs_.begin(), dfs_.end(), _dataframeId) == dfs_.end())
             dfs_.push_back(_dataframeId);
     }
 
@@ -146,7 +147,7 @@ namespace mico {
     inline void Entity<PointType_>::cloud(int _dataframeId, typename pcl::PointCloud<PointType_>::Ptr &_cloud){
         clouds_[_dataframeId] = _cloud;
         // check for new dataframe
-        if(std::find(dfs_.begin(), dfs_.end(), _dataframeId) != dfs_.end())
+        if(std::find(dfs_.begin(), dfs_.end(), _dataframeId) == dfs_.end())
             dfs_.push_back(_dataframeId);
     }
 
@@ -159,7 +160,7 @@ namespace mico {
     inline void Entity<PointType_>::boundingbox(int _dataframeId, std::vector<float> _bb){
         boundingbox_[_dataframeId] = _bb;
         // check for new dataframe
-        if(std::find(dfs_.begin(), dfs_.end(), _dataframeId) != dfs_.end())
+        if(std::find(dfs_.begin(), dfs_.end(), _dataframeId) == dfs_.end())
             dfs_.push_back(_dataframeId);
     }; 
 
@@ -171,7 +172,7 @@ namespace mico {
     template<typename PointType_>    
     inline void Entity<PointType_>::boundingCube(int _dataframeId, std::vector<float> _bc){
         boundingcube_[_dataframeId] = _bc;
-        if(std::find(dfs_.begin(), dfs_.end(), _dataframeId) != dfs_.end())
+        if(std::find(dfs_.begin(), dfs_.end(), _dataframeId) == dfs_.end())
             dfs_.push_back(_dataframeId);
     };
 

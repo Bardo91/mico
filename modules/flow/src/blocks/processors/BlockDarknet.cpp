@@ -143,6 +143,7 @@ namespace mico{
                                                                 }
                                                             }
                                                         }
+
                                                         e->projections(df->id(), entityProjections);
                                                         if(entityCloud->size() > 3){
                                                             e->cloud(df->id(), entityCloud);
