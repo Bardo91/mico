@@ -28,6 +28,7 @@
 #ifdef HAS_DARKNET
     #include <mico/dnn/object_detection/dnn/WrapperDarknet.h>
     #include <mico/dnn/map3d/Entity.h>
+    #include <pcl/filters/filter.h>
 #endif
 #include <experimental/filesystem>
 

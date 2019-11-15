@@ -201,7 +201,6 @@ namespace mico {
             
             pcl::PointXYZ position(ePose(0, 3), ePose(1, 3), ePose(2, 3));
             mViewer->addText3D(std::to_string(id), position, 0.015, 1,0,0, "e_text_" + std::to_string(id));
-            printf("Entity %i cloud size: %i \n", e->id(),e->cloud(firstDf)->size());
 
             // Draw cloud
             if (e->cloud(firstDf) != nullptr){ 
@@ -246,6 +245,7 @@ namespace mico {
             }
             // Draw cube
             if (e->cloud(firstDf) != nullptr){
+                printf("Entity %i cloud size: %i \n", e->id(),e->cloud(firstDf)->size());
                 const Eigen::Matrix3f rotMat = ePose.block(0,0,3,3);
                 const Eigen::Quaternionf bboxQuaternion(rotMat);
                 const Eigen::Vector3f bboxTransform = ePose.block(0,3,3,1);

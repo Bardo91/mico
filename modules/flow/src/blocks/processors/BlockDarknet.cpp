@@ -116,7 +116,7 @@ namespace mico{
                                             std::vector<cv::Point2f> featureProjections = df->featureProjections();
 
                                             for(auto &detection: detections){
-                                               if(detection[1]>confidenceThreshold){
+                                               if(detection[1] > confidenceThreshold){
                                                     std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>> e(new mico::Entity<pcl::PointXYZRGBNormal>(
                                                          numEntities, df->id(), detection[0], detection[1], {detection[2],detection[3],detection[4],detection[5]}));  
                                                     pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr entityCloud(new pcl::PointCloud<pcl::PointXYZRGBNormal>());
@@ -137,15 +137,23 @@ namespace mico{
                                                         for (int dy = detection[3]; dy < detection[5]; dy++) {
                                                             for (int dx = detection[2]; dx < detection[4]; dx++) {
                                                                 pcl::PointXYZRGBNormal p = denseCloud->at(dx,dy);
-                                                                if(p.x != NAN && p.y != NAN && p.z != NAN)
-                                                                    entityCloud->push_back(p);
+                                                                //if(p.x != NAN && p.y != NAN && p.z != NAN)
+                                                                entityCloud->push_back(p);
                                                             }
                                                         }
                                                         e->projections(df->id(), entityProjections);
-                                                        e->cloud(df->id(), entityCloud);
-                                                        e->computePCA(df->id());
-                                                        entities.push_back(e);
-                                                        numEntities++;
+
+                                                        // filter NaN from PointCloud
+                                                        pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr filteredEntityCloud(new pcl::PointCloud<pcl::PointXYZRGBNormal>());
+                                                        std::vector<int> indices;
+                                                        pcl::removeNaNFromPointCloud(*entityCloud, *filteredEntityCloud, indices);
+
+                                                        if(filteredEntityCloud->size() > 3){
+                                                            e->cloud(df->id(), filteredEntityCloud);
+                                                            e->computePCA(df->id());
+                                                            entities.push_back(e);
+                                                            numEntities++;
+                                                        }
                                                     }
                                                     
                                                     //cv::Rect rec(detection[2], detection[3], detection[4] -detection[2], detection[5]-detection[3]);
