@@ -107,6 +107,7 @@ namespace mico{
         //Savers
         ret->registerModel<MicoFlowBlock<SaverImage>>                   ("Savers");
         ret->registerModel<MicoFlowBlock<SaverTrajectory>>              ("Savers");
+        ret->registerModel<MicoFlowBlock<SaverEntity>>                  ("Savers");
 
         // Queuers
         ret->registerModel<MicoFlowBlock<BlockQueuer<QueuerTraitClusterframes>>> ("Queuer");

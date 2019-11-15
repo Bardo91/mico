@@ -104,7 +104,7 @@ std::ostream &operator<<(std::ostream &os, const Entity<PointType_> &e)
     auto dataframes = e.dfs();
     for (auto &df : dataframes)
     {
-        os << "Pose from df: " << df << "\n" << e.pose(df) << "\n";
+        os << e->pose(df)(0,3) << ", "<< e->pose(df)(1,3) << ", "<< e->pose(df)(2,3);
     }
     return os;
 }

@@ -62,6 +62,7 @@
 // Savers
 #include <mico/flow/blocks/savers/SaverImage.h>
 #include <mico/flow/blocks/savers/SaverTrajectory.h>
+#include <mico/flow/blocks/savers/SaverEntity.h>
 
 // DNN
 #ifdef HAS_DARKNET
