@@ -47,7 +47,7 @@ public:
     bool computePCA(int _dataframeId);
 
     int id() const;
-    
+
     void pose(int _dataframeId, Eigen::Matrix4f &_pose);
     Eigen::Matrix4f pose(int _dataframeId);
 
@@ -69,18 +69,18 @@ public:
     std::vector<size_t> dfs();
 
     void updateCovisibility(int _dataframeId, Eigen::Matrix4f &_pose);
-    
+
 private:
     Entity(){};
 
     size_t id_;
     std::vector<size_t> dfs_;
 
-    /// spatial data 
-    std::map<int, Eigen::Matrix4f>      poses_;
-    std::map<int, Eigen::Vector3f>      positions_;
-    std::map<int, Eigen::Quaternionf>   orientations_;
-    
+    /// spatial data
+    std::map<int, Eigen::Matrix4f> poses_;
+    std::map<int, Eigen::Vector3f> positions_;
+    std::map<int, Eigen::Quaternionf> orientations_;
+
     /// 3D
     std::map<int, typename pcl::PointCloud<PointType_>::Ptr> clouds_;
 
@@ -88,16 +88,26 @@ private:
     std::map<int, std::vector<cv::Point2f>> projections_;
     std::map<int, cv::Mat> descriptors_;
 
-    /// detection 
-    int label_;    
+    /// detection
+    int label_;
     std::map<int, float> confidence_;
-    std::map<int, std::vector<float>> boundingbox_;     // left top right bottom
-    std::map<int, std::vector<float>> boundingcube_;    // xmax xmin ymax ymin zmax zmin
-    
-    /// visibility
-    std::map<int,Eigen::Matrix4f> covisibility_;        // dataframe id and pose 
+    std::map<int, std::vector<float>> boundingbox_;  // left top right bottom
+    std::map<int, std::vector<float>> boundingcube_; // xmax xmin ymax ymin zmax zmin
 
+    /// visibility
+    std::map<int, Eigen::Matrix4f> covisibility_; // dataframe id and pose
 };
+
+template <typename PointType_>
+std::ostream &operator<<(std::ostream &os, const Entity<PointType_> &e)
+{
+    auto dataframes = e.dfs();
+    for (auto &df : dataframes)
+    {
+        os << "Pose from df: " << df << "\n" << e.pose(df) << "\n";
+    }
+    return os;
+}
 } // namespace mico
 #include <mico/dnn/map3d/Entity.inl>
 
