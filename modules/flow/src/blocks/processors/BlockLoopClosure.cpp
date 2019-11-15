@@ -43,26 +43,19 @@ namespace mico{
                                         dataframes_[df->id()] = df;
 
                                         if(res.found){ // New dataframe created 
-                                            std::cout << "Detected loop... WIP parse loop" << std::endl;
-                                            df->isOptimized(true);  // 666 Mark as optimized to be redrawn
-
-
+                                            std::cout << "Detected loop: " << std::endl;
                                             
-                                            
+                                            auto loopPath = loopDetector_.findPath(df, dataframes_[res.matchId]);
+                                            std::cout << "Path: ";
+                                            for(auto &df: loopPath){
+                                                std::cout << df->id() << "->";
+                                            }
+                                            std::cout << std::endl;
 
-                                            //  vvvvvvv  ALL this shit happened together in SLAM_MARK_I vvvvvvv
-                                            //
-                                            // std::map<int,std::shared_ptr<ClusterFrames<PointType_>>> loopClosureSubset;
-                                            // loopClosureSubset[mDatabase.mLastClusterframe->id] = mDatabase.mLastClusterframe;
-                                            // loopClosureSubset[result.matchId] = mDatabase.mClusterframes[result.matchId];
-                                            // mDatabase.dfComparison(loopClosureSubset, false);
-
-                                            // mVisualization->drawDataframe(mDatabase.mLastClusterframe);
-                                            // mVisualization->drawDataframe(mDatabase.mClusterframes[result.matchId]);
-                                            //
-                                            //  ^^^^^^^^ --------------------------------------------- ^^^^^^^^ 
+                                            // mDatabase.dfComparison(loopClosureSubset, false);  666 do it or not? @Ric92
                                             
-                                            // opipes_["v-dataframe"]->flush();
+                                            opipes_["v-dataframe"]->flush(loopPath);
+
                                         }
                                         idle_ = true;
                                     }
