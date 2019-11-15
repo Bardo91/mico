@@ -146,9 +146,17 @@ namespace mico {
             DBoW2::FeatureVector featureVector() const;
         #endif
 
+
+        /// Find and create words comparing current dataframe and the ones in covisibility. 
+        /// This method should be called once.
+        void wordCreation();    
+
+        void reinforce(std::shared_ptr<Dataframe<PointType_>> &_df);
+        
     private:
         Dataframe();    // Private void constructor to prevent its creation without ID.
 
+        void reinforceWords(std::shared_ptr<mico::Dataframe<PointType_>> _df); 
     private:
         // ID of dataframe
         size_t id_;

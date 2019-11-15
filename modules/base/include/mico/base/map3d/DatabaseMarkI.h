@@ -54,14 +54,6 @@ namespace mico {
         /// Write signature of a df from its words
         void writeSignature(std::shared_ptr<mico::Dataframe<PointType_>> &_df);
 
-        /// Find and create words comparing current dataframe with last dataframe added
-        void wordCreation(  std::shared_ptr<mico::Dataframe<PointType_>> _prevDf,
-                            std::shared_ptr<mico::Dataframe<PointType_>> _currentDf);
-
-        /// Find and create words comparing two df
-        void wordComparison(std::shared_ptr<mico::Dataframe<PointType_>> _queryCluster,
-                            std::shared_ptr<mico::Dataframe<PointType_>> _trainCluster);
-
         /// Check duplicated words beetween near df
         void dfComparison(std::map<int,std::shared_ptr<Dataframe<PointType_>>> _dfSet, bool _localComparison);
         
