@@ -3,6 +3,8 @@ include(CMakeFindDependencyMacro)
 
 find_dependency(PCL QUIET REQUIRED)
 
+find_dependency(flow REQUIRED)
+
 if(@USE_MODULE_SLAM@)
     find_dependency(g2o REQUIRED HINTS "/usr/local/lib/cmake/g2o")
 endif(@USE_MODULE_SLAM@)
@@ -13,7 +15,6 @@ endif(@realsense2_FOUND@)
 
 find_dependency(OpenGL REQUIRED)
 find_package(OpenCV REQUIRED)
-
 
 if(@NodeEditor_FOUND@)
     find_dependency(NodeEditor)

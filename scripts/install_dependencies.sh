@@ -48,6 +48,7 @@ fi
 
 sudo apt-get install libboost-all-dev curl
 
+install_git_repo "nodeeditor" "https://github.com/paceholder/nodeeditor"
 install_git_repo "flow" "https://github.com/Bardo91/flow"
 
 ###################################################################
@@ -138,4 +139,3 @@ sudo apt-get install -y qt5-default
 sudo apt-get install -y libqt5opengl5 libqt5opengl5-dev
 #sudo apt-get install -y sudo apt-get install clang-7
 #install_git_repo "Catch2" "https://github.com/catchorg/Catch2"
-install_git_repo "nodeeditor" "https://github.com/paceholder/nodeeditor"

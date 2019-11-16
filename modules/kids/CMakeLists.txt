@@ -21,7 +21,7 @@
 
 cmake_minimum_required (VERSION 3.12 FATAL_ERROR)
 project(mico VERSION 1.0 LANGUAGES C CXX)
-set(COMPONENT_NAME mico4kids)
+set(COMPONENT_NAME ${PROJECT_NAME}-kids)
 
 ##################################################
 ###### Create project and configure ALIAS ########

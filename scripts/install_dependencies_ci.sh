@@ -24,6 +24,7 @@ install_git_repo () {
 	fi
 }
 
+install_git_repo "nodeeditor" "https://github.com/paceholder/nodeeditor"
 
 install_git_repo "flow" "https://github.com/Bardo91/flow"
 
