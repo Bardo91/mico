@@ -39,40 +39,26 @@ namespace mico {
         /// Compute two keyframes to get his transform and matches
         bool addDataframe(std::shared_ptr<mico::Dataframe<PointType_>> _df);
 
+        std::shared_ptr<mico::Dataframe<PointType_>> lastDataframe(){
+            return mLastDataframe;
+        }
+
+    private:
         /// Create new ClusterFrame
         bool updateCurrentKeyframe(std::shared_ptr<mico::Dataframe<PointType_>> _df);
 
         /// Score between current DF and new DF
-        double computeScore(std::shared_ptr<mico::Dataframe<PointType_>> _df);
+        double computeScore(std::shared_ptr<mico::Dataframe<PointType_>> _df1,
+                            std::shared_ptr<mico::Dataframe<PointType_>> _df2);
 
         /// Write signature of a df from its words
-        void computeSignature(std::shared_ptr<mico::Dataframe<PointType_>> &_df);
-
-        /// Save camera pose
-        void savePoses(std::string _posesFileName);
-
-        /// Find and create words comparing current dataframe with last dataframe added
-        void wordCreation(std::shared_ptr<mico::Dataframe<PointType_>> _df);
-
-        /// Find and create words comparing two df
-        void wordComparison(std::shared_ptr<mico::Dataframe<PointType_>> _queryCluster,
-                            std::shared_ptr<mico::Dataframe<PointType_>> _trainCluster);
+        void writeSignature(std::shared_ptr<mico::Dataframe<PointType_>> &_df);
 
         /// Check duplicated words beetween near df
         void dfComparison(std::map<int,std::shared_ptr<Dataframe<PointType_>>> _dfSet, bool _localComparison);
-
-
-        /// Return word dictionary
-        std::unordered_map<int, std::shared_ptr<Word<PointType_>>> dictionary();
-
-        // Get map of df
-        std::map<int, std::shared_ptr<Dataframe<PointType_>>> dataframes();
-
+        
         std::shared_ptr<mico::Dataframe<PointType_>> mLastDataframe=nullptr;
-
         std::shared_ptr<Word<PointType_>> mLastWord=nullptr;
-        std::map<int, std::shared_ptr<Dataframe<PointType_>>> mDataframes;
-        std::map<int, std::shared_ptr<Word<PointType_>>> mWordDictionary;
         
         double mScore=0.4;
         int mNumCluster = 0; 

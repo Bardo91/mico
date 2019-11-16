@@ -65,7 +65,7 @@ namespace mico {
     private:
         void insertNodeCovisibility(const Eigen::Vector3f &_position);
         void updateNodeCovisibility(int _id, const Eigen::Vector3f &_position);
-        void addCovisibility(int _id,const std::vector<int> &_others);
+        void addCovisibility(int _id,const std::vector<typename Dataframe<PointType_>::Ptr> &_others);
     
     private:
         boost::shared_ptr<pcl::visualization::PCLVisualizer> mViewer;

@@ -8,3 +8,5 @@ build/
 CMakeLists\.txt\.user
 
 \.vscode/
+
+*.g2o

@@ -42,13 +42,12 @@ namespace mico {
 
         Word(int _wordId, std::vector<float> _point3D, cv::Mat _descriptor);
 
-        void addObservation(    int _dfId, 
-                                std::shared_ptr<Dataframe<PointType_>> _df,
+        void addObservation(    std::shared_ptr<Dataframe<PointType_>> _df,
                                 int _idx,
                                 std::vector<float> _projections);
 
         bool isInFrame(int _id){
-            return std::find(dfIds.begin(), dfIds.end(), _id) != dfIds.end();
+            return dfMap.find(_id) != dfMap.end();
         }
 
         cv::Point2f cvProjectionf(int _id){
@@ -93,7 +92,6 @@ namespace mico {
         cv::Mat descriptor;
         Eigen::Vector3f normalVector;
 
-        std::vector<int> dfIds;
         std::map<int, std::shared_ptr<Dataframe<PointType_>>> dfMap; // TODO : Refactoring 
         
 

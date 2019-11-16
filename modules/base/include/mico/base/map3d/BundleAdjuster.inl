@@ -85,7 +85,7 @@ namespace mico {
         unsigned nWords = 0;
         for(auto &df: mDataframes){
             for(auto  &word: df.second->words()){
-                if(!mUsedWordsMap[word.second->id] &&  word.second->dfIds.size() > this->mBaMinAparitions){
+                if(!mUsedWordsMap[word.second->id] &&  word.second->dfMap.size() > this->mBaMinAparitions){
                     nWords++;
                     mUsedWordsMap[word.second->id] = true;  // check true to use it later
                     mGlobalUsedWordsRef[word.second->id] = word.second;
@@ -136,13 +136,13 @@ namespace mico {
                 mWordIdToPointId[word.second->id] = pointId;
                 mPointIdToWordId[pointId] = word.second->id;
 
-                for(auto &dfId: word.second->dfIds){
-                    if(mClustersIdToCameraId.find(dfId) != mClustersIdToCameraId.end()){
-                        int cameraId = mClustersIdToCameraId[dfId];
-                        if(word.second->projectionsEnabled[dfId]){  
-                            appendProjection(cameraId, pointId, word.second->cvProjectiond(dfId), intrinsics, coeffs);
+                for(auto &dfPair: word.second->dfMap){
+                    if(mClustersIdToCameraId.find(dfPair.first) != mClustersIdToCameraId.end()){
+                        int cameraId = mClustersIdToCameraId[dfPair.first];
+                        if(word.second->projectionsEnabled[dfPair.first]){  
+                            appendProjection(cameraId, pointId, word.second->cvProjectiond(dfPair.first), intrinsics, coeffs);
                         }else{
-                            this->warning("BA", "Projection of word " +std::to_string(word.second->id) + " in df " + std::to_string(dfId) + " is not enabled");
+                            this->warning("BA", "Projection of word " +std::to_string(word.second->id) + " in df " + std::to_string(dfPair.first) + " is not enabled");
                         }            
                     }
                 }
@@ -218,12 +218,12 @@ namespace mico {
             };
             word->optimized = true;
 
-            for(auto &dfId: word->dfIds){
-                if(mClustersIdToCameraId.find(dfId) != mClustersIdToCameraId.end()){
-                      int cameraId = mClustersIdToCameraId[dfId];
-                    if(!isProjectionEnabled(dfId, pairPoint.first)){
-                        mGlobalUsedWordsRef[pairPoint.second]->projectionsEnabled[dfId] = false;
-                        this->warning("BA", "Dropping edge (camera, point): ("+std::to_string(dfId)+", "+std::to_string(pairPoint.second)+")");
+            for(auto &dfPair: word->dfMap){
+                if(mClustersIdToCameraId.find(dfPair.first) != mClustersIdToCameraId.end()){
+                      int cameraId = mClustersIdToCameraId[dfPair.first];
+                    if(!isProjectionEnabled(dfPair.first, pairPoint.first)){
+                        mGlobalUsedWordsRef[pairPoint.second]->projectionsEnabled[dfPair.first] = false;
+                        this->warning("BA", "Dropping edge (camera, point): ("+std::to_string(dfPair.first)+", "+std::to_string(pairPoint.second)+")");
                     }
                 }
             }

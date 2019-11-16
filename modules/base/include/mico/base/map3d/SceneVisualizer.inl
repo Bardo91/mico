@@ -154,10 +154,11 @@ namespace mico {
             // std::cout << "Updating existing covisibility" << std::endl;
             updateNodeCovisibility(_df->id(), origin);
             if(_df->covisibility().size() != unsigned(mNodeCovisibilityCheckSum[_df->id()])){
-                std::vector<int> newCov(_df->covisibility().begin()+ mNodeCovisibilityCheckSum[_df->id()], 
-                                        _df->covisibility().end());
-                addCovisibility(_df->id(), newCov);
-                mNodeCovisibilityCheckSum[_df->id()] = _df->covisibility().size();
+                // std::vector<int> newCov(_df->covisibility().begin()+ mNodeCovisibilityCheckSum[_df->id()], 
+                //                         _df->covisibility().end());
+                // addCovisibility(_df->id(), newCov);
+                // mNodeCovisibilityCheckSum[_df->id()] = _df->covisibility().size();
+                assert(false);; //what is this?....
             }
         }else{
             // std::cout << "Created new node" << std::endl;
@@ -274,11 +275,11 @@ namespace mico {
     
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_>
-    inline void SceneVisualizer<PointType_>::addCovisibility(int _id, const std::vector<int> &_others){
+    inline void SceneVisualizer<PointType_>::addCovisibility(int _id, const std::vector<typename Dataframe<PointType_>::Ptr> &_others){
         for(auto &other:_others){ 
             vtkIdType connectivity[2];
             connectivity[0] = _id;
-            connectivity[1] = other;
+            connectivity[1] = other->id();
             mCovisibilityGraph->InsertNextCell(VTK_LINE,2,connectivity); //Connects the first and fourth point we inserted into a line
         }
     }

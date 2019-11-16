@@ -57,6 +57,7 @@ option(USE_MAVLINK 			"Compile MAVLINK interface classes"			ON)
 # Others
 option(BUILD_TOOLS			"Compile mico-base tools" 					ON)
 option(BUILD_EXAMPLES		"Compile mico-base examples"				ON)
+option(BUILD_TESTS		"Compile mico-base tests"				ON)
 
 #########################################
 ###### Loading 3rd party libraries.######
@@ -277,6 +278,19 @@ endif(${BUILD_TOOLS})
 if(${BUILD_EXAMPLES})
 	add_subdirectory(examples)
 endif(${BUILD_EXAMPLES})
+
+
+#########################################
+######			Examples 		   ######
+#########################################
+if(${BUILD_TESTS})
+  find_package(GTest)
+  if(${GTest_FOUND})
+    enable_testing()
+    add_subdirectory(tests)
+  endif()
+endif()
+
 
 #########################################
 ######			INSTALL 		   ######

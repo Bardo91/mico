@@ -60,13 +60,15 @@ namespace mico {
         void eraseWord(std::shared_ptr<Word<PointType_>> &_word);
         
         std::shared_ptr<Word<PointType_>> word(int _id);
-        std::unordered_map<int, std::shared_ptr<Word<PointType_>>> words();
+        std::map<int, std::shared_ptr<Word<PointType_>>> words();
 
         /// Update multimatchesInliersCfs when a df becomes a cluster.
         void updateMMI(int _dfId, int _cfId);
  
+        std::vector<typename Dataframe<PointType_>::Ptr> covisibility();
+
         /// Add the ID of another DF which is observed from this one
-        void appendCovisibility(int _otherId);
+        void appendCovisibility(Dataframe<PointType_>::Ptr &_other);
 
         /// Set the pose of the dataframe
         void pose(const Eigen::Matrix4f &_pose);
@@ -136,8 +138,6 @@ namespace mico {
 
         std::map<int, std::vector<cv::DMatch>> &crossReferencedInliers();
 
-        std::vector<int> covisibility();
-
         #ifdef USE_DBOW2
             void signature(DBoW2::BowVector &_signature);
             DBoW2::BowVector signature() const;
@@ -146,9 +146,17 @@ namespace mico {
             DBoW2::FeatureVector featureVector() const;
         #endif
 
+
+        /// Find and create words comparing current dataframe and the ones in covisibility. 
+        /// This method should be called once.
+        void wordCreation();    
+
+        void reinforce(std::shared_ptr<Dataframe<PointType_>> &_df);
+        
     private:
         Dataframe();    // Private void constructor to prevent its creation without ID.
 
+        void reinforceWords(std::shared_ptr<mico::Dataframe<PointType_>> _df); 
     private:
         // ID of dataframe
         size_t id_;
@@ -163,10 +171,10 @@ namespace mico {
 
         // Cross reference of features in the other DFs
         std::map<int, std::vector<cv::DMatch>>         multimatchesInliersDfs_;
-        std::unordered_map<int, std::shared_ptr<Word<PointType_>>>          wordsReference_;
+        std::map<int, std::shared_ptr<Word<PointType_>>>          wordsReference_;
 
         // Reference of which other df is observed from this one.
-        std::vector<int> covisibility_;
+        std::vector<Dataframe<PointType_>::Ptr> covisibility_;
 
         // Visual information of the dataframe
         cv::Mat left_, right_, depth_;

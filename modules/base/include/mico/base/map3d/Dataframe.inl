@@ -19,6 +19,7 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
+#include <mico/base/map3d/utils3d.h>
 
 namespace mico {
     template<typename PointType_>
@@ -32,10 +33,10 @@ namespace mico {
     }
 
     template<typename PointType_>
-    inline void Dataframe<PointType_>::appendCovisibility(int _id){
-        if(std::find(covisibility_.begin(), covisibility_.end(), _id) == covisibility_.end()){
+    inline void Dataframe<PointType_>::appendCovisibility(Dataframe<PointType_>::Ptr &_other){
+        if(std::find(covisibility_.begin(), covisibility_.end(), _other) == covisibility_.end()){
             // std::cout << "Adding covisivility : " <<_id  << " to " << id_ << std::endl;
-            covisibility_.push_back(_id);
+            covisibility_.push_back(_other);
         }
     }
 
@@ -57,7 +58,7 @@ namespace mico {
 
 
     template<typename PointType_>
-    inline std::unordered_map<int, std::shared_ptr<Word<PointType_>>> Dataframe<PointType_>::words(){
+    inline std::map<int, std::shared_ptr<Word<PointType_>>> Dataframe<PointType_>::words(){
         return wordsReference_;
     }
 
@@ -188,7 +189,7 @@ namespace mico {
 
 
     template<typename PointType_>
-    inline std::vector<int> Dataframe<PointType_>::covisibility(){
+    inline std::vector<typename  Dataframe<PointType_>::Ptr> Dataframe<PointType_>::covisibility(){
         return covisibility_;
     }
 
@@ -213,5 +214,203 @@ namespace mico {
         return featVec_;
     }
     #endif
+
+    template<typename PointType_>
+    inline void Dataframe<PointType_>::wordCreation(){
+        assert(covisibility_.size() == 1);  // Just one KF In covisibility.
+
+        auto prevDf = covisibility_[0];
+        auto selfRef = Dataframe<PointType_>::Ptr(this);
+
+        typename pcl::PointCloud<PointType_>::Ptr transformedFeatureCloud(new pcl::PointCloud<PointType_>());
+        pcl::transformPointCloud(*prevDf->featureCloud(), *transformedFeatureCloud, prevDf->pose());
+        std::vector<cv::DMatch> cvInliers = selfRef->crossReferencedInliers()[prevDf->id()];
+
+        for (unsigned inlierIdx = 0; inlierIdx < cvInliers.size(); inlierIdx++){
+            // 666 Assumes that is only matched with previous cloud, loops are not handled in this method
+            std::shared_ptr<Word<PointType_>> prevWord = nullptr;
+            int inlierIdxInDataframe = cvInliers[inlierIdx].queryIdx;
+            int inlierIdxInCluster = cvInliers[inlierIdx].trainIdx;
+
+            // Check if exists a word with the id of the descriptor inlier
+            for (auto &w : /*mWordDictionary*/ prevDf->words()){ // TODO: Can we check if the word have current dataframe id as key?
+                if (w.second->idxInDf[prevDf->id()] == inlierIdxInCluster) {
+                    prevWord = w.second;
+                    break;
+                }
+            }
+            if (prevWord) {
+                //Cluster
+                if (prevWord->dfMap.find(selfRef->id()) == prevWord->dfMap.end()) {
+                    std::vector<float> projection = {   selfRef->featureProjections()[inlierIdxInDataframe].x,
+                                                        selfRef->featureProjections()[inlierIdxInDataframe].y};
+                    prevWord->addObservation(selfRef, inlierIdxInDataframe, projection);
+                    selfRef->addWord(prevWord);
+                    
+                    // 666 CHECK IF IT IS NECESARY
+                    for (auto &df : prevWord->dfMap) {
+                        selfRef->appendCovisibility(df.second);
+                        // Add current dataframe id to others dataframe covisibility
+                        df.second->appendCovisibility(selfRef);
+                    }
+                }
+            }
+            else {
+                // Create word
+                int wordId = 0;
+                if(prevDf->words().size()>0)
+                    wordId = prevDf->words().rbegin()->first+1;    // THE HELLL
+
+                auto pclPoint = (*transformedFeatureCloud)[inlierIdxInCluster];
+                std::vector<float> point = {pclPoint.x, pclPoint.y, pclPoint.z};
+                auto descriptor = prevDf->featureDescriptors().row(inlierIdxInCluster);
+
+                auto newWord = std::shared_ptr<Word<PointType_>>(new Word<PointType_>(wordId, point, descriptor));
+
+                //Add word to current dataframe
+                selfRef->addWord(newWord);
+
+                // Add word to new dataframe (new dataframe is representative of the new dataframe)
+                std::vector<float> dataframeProjections = { selfRef->featureProjections()[inlierIdxInDataframe].x, 
+                                                            selfRef->featureProjections()[inlierIdxInDataframe].y};
+                newWord->addObservation(selfRef, inlierIdxInDataframe, dataframeProjections);
+
+                selfRef->appendCovisibility(prevDf);
+                selfRef->addWord(newWord);
+
+                // Add word to last dataframe
+                std::vector<float> projection = {   prevDf->featureProjections()[inlierIdxInCluster].x, 
+                                                    prevDf->featureProjections()[inlierIdxInCluster].y};
+                newWord->addObservation(prevDf, inlierIdxInCluster, projection);
+                prevDf->appendCovisibility(prevDf);
+                prevDf->addWord(newWord);
+            }
+        }
+    }
+
+    template<typename PointType_>
+    inline void Dataframe<PointType_>::reinforce(std::shared_ptr<Dataframe<PointType_>> &_df){
+        Eigen::Matrix4f transformation = Eigen::Matrix4f::Identity();
+        if (!transformationBetweenFeatures<PointType_>( _df, 
+                                                        Dataframe<PointType_>::Ptr(this), 
+                                                        transformation,
+                                                        1, 
+                                                        0.03,
+                                                        1000, 
+                                                        10,
+                                                        25.0 /* Descriptor distance factor*/ , 
+                                                        10)) //TODO: json parameters
+        { 
+            std::cout << "DatabaseMarkI, <10 inliers between df: " + std::to_string(_df->id()) + " and df " + std::to_string(id_) + " " << std::endl;
+        }else{
+            std::cout << "DatabaseMarkI, comparison between df: " + std::to_string(_df->id()) + " and df " + std::to_string(id_) << std::endl;
+            reinforceWords(_df, Dataframe<PointType_>::Ptr(this));
+        }
+    }
+
+
+    template<typename PointType_>
+    inline void Dataframe<PointType_>::reinforceWords(  std::shared_ptr<mico::Dataframe<PointType_>> _df){
+
+        // typename pcl::PointCloud<PointType_>::Ptr transformedFeatureCloud(new pcl::PointCloud<PointType_>());
+        // pcl::transformPointCloud(*this->featureCloud(), *transformedFeatureCloud, this->pose());
+        
+        // std::vector<cv::DMatch> cvInliers = _df->crossReferencedInliers()[this->id()];
+
+        // // Word count
+        // int newWords = 0;
+        // int duplicatedWords = 0; 
+        // int wordsOnlyInOneCluster =0; 
+        // int goodWords = 0;
+        // for (unsigned inlierIdx = 0; inlierIdx < cvInliers.size(); inlierIdx++) { 
+        //     int inlierIdxInQuery = cvInliers[inlierIdx].queryIdx;
+        //     int inlierIdxInTrain = cvInliers[inlierIdx].trainIdx;
+
+        //     std::shared_ptr<Word<PointType_>> trainWord = nullptr;
+        //     // Check if exists a word with the id of the descriptor inlier in the train dataframe
+        //     for (auto &w : this->words())       {
+        //         if (w.second->idxInDf[this->id()] == inlierIdxInTrain) {
+        //             trainWord = w.second;
+        //             break;
+        //         }
+        //     }
+        //     // Check if exists a word with the id of the descriptor inlier in the query dataframe
+        //     std::shared_ptr<Word<PointType_>> queryWord = nullptr;
+        //     for (auto &w : _df->words())    {
+        //         if (w.second->idxInDf[_df->id()] == inlierIdxInQuery) {
+        //             queryWord = w.second;
+        //             break;
+        //         }
+        //     }
+
+        //     if(queryWord){
+        //         if(trainWord){    
+        //             if(trainWord->id != queryWord->id){
+        //                 // Merge words. Erase newest word
+        //                 trainWord->mergeWord(queryWord);
+        //                 //Delete word from mWordDictionary
+        //                 mWordDictionary.erase(queryWord->id);
+        //                 // Add word
+        //                 _df->addWord(trainWord);
+        //                 duplicatedWords++;
+        //             }
+        //             else{
+        //                 goodWords++;
+        //             }
+        //         }else{
+        //             // Add info of queryWord in train dataframe and update queryWord
+        //             std::vector<float> trainProjections = { this->featureProjections()[inlierIdxInTrain].x, 
+        //                                                     this->featureProjections()[inlierIdxInTrain].y};
+        //             queryWord->addObservation(this, inlierIdxInTrain, trainProjections);
+        //             this->addWord(queryWord);
+
+        //             // Update covisibility
+        //             this->appendCovisibility(_df);
+        //             _df->appendCovisibility(this);
+
+        //             wordsOnlyInOneCluster++;
+        //         }     
+        //     }else{
+        //         if(trainWord){
+        //             // Add info of trainWord in query dataframe and update trainWord
+        //             std::vector<float> queryProjections = { _df->featureProjections()[inlierIdxInQuery].x, 
+        //                                                     _df->featureProjections()[inlierIdxInQuery].y};
+        //             trainWord->addObservation(_df, inlierIdxInQuery, queryProjections);
+        //             _df->addWord(trainWord);
+
+        //             // Update covisibility
+        //             this->appendCovisibility(_df);
+        //             _df->appendCovisibility(this);
+        //             wordsOnlyInOneCluster++;
+        //         }else{
+        //             // New word
+        //             int wordId = mWordDictionary.rbegin()->first+1;  aqwasdaweasdaweasdqweasd
+        //             auto pclPoint = (*transformedFeatureCloud)[inlierIdxInTrain];   // 3D point of the trainDf
+        //             std::vector<float> point = {pclPoint.x, pclPoint.y, pclPoint.z};
+        //             auto descriptor = this->featureDescriptors().row(inlierIdxInTrain);
+        //             auto newWord = std::shared_ptr<Word<PointType_>>(new Word<PointType_>(wordId, point, descriptor));
+                    
+        //             // Add word to train dataframe
+        //             std::vector<float> trainProjections = { this->featureProjections()[inlierIdxInTrain].x, 
+        //                                                     this->featureProjections()[inlierIdxInTrain].y};
+        //             newWord->addObservation(this, inlierIdxInTrain, trainProjections);
+        //             this->appendCovisibility(_df);
+        //             this->addWord(newWord);
+
+        //             // Add word to query dataframe
+        //             std::vector<float> queryProjections = { _df->featureProjections()[inlierIdxInQuery].x, 
+        //                                                     _df->featureProjections()[inlierIdxInQuery].y};
+        //             newWord->addObservation(_df, inlierIdxInQuery, queryProjections);
+        //             _df->appendCovisibility(this);
+        //             _df->addWord(newWord);
+
+        //             // Add word to dictionary
+        //             mWordDictionary[wordId] = newWord;
+
+        //             newWords++;
+        //         }
+        //     }
+        // }
+    }
 
 }

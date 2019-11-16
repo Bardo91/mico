@@ -26,6 +26,11 @@
 #include <mico/base/utils/LogManager.h>
 #include <opencv2/opencv.hpp>
 
+#include <mico/base/map3d/Dataframe.h>
+
+#include <vector>
+
+
 namespace mico {
     /// Class that holds the results of the loop closure detection. 
     struct LoopResult{
@@ -46,8 +51,14 @@ namespace mico {
         /// Append a new image with an attached ID to the loop detector. It returns data related with the detection results.
         virtual LoopResult appendCluster(const std::vector<cv::KeyPoint> &_kps, const cv::Mat &_descriptors, int _id) = 0;
 
+        template<typename PointType_>
+        std::vector<std::shared_ptr<Dataframe<PointType_>>> findPath(
+                    std::shared_ptr<Dataframe<PointType_>> _init, 
+                    std::shared_ptr<Dataframe<PointType_>> _end );
     };
 
-};  // namespace mico 
+}  // namespace mico 
+
+#include <mico/base/map3d/LoopClosureDetector.inl>
 
 #endif
