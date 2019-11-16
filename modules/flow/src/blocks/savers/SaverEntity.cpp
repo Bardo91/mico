@@ -31,9 +31,9 @@ namespace mico{
     SaverEntity::SaverEntity(){
         iPolicy_ = new Policy({"v_entity"});
 
-#ifdef HAS_DARKNET
         iPolicy_->registerCallback({"v_entity"}, 
-                                [&](std::unordered_map<std::string,std::any> _data){                                
+                                [&](std::unordered_map<std::string,std::any> _data){        
+                                    #ifdef HAS_DARKNET
                                     std::vector<std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>> entities = std::any_cast<std::vector<std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>>>(_data["v_entity"]); 
                                     for(auto &e: entities){
                                         auto dfs = e->dfs();
@@ -44,10 +44,11 @@ namespace mico{
                                                     << q.w() << ", " << q.x() << ", " << q.y() << ", " << q.z() << ", " << e->cloud(df)->size() << std::endl;
                                         }
                                     }
+                                    #endif
+
                                 }
         );
     }
- #endif
 
     bool SaverEntity::configure(std::unordered_map<std::string, std::string> _params){
         for(auto &param:_params){
