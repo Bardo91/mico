@@ -38,8 +38,11 @@ namespace mico{
                                         auto vDataframes = std::any_cast<std::vector<Dataframe<pcl::PointXYZRGBNormal>::Ptr>>(_data["v-dataframe"]);
                                         std::map<int, Dataframe<pcl::PointXYZRGBNormal>::Ptr> dfMap;
                                         for(auto &df: vDataframes){
-                                            dfMap[df->id()] = df;
+                                            for(auto &visDf: df->covisibility()){
+                                                dfMap[visDf->id()] = visDf;
+                                            }
                                         }
+                                        // std::cout << "Loop of size: " << vDataframes.size() << ". Total optimized frames: " << dfMap.size() << std::endl; 
                                         optimizer_.sequence(dfMap);
                                         optimizer_.optimize();
                                         // std::cout << "Optimization end" << std::endl;

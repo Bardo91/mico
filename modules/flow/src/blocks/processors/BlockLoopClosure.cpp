@@ -43,14 +43,14 @@ namespace mico{
                                         dataframes_[df->id()] = df;
 
                                         if(res.found){ // New dataframe created 
-                                            std::cout << "Detected loop: " << std::endl;
+                                            // std::cout << "Detected loop: " << std::endl;
                                             
                                             auto loopPath = loopDetector_.findPath(df, dataframes_[res.matchId]);
-                                            std::cout << "Path: ";
-                                            for(auto &df: loopPath){
-                                                std::cout << df->id() << "->";
-                                            }
-                                            std::cout << std::endl;
+                                            // std::cout << "Path: ";
+                                            // for(auto &df: loopPath){
+                                            //     std::cout << df->id() << "->";
+                                            // }
+                                            // std::cout << std::endl;
 
                                             // mDatabase.dfComparison(loopClosureSubset, false);  666 do it or not? @Ric92
                                             
