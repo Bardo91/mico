@@ -249,6 +249,13 @@ if (${USE_MAVLINK})
 endif()
 
 #########################################
+# libusb to communicate with Lidar SICK
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(libusb libusb-1.0)
+include_directories(${COMPONENT_NAME} PUBLIC ${libusb_INCLUDE_DIRS})
+target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC ${libusb_LIBRARIES})
+
+#########################################
 ######			Library 		   ######
 #########################################
 #add_definitions(-fopenmp)

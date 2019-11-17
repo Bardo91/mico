@@ -29,10 +29,10 @@ build_example(example_particle_filter_3d PARTICLE_FILTER_EXAMPLE_FILES)
 set(ML_LDA_EXAMPLE_FILES   ml/classification/example_topic_modeling.cpp )
 build_example(example_ml_lda ML_LDA_EXAMPLE_FILES)
 
-if (${MICO_USE_ROS})
-    set(SLAM_PHOTOGRAM_FILES  odom_photogrametry/src/example_odom.cpp odom_photogrametry/src/mono2rgbd.cpp odom_photogrametry/src/EKFImu.cpp)
-    build_example(example_slam_photogram SLAM_PHOTOGRAM_FILES)
-    target_include_directories(example_slam_photogram PUBLIC odom_photogrametry/include)
-endif()
+# if (${MICO_USE_ROS})
+#     set(SLAM_PHOTOGRAM_FILES  odom_photogrametry/src/example_odom.cpp odom_photogrametry/src/mono2rgbd.cpp odom_photogrametry/src/EKFImu.cpp)
+#     build_example(example_slam_photogram SLAM_PHOTOGRAM_FILES)
+#     target_include_directories(example_slam_photogram PUBLIC odom_photogrametry/include)
+# endif()
 
 
