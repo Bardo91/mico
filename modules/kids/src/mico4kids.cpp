@@ -116,5 +116,10 @@ int main(int _argc, char *_argv[]) {
     // std::string profileName = "mico4kids_prob_"+std::to_string(time(NULL))+".log";
     // ProfilerStart(profileName.c_str());
     manager.setNodeRegisterFn(registerDataModels);
+    manager.setCodeGeneratorCustoms({"mico/flow/mico_flow.h"},              // INCLUDEs
+                                    {"mico REQUIRED"},                      // FINDS
+                                    {"mico::mico-base", "mico::mico-flow"}  // LINKS
+                                    );    
+                                    
     return manager.init(_argc, _argv);;
 }
