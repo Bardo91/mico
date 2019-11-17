@@ -20,9 +20,32 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-#include <mico/base/LIDAR/LidarSICKTim517.h>
+#include <mico/base/LIDAR/LidarSICKTimHandlerUSB.h>
+#include <mico/base/LIDAR/LidarSICKTim517_parser.h>
 
-namespace mico{
+int main(int _argc, char **_argv){
+  ros::init(_argc, _argv, "mico_sickTim571_node");
+  mico::LidarSICKTim571Parser* parser = new mico::LidarSICKTim571Parser();
+      
+  int device_number = 0;
+  mico::LidarSICKTimHandlerUSB* handlerUsb = new mico::LidarSICKTimHandlerUSB(parser, device_number);
+  int result = mico::ExitError;
+  result = handlerUsb->init();
+      
+  while (ros::ok()){
+    while(ros::ok() && (result == mico::ExitSuccess)){
+      ros::spinOnce();
+      result = handlerUsb->loopOnce();
+    }
+    delete handlerUsb;
+     
+    if (result == mico::ExitFatal)
+      return result;
+      
+    if (ros::ok())
+      ros::Duration(1.0).sleep(); // Only attempt USB connections once per second
+  }
 
-
+  delete parser;
+  return result;
 }

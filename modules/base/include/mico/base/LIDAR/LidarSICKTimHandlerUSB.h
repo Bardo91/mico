@@ -30,18 +30,15 @@
 
 #include "LidarSICKTim517_parser.h"
 
+#include "ros/ros.h"
+
 namespace mico{
 
     class LidarSICKTimHandlerUSB{
 
     public:
         LidarSICKTimHandlerUSB(LidarParser* _parser, int _deviceNumber);
-
-        /// Send a SOPAS command to the scanner that should cause a soft reset
-        /**
-         * \returns true if reboot command was accepted, false otherwise
-         */
-        bool rebootScanner();
+        ~LidarSICKTimHandlerUSB(){};
         
         int init();
         int loopOnce();
@@ -58,7 +55,7 @@ namespace mico{
          * \param [in] request the command to send.
          * \param [out] reply if not NULL, will be filled with the reply package to the command.
          */
-        int sendSOPASCommand(const char* request, std::vector<unsigned char> * reply);
+        int sendSOPASCommand(const char* _request, std::vector<unsigned char> * _reply);
 
         /// Read a datagram from the device.
         /**
@@ -73,9 +70,9 @@ namespace mico{
          * \param [in] reply reply from sendSOPASCommand
          * \returns reply as string with special characters stripped out
          */
-        static std::string replyToString(const std::vector<unsigned char> &reply);
+        static std::string replyToString(const std::vector<unsigned char> &_reply);
 
-        bool isCompatibleDevice(const std::string identStr) const;
+        bool isCompatibleDevice(const std::string _identStr);
 
     private:
         static const unsigned int USB_TIMEOUT = 1000; // milliseconds
@@ -89,6 +86,10 @@ namespace mico{
 
         // Parser
         LidarParser* parser_ = nullptr;
+
+        // ROS
+        ros::NodeHandle nh_;
+        ros::Publisher lidarPub_;
 
     };
 }

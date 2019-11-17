@@ -32,14 +32,14 @@ namespace mico{
         devices_         = nullptr;
         deviceHandle_   = nullptr;
 
-
         // init publisher handler.. eg. can be ROS publisher
+        lidarPub_ = nh_.advertise<sensor_msgs::LaserScan>("scan", 1000);
     }
 
     //---------------------------------------------------------------------------------------------------------------------
-    std::string LidarSICKTimHandlerUSB::replyToString(const std::vector<unsigned char> &reply){
+    std::string LidarSICKTimHandlerUSB::replyToString(const std::vector<unsigned char> &_reply){
         std::string reply_str;
-        for (std::vector<unsigned char>::const_iterator it = reply.begin(); it != reply.end(); it++){
+        for (std::vector<unsigned char>::const_iterator it = _reply.begin(); it != _reply.end(); it++){
             if (*it > 13){ // filter control characters for display
                 reply_str.push_back(*it);
             }
@@ -48,12 +48,12 @@ namespace mico{
     }
 
     //---------------------------------------------------------------------------------------------------------------------
-    bool LidarSICKTimHandlerUSB::isCompatibleDevice(const std::string identStr) const{
+    bool LidarSICKTimHandlerUSB::isCompatibleDevice(const std::string _identStr){
         char device_string[7];
         int version_major = -1;
         int version_minor = -1;
 
-        if (sscanf(identStr.c_str(), "sRA 0 6 %6s E V%d.%d", device_string,
+        if (sscanf(_identStr.c_str(), "sRA 0 6 %6s E V%d.%d", device_string,
                     &version_major, &version_minor) == 3
                     && strncmp("TiM3", device_string, 4) == 0
                     && version_major >= 2 && version_minor >= 50){
@@ -70,7 +70,7 @@ namespace mico{
     /**
      * Send a SOPAS command to the device and print out the response to the console.
      */
-    int LidarSICKTimHandlerUSB::sendSOPASCommand(const char* request, std::vector<unsigned char> * reply){
+    int LidarSICKTimHandlerUSB::sendSOPASCommand(const char* _request, std::vector<unsigned char> * _reply){
       if (deviceHandle_ == NULL) {
         printf("LIBUSB - device not open");
         return ExitError;
@@ -82,11 +82,11 @@ namespace mico{
       /*
        * Write a SOPAS variable read request to the device.
        */
-      ROS_DEBUG("LIBUSB - Write data... %s", request);
+      ROS_DEBUG("LIBUSB - Write data... %s", _request);
 
       int actual_length = 0;
-      int requestLength = strlen(request);
-      result = libusb_bulk_transfer(deviceHandle_, (2 | LIBUSB_ENDPOINT_OUT), (unsigned char*)request, requestLength,
+      int requestLength = strlen(_request);
+      result = libusb_bulk_transfer(deviceHandle_, (2 | LIBUSB_ENDPOINT_OUT), (unsigned char*)_request, requestLength,
                                     &actual_length, 0);
       if (result != 0 || actual_length != requestLength)
       {
@@ -106,10 +106,10 @@ namespace mico{
 
       receiveBuffer[actual_length] = 0;
       printf("LIBUSB - Read data...  %s", receiveBuffer);
-      if(reply) {
-          reply->clear();
+      if(_reply) {
+          _reply->clear();
           for(int i = 0; i < actual_length; i++) {
-              reply->push_back(receiveBuffer[i]);
+              _reply->push_back(receiveBuffer[i]);
           }
       }
 
@@ -303,8 +303,61 @@ namespace mico{
     }
 
     //---------------------------------------------------------------------------------------------------------------------
+    int LidarSICKTimHandlerUSB::get_datagram(unsigned char* _receiveBuffer, int _bufferSize, int* _actualLength){
+        int result = libusb_bulk_transfer(deviceHandle_, (1 | LIBUSB_ENDPOINT_IN), _receiveBuffer, _bufferSize - 1, _actualLength,
+                                        USB_TIMEOUT);   // read up to _bufferSize - 1 to leave space for \0
+        if (result != 0)
+        {
+            if (result == LIBUSB_ERROR_TIMEOUT){
+                std::cout <<"LIBUSB - Read Error: LIBUSB_ERROR_TIMEOUT. \n";
+                *_actualLength = 0;
+                return ExitSuccess; // return success with size 0 to continue looping
+            }else{
+                printf("LIBUSB - Read Error: %i.", result);
+                return result; // return failure to exit node
+            }
+        }
+
+        _receiveBuffer[*_actualLength] = 0;
+        return ExitSuccess;
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
     int LidarSICKTimHandlerUSB::loopOnce(){
-        return 0;
+
+        unsigned char receiveBuffer[65536];
+        int actual_length = 0;
+        static unsigned int iteration_count = 0;
+
+        int result = get_datagram(receiveBuffer, 65536, &actual_length);
+        if (result != 0){
+            printf("Read Error when getting datagram: %i.", result);
+            return ExitError; // return failure to exit node
+        }
+        if(actual_length <= 0)
+            return ExitSuccess; // return success to continue looping
+
+        sensor_msgs::LaserScan msg;
+        /*
+        * datagrams are enclosed in <STX> (0x02), <ETX> (0x03) pairs
+        */
+        char* buffer_pos = (char*)receiveBuffer;
+        char *dstart, *dend;
+        while( (dstart = strchr(buffer_pos, 0x02)) && (dend = strchr(dstart + 1, 0x03)) )
+        {
+            size_t dlength = dend - dstart;
+            *dend = '\0';
+            dstart++;
+            int success = parser_->parse_datagram(dstart, dlength, msg);
+            if (success == ExitSuccess){
+                // publish data
+
+                lidarPub_.publish(msg);
+            }
+            buffer_pos = dend + 1;
+        }
+
+        return ExitSuccess; // return success to continue looping
            
     }
         

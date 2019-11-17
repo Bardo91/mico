@@ -23,6 +23,7 @@
 #define MICO_BASE_RGBDTOOLS_H_
 
 #include <mico/base/StereoCamera.h>
+#include <mico/base/LidarParser.h>
 
 #include <mico/base/utils/Graph2d.h>
 #include <mico/base/utils/Gui.h>

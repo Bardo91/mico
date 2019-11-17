@@ -35,4 +35,9 @@ build_example(example_ml_lda ML_LDA_EXAMPLE_FILES)
 #     target_include_directories(example_slam_photogram PUBLIC odom_photogrametry/include)
 # endif()
 
+if (${MICO_USE_ROS})
+    set(LIDAR2D_EXAMPLE_FILES  lidar2D_ros/example_lidar2D.cpp)
+    build_example(lidar2D_example LIDAR2D_EXAMPLE_FILES)
+endif()
+
 
