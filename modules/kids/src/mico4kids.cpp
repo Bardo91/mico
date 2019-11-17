@@ -71,6 +71,7 @@ void registerDataModels(FlowVisualInterface::RegistryType_ &_register) {
     _register->registerModel<FlowVisualBlock<BlockDatabaseMarkI>>           ("SLAM");
     _register->registerModel<FlowVisualBlock<BlockLoopClosure>>             ("SLAM");
     _register->registerModel<FlowVisualBlock<BlockOptimizerCF>>             ("SLAM");
+    _register->registerModel<FlowVisualBlock<BlockParticleFilterKinematic>> ("SLAM");
     
     // Visualizers
     _register->registerModel<FlowVisualBlock<BlockImageVisualizer>>         ("Visualizers");
@@ -120,6 +121,6 @@ int main(int _argc, char *_argv[]) {
                                     {"mico REQUIRED"},                      // FINDS
                                     {"mico::mico-base", "mico::mico-flow"}  // LINKS
                                     );    
-                                    
+
     return manager.init(_argc, _argv);;
 }

@@ -19,48 +19,62 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-// Streamers
-#undef Q_FOREACH
-#include <mico/flow/blocks/streamers/StreamRealSense.h>
-#include <mico/flow/blocks/streamers/StreamDataset.h>
-#include <mico/flow/blocks/streamers/StreamPixhawk.h>
-#include <mico/flow/blocks/streamers/ros/BlockROSSuscriber.h>
 
-// Streamers
-#include <mico/flow/blocks/streamers/ros/ROSStreamers.h>
+#ifndef MICO_FLOW_STREAMERS_BLOCKS_PROCESSORS_BLOCKPARTICLEFILTERKINEMATIC_H_
+#define MICO_FLOW_STREAMERS_BLOCKS_PROCESSORS_BLOCKPARTICLEFILTERKINEMATIC_H_
 
-// Publishers
-#include <mico/flow/blocks/publishers/ros/BlockROSPublisher.h>
-#include <mico/flow/blocks/publishers/ros/ROSPublishers.h>
-
-// Processors
-#include <mico/flow/blocks/processors/BlockOdometryRGBD.h>
-#include <mico/flow/blocks/processors/BlockOdometryPhotogrammetry.h>
-#include <mico/flow/blocks/processors/BlockDatabaseMarkI.h>
-#include <mico/flow/blocks/processors/BlockLoopClosure.h>
-#include <mico/flow/blocks/processors/BlockOptimizerCF.h>
-#include <mico/flow/blocks/processors/BlockEKFIMU.h>
-#include <mico/flow/blocks/processors/BlockParticleFilterKinematic.h>
+#include <flow/Block.h>
+#include <mico/base/state_filtering/ParticleFilterCPU.h>
+#include <mico/base/map3d/Dataframe.h>
+#include <Eigen/Eigen>
+#include<bits/stdc++.h>
 
 
-// Visualizers
-#include <mico/flow/blocks/visualizers/BlockImageVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockTrayectoryVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockDatabaseVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockSceneVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockPointCloudVisualizer.h>
+namespace mico{
+    struct ObservationData{
+        Eigen::Vector3f position;
+    };
 
-// Casters
-#include <mico/flow/blocks/CastBlocks.h>
+    class ParticleRobot : public ParticleInterface<ObservationData>{
+    public:
+        int sign(float _x);
+        ParticleRobot();
+        void simulate();
+        void simulateReal();
 
-// Queuers
-#include <mico/flow/blocks/BlockQueuer.h>
+        ObservationData observation();
+        double computeWeight(ObservationData &_observation);
+        Eigen::Vector3f position();
 
-// Savers
-#include <mico/flow/blocks/savers/SaverImage.h>
-#include <mico/flow/blocks/savers/SaverTrajectory.h>
+    private:
+        Eigen::Vector3f mPosition;	// x, y, z
+        Eigen::Vector3f mSpeed;	// x, y, z
 
-// DNN
-#ifdef HAS_DARKNET
-    #include <mico/flow/blocks/processors/BlockDarknet.h> // 666 HAS DARKNET
+    };
+
+    inline double gauss(const double & _nu, const double & _sigma);
+    Eigen::Vector3f mediumState(std::vector<ParticleRobot> _particles);
+
+
+    class BlockParticleFilterKinematic: public flow::Block{
+    public:
+        static std::string name() {return "Particle Filter Kinematic";}
+
+        BlockParticleFilterKinematic();
+        // ~BlockOdometryRGBD(){};
+
+        bool configure(std::unordered_map<std::string, std::string> _params) override;
+        std::vector<std::string> parameters() override;
+
+    private:
+        bool idle_ = true;
+        ParticleFilterCPU<ParticleRobot, ObservationData> *filter_;	
+
+        double positionNoise_ = 0.5;
+        double speedNoise_ = 0.1;
+        double nParticles_ = 500;
+    };
+
+}
+
 #endif
