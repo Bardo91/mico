@@ -41,23 +41,12 @@ namespace mico {
         // Compute principal directions
         Eigen::Vector4f pcaCentroid;
         pcl::compute3DCentroid<pcl::PointXYZRGBNormal>(*clouds_[_dataframeId], pcaCentroid);
-        //std::cout << "Entity: " << id_ << " centroid from df: " << _dataframeId << ": " << pcaCentroid << "\n";
         Eigen::Matrix3f covariance;
         pcl::computeCovarianceMatrixNormalized<pcl::PointXYZRGBNormal>(*clouds_[_dataframeId], pcaCentroid, covariance);
         Eigen::SelfAdjointEigenSolver<Eigen::Matrix3f> eigen_solver(covariance, Eigen::ComputeEigenvectors);
         Eigen::Matrix3f eigenVectorsPCA = eigen_solver.eigenvectors();
-        eigenVectorsPCA.col(2) = eigenVectorsPCA.col(0).cross(eigenVectorsPCA.col(1)); /// This line is necessary for proper orientation in some cases. The numbers come out the same without it, but
-                                                                                       ///    the signs are different and the box doesn't get correctly oriented in some cases.
+        eigenVectorsPCA.col(2) = eigenVectorsPCA.col(0).cross(eigenVectorsPCA.col(1));
         
-        //// PCA comparison
-        //pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloudPCAprojection (new pcl::PointCloud<pcl::PointXYZRGBNormal>);
-        //pcl::PCA<pcl::PointXYZRGBNormal> pca;
-        //pca.setInputCloud(clouds[_dataframeId]);
-        ////pca.project(*cloud, *cloudPCAprojection);
-        //std::cerr << std::endl << "EigenVectors: " << pca.getEigenVectors() << std::endl;
-        //std::cerr << std::endl << "EigenValues: " << pca.getEigenValues() << std::endl;
-        //// In this case, pca.getEigenVectors() gives similar eigenVectors to eigenVectorsPCA.
-
         // Transform the original cloud to the origin where the principal components correspond to the axes.
         Eigen::Matrix4f projectionTransform(Eigen::Matrix4f::Identity());
         projectionTransform.block<3, 3>(0, 0) = eigenVectorsPCA.transpose();
@@ -82,13 +71,11 @@ namespace mico {
         Eigen::Matrix4f pose = Eigen::Matrix4f::Identity();
         pose.block(0,0,3,3) = bboxQuaternion.toRotationMatrix();
         pose.block(0,3,3,1) = bboxTransform;
-        //std::cout << "Entity: " << id_ << " pose from df: " << _dataframeId << ": " << pose << "\n";
         poses_[_dataframeId] = pose;   // to global pose 666 check this
         // poses_[_dataframeId] = pose * covisibility_[_dataframeId];   // to global pose 666 check this
         positions_[_dataframeId] = bboxTransform;
         orientations_[_dataframeId] = bboxQuaternion;
         return true;
-        // visu->addCube(bboxTransform, bboxQuaternion, maxPoint.x - minPoint.x, maxPoint.y - minPoint.y, maxPoint.z - minPoint.z, "bbox1", mesh_vp_2);
     }
 
     template<typename PointType_>

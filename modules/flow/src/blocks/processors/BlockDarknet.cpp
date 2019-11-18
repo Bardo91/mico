@@ -123,28 +123,29 @@ namespace mico{
                                                     std::vector<cv::Point2f> entityProjections;
 
                                                     if(featureProjections.size() > 0 && featureCloud != nullptr){
-                                                        // feature cloud
-                                                        for(auto it = featureProjections.begin(); it != featureProjections.end(); it++ ){
-                                                            if( it->x > detection[2] && it->x < detection[4] && it->y > detection[3] && it->y < detection[5]){
-                                                                entityProjections.push_back(*it);
-                                                                
-                                                                auto index = it - featureProjections.begin();
-                                                                entityCloud->push_back(featureCloud->points[index]);
-                                                                
-                                                                // mising descriptors
+
+                                                        if(!useDenseCloud_){ // feature cloud
+                                                            for(auto it = featureProjections.begin(); it != featureProjections.end(); it++ ){
+                                                                if( it->x > detection[2] && it->x < detection[4] && it->y > detection[3] && it->y < detection[5]){
+                                                                    entityProjections.push_back(*it);
+                                                                    auto index = it - featureProjections.begin();
+                                                                    entityCloud->push_back(featureCloud->points[index]);
+                                                                    // mising descriptors
+                                                                }
                                                             }
                                                         }
-
-                                                        // // dense cloud
-                                                        // for (int dy = detection[3]; dy < detection[5]; dy++) {
-                                                        //     for (int dx = detection[2]; dx < detection[4]; dx++) {
-                                                        //         pcl::PointXYZRGBNormal p = denseCloud->at(dx,dy);
-                                                        //         if(!boost::math::isnan(p.x) && !boost::math::isnan(p.y) && !boost::math::isnan(p.z)){
-                                                        //             if(!boost::math::isnan(-p.x) && !boost::math::isnan(-p.y) && !boost::math::isnan(-p.z))
-                                                        //                 entityCloud->push_back(p);
-                                                        //         }
-                                                        //     }
-                                                        // }
+                                                        else{
+                                                            // dense cloud
+                                                            for (int dy = detection[3]; dy < detection[5]; dy++) {
+                                                                for (int dx = detection[2]; dx < detection[4]; dx++) {
+                                                                    pcl::PointXYZRGBNormal p = denseCloud->at(dx,dy);
+                                                                    if(!boost::math::isnan(p.x) && !boost::math::isnan(p.y) && !boost::math::isnan(p.z)){
+                                                                        if(!boost::math::isnan(-p.x) && !boost::math::isnan(-p.y) && !boost::math::isnan(-p.z))
+                                                                            entityCloud->push_back(p);
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
 
                                                         e->projections(df->id(), entityProjections);
                                                         if(entityCloud->size() > 3){
@@ -160,10 +161,10 @@ namespace mico{
                                                         }
                                                     }
                                                     
-                                                    //cv::Rect rec(detection[2], detection[3], detection[4] -detection[2], detection[5]-detection[3]);
-                                                    ////cv::putText(image, "Confidence" + std::to_string(detection[1]), cv::Point2i(detection[2], detection[3]),1,2,cv::Scalar(0,255,0));
-                                                    //cv::putText(image, "ObjectId: " + std::to_string(detection[0]), cv::Point2i(detection[2], detection[3]),1,2,cv::Scalar(0,255,0));
-                                                    //cv::rectangle(image, rec, cv::Scalar(0,255,0));
+                                                    cv::Rect rec(detection[2], detection[3], detection[4] -detection[2], detection[5]-detection[3]);
+                                                    //cv::putText(image, "Confidence" + std::to_string(detection[1]), cv::Point2i(detection[2], detection[3]),1,2,cv::Scalar(0,255,0));
+                                                    cv::putText(image, "ObjectId: " + std::to_string(detection[0]), cv::Point2i(detection[2], detection[3]),1,2,cv::Scalar(0,255,0));
+                                                    cv::rectangle(image, rec, cv::Scalar(0,255,0));
 
                                                 }
                                             }
@@ -196,7 +197,11 @@ namespace mico{
             }else if(p.first == "confidence threshold"){
                 if(p.second.compare("confidence threshold"))
                     confidenceThreshold = stof(p.second);
-            }   
+            }  
+            }else if(p.first == "dense_cloud"){
+                if(p.second.compare("true"))
+                    useDenseCloud_ = true;
+            }  
         }
 
         // cfg file provided?
@@ -223,9 +228,11 @@ namespace mico{
 
 
 
-        std::cout << "cfg file : " << cfgFile << "\n";
-        std::cout << "weightsFile : " << weightsFile << "\n";
-        std::cout << "confidence threshold : " << confidenceThreshold << "\n";
+        std::cout << "[Block Darkn
+        et]Cfg file : " << cfgFile << "\n";
+        std::cout << "[Block Darknet]WeightsFile : " << weightsFile << "\n";
+        std::cout << "[Block Darknet]Confidence threshold : " << confidenceThreshold << "\n";
+        std::cout << "[Block Darknet]Use dense cloud : " << useDenseCloud_ << "\n";
 
         hasParameters_ = true;  
         if(detector_.init(cfgFile,weightsFile)){

@@ -49,6 +49,7 @@ namespace mico{
         bool hasParameters_ = false; //weights and cfg
         float confidenceThreshold = 0.3;
         int numEntities_ = 0;
+        bool useDenseCloud_ = false;
         #ifdef HAS_DARKNET
         mico::WrapperDarknet detector_;
         #endif
