@@ -195,12 +195,15 @@ namespace mico{
                 cfgFile = p.second;
             }else if(p.first == "weights"){
                 weightsFile = p.second;
-            }else if(p.first == "confidence threshold"){
-                if(p.second.compare("confidence threshold"))
+            }else if(p.first == "confidence_threshold"){
+                if(p.second.compare("confidence_threshold"))
                     confidenceThreshold = stof(p.second);
             }else if(p.first == "dense_cloud"){
-                if(p.second.compare("true"))
+                if(!p.second.compare("true")){
                     useDenseCloud_ = true;
+                }else{
+                    useDenseCloud_ = false;
+                }
             }  
         }
 
@@ -226,8 +229,6 @@ namespace mico{
             }
         }
 
-
-
         std::cout << "[Block Darknet]Cfg file : " << cfgFile << "\n";
         std::cout << "[Block Darknet]WeightsFile : " << weightsFile << "\n";
         std::cout << "[Block Darknet]Confidence threshold : " << confidenceThreshold << "\n";
@@ -247,7 +248,7 @@ namespace mico{
     }
     
     std::vector<std::string> BlockDarknet::parameters(){
-        return {"cfg", "weights", "confidence threshold", "dense_cloud"};
+        return {"cfg", "weights", "confidence_threshold", "dense_cloud"};
     }
 
 

@@ -39,19 +39,16 @@ namespace mico {
     template<typename PointType_>
     inline bool Entity<PointType_>::computePose(int _dataframeId){   // 666 _dataframeId to compute pose with several clouds        
         Eigen::Matrix4f pose = Eigen::Matrix4f::Identity();
-        auto c = clouds_[_dataframeId];
         std::vector<float> bc;
         // Compute principal directions
-        if(!computePCA(*c, pose, bc))
+        if(!computePCA(*clouds_[_dataframeId], pose, bc))
             return false;
 
-        Eigen::Quaternionf q(pose.block<3,3>(0,0));
-        
         poses_[_dataframeId] = pose;   // to global pose 666 check this
         // poses_[_dataframeId] = pose * covisibility_[_dataframeId];   // to global pose 666 check this
         positions_[_dataframeId] = pose.block(0,3,3,1);
+        Eigen::Quaternionf q(pose.block<3,3>(0,0));
         orientations_[_dataframeId] = q;
-
         boundingcube_[_dataframeId] = bc;
         return true;
     }

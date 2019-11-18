@@ -47,7 +47,7 @@ namespace mico{
     private:
         bool idle_ = true;
         bool hasParameters_ = false; //weights, cfg, confidence threshold and use dense cloud
-        float confidenceThreshold = 0.3;
+        float confidenceThreshold = 0.7;
         int numEntities_ = 0;
         bool useDenseCloud_ = false;
         #ifdef HAS_DARKNET
