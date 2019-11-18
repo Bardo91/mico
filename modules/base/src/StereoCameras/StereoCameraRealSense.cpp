@@ -214,7 +214,7 @@ namespace mico {
         #if defined(ENABLE_LIBREALSENSE_V1) || defined(ENABLE_LIBREALSENSE_V2)
 
         if(mSetDenseCloud){
-            _cloud.resize(mLastDepthInColor.rows * mLastDepthInColor.cols)
+            _cloud.resize(mLastDepthInColor.rows * mLastDepthInColor.cols);
             setOrganizedAndDense(_cloud);
         }
 
