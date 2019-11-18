@@ -46,7 +46,7 @@ namespace mico{
 
     private:
         bool idle_ = true;
-        bool hasParameters_ = false; //weights and cfg
+        bool hasParameters_ = false; //weights, cfg, confidence threshold and use dense cloud
         float confidenceThreshold = 0.3;
         int numEntities_ = 0;
         bool useDenseCloud_ = false;

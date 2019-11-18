@@ -24,6 +24,7 @@
 #include <mico/flow/OutPipe.h>
 #include <boost/math/special_functions/fpclassify.hpp>
 #include <chrono>
+#include <iostream>
 namespace mico{
 
     BlockDarknet::BlockDarknet(){
@@ -154,7 +155,7 @@ namespace mico{
                                                             e->cloud(df->id(), entityCloud);
                                                             Eigen::Matrix4f dfPose = df->pose();
                                                             e->updateCovisibility(df->id(), dfPose);
-                                                            if(e->computePCA(df->id())){
+                                                            if(e->computePose(df->id())){
                                                                 entities.push_back(e);
                                                                 numEntities_++;
                                                             }
@@ -197,7 +198,6 @@ namespace mico{
             }else if(p.first == "confidence threshold"){
                 if(p.second.compare("confidence threshold"))
                     confidenceThreshold = stof(p.second);
-            }  
             }else if(p.first == "dense_cloud"){
                 if(p.second.compare("true"))
                     useDenseCloud_ = true;
@@ -228,8 +228,7 @@ namespace mico{
 
 
 
-        std::cout << "[Block Darkn
-        et]Cfg file : " << cfgFile << "\n";
+        std::cout << "[Block Darknet]Cfg file : " << cfgFile << "\n";
         std::cout << "[Block Darknet]WeightsFile : " << weightsFile << "\n";
         std::cout << "[Block Darknet]Confidence threshold : " << confidenceThreshold << "\n";
         std::cout << "[Block Darknet]Use dense cloud : " << useDenseCloud_ << "\n";
@@ -248,7 +247,7 @@ namespace mico{
     }
     
     std::vector<std::string> BlockDarknet::parameters(){
-        return {"cfg","weights", "confidence threshold"};
+        return {"cfg", "weights", "confidence threshold", "dense_cloud"};
     }
 
 

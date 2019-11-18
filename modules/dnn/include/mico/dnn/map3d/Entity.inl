@@ -37,44 +37,22 @@ namespace mico {
     }
 
     template<typename PointType_>
-    inline bool Entity<PointType_>::computePCA(int _dataframeId){   // 666 _dataframeId to compute pose with several clouds        
-        // Compute principal directions
-        Eigen::Vector4f pcaCentroid;
-        pcl::compute3DCentroid<pcl::PointXYZRGBNormal>(*clouds_[_dataframeId], pcaCentroid);
-        Eigen::Matrix3f covariance;
-        pcl::computeCovarianceMatrixNormalized<pcl::PointXYZRGBNormal>(*clouds_[_dataframeId], pcaCentroid, covariance);
-        Eigen::SelfAdjointEigenSolver<Eigen::Matrix3f> eigen_solver(covariance, Eigen::ComputeEigenvectors);
-        Eigen::Matrix3f eigenVectorsPCA = eigen_solver.eigenvectors();
-        eigenVectorsPCA.col(2) = eigenVectorsPCA.col(0).cross(eigenVectorsPCA.col(1));
-        
-        // Transform the original cloud to the origin where the principal components correspond to the axes.
-        Eigen::Matrix4f projectionTransform(Eigen::Matrix4f::Identity());
-        projectionTransform.block<3, 3>(0, 0) = eigenVectorsPCA.transpose();
-        projectionTransform.block<3, 1>(0, 3) = -1.f * (projectionTransform.block<3, 3>(0, 0) * pcaCentroid.head<3>());
-        pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloudPointsProjected(new pcl::PointCloud<pcl::PointXYZRGBNormal>);
-        pcl::transformPointCloud(*clouds_[_dataframeId], *cloudPointsProjected, projectionTransform);
-
-        // Get the minimum and maximum points of the transformed cloud.
-        pcl::PointXYZRGBNormal minPoint, maxPoint;
-        pcl::getMinMax3D(*cloudPointsProjected, minPoint, maxPoint);
-        boundingcube_[_dataframeId] = {maxPoint.x, minPoint.x, maxPoint.y, minPoint.y, maxPoint.z, minPoint.z};
-
-        const Eigen::Vector3f meanDiagonal = 0.5f * (maxPoint.getVector3fMap() + minPoint.getVector3fMap());
-
-        // Final transform
-        const Eigen::Quaternionf bboxQuaternion(eigenVectorsPCA);
-        const Eigen::Vector3f bboxTransform = eigenVectorsPCA * meanDiagonal + pcaCentroid.head<3>();
-
-        if(std::isnan(bboxTransform(0)) || std::isnan(bboxTransform(1)) || std::isnan(bboxTransform(2)) )
-            return false; 
-
+    inline bool Entity<PointType_>::computePose(int _dataframeId){   // 666 _dataframeId to compute pose with several clouds        
         Eigen::Matrix4f pose = Eigen::Matrix4f::Identity();
-        pose.block(0,0,3,3) = bboxQuaternion.toRotationMatrix();
-        pose.block(0,3,3,1) = bboxTransform;
+        auto c = clouds_[_dataframeId];
+        std::vector<float> bc;
+        // Compute principal directions
+        if(!computePCA(*c, pose, bc))
+            return false;
+
+        Eigen::Quaternionf q(pose.block<3,3>(0,0));
+        
         poses_[_dataframeId] = pose;   // to global pose 666 check this
         // poses_[_dataframeId] = pose * covisibility_[_dataframeId];   // to global pose 666 check this
-        positions_[_dataframeId] = bboxTransform;
-        orientations_[_dataframeId] = bboxQuaternion;
+        positions_[_dataframeId] = pose.block(0,3,3,1);
+        orientations_[_dataframeId] = q;
+
+        boundingcube_[_dataframeId] = bc;
         return true;
     }
 
