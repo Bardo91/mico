@@ -34,6 +34,9 @@
 #include <pcl/registration/transformation_estimation_point_to_plane_lls.h>
 #include <pcl/registration/correspondence_rejection_surface_normal.h>
 #include <pcl/filters/statistical_outlier_removal.h>
+#include <pcl/common/pca.h>
+#include <pcl/common/centroid.h>
+#include <pcl/common/common.h>
 
 #include <chrono>
 
@@ -452,6 +455,50 @@ namespace mico {
             logDealer.error("TRANSFORM_BETWEEN_FEATURES", "Rejecting frame: Num Inliers <" + std::to_string(_mRansacMinInliers));
             return false;
         }
+    }
+
+    template<typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Null>
+    bool computePCA(typename pcl::PointCloud<PointType_> &_cloud,
+                    Eigen::Matrix4f &_pose,
+                    std::vector<float> &_limits){
+
+        LoggableInterface<DebugLevel_, OutInterface_> logDealer;
+
+        // Compute principal directions
+        Eigen::Vector4f pcaCentroid;
+        pcl::compute3DCentroid<PointType_>(_cloud, pcaCentroid);
+        Eigen::Matrix3f covariance;
+        pcl::computeCovarianceMatrixNormalized<PointType_>(_cloud, pcaCentroid, covariance);
+        Eigen::SelfAdjointEigenSolver<Eigen::Matrix3f> eigen_solver(covariance, Eigen::ComputeEigenvectors);
+        Eigen::Matrix3f eigenVectorsPCA = eigen_solver.eigenvectors();
+        eigenVectorsPCA.col(2) = eigenVectorsPCA.col(0).cross(eigenVectorsPCA.col(1));
+        
+        // Transform the original cloud to the origin where the principal components correspond to the axes.
+        Eigen::Matrix4f projectionTransform(Eigen::Matrix4f::Identity());
+        projectionTransform.block<3, 3>(0, 0) = eigenVectorsPCA.transpose();
+        projectionTransform.block<3, 1>(0, 3) = -1.f * (projectionTransform.block<3, 3>(0, 0) * pcaCentroid.head<3>());
+        typename pcl::PointCloud<PointType_>::Ptr cloudPointsProjected(new pcl::PointCloud<PointType_>);
+        pcl::transformPointCloud(_cloud, *cloudPointsProjected, projectionTransform);
+
+        // Get the minimum and maximum points of the transformed cloud.
+        PointType_ minPoint, maxPoint;
+        pcl::getMinMax3D(*cloudPointsProjected, minPoint, maxPoint);
+        _limits = {maxPoint.x, minPoint.x, maxPoint.y, minPoint.y, maxPoint.z, minPoint.z};
+
+        const Eigen::Vector3f meanDiagonal = 0.5f * (maxPoint.getVector3fMap() + minPoint.getVector3fMap());
+
+        // Final transform
+        const Eigen::Quaternionf bboxQuaternion(eigenVectorsPCA);
+        const Eigen::Vector3f bboxTransform = eigenVectorsPCA * meanDiagonal + pcaCentroid.head<3>();
+
+        if(std::isnan(bboxTransform(0)) || std::isnan(bboxTransform(1)) || std::isnan(bboxTransform(2)) ){
+            logDealer.error("COMPUTE_PRINCIPAL_COMPONENT_ANALYSIS", "NaN pose");
+            return false; 
+        }
+
+        _pose.block(0,0,3,3) = bboxQuaternion.toRotationMatrix();
+        _pose.block(0,3,3,1) = bboxTransform;
+        return true;
     }
 }
 

@@ -291,15 +291,15 @@ namespace mico {
     template<typename PointType_>
     inline void Dataframe<PointType_>::reinforce(std::shared_ptr<Dataframe<PointType_>> &_df){
         Eigen::Matrix4f transformation = Eigen::Matrix4f::Identity();
-        if (!transformationBetweenFeatures<PointType_>( _df, 
-                                                        Dataframe<PointType_>::Ptr(this), 
-                                                        transformation,
-                                                        1, 
-                                                        0.03,
-                                                        1000, 
-                                                        10,
-                                                        25.0 /* Descriptor distance factor*/ , 
-                                                        10)) //TODO: json parameters
+        if (!transformationBetweenFeatures( _df, 
+                                            Dataframe<PointType_>::Ptr(this), 
+                                            transformation,
+                                            1, 
+                                            0.03,
+                                            1000, 
+                                            10,
+                                            25.0 /* Descriptor distance factor*/ , 
+                                            10)) //TODO: json parameters
         { 
             std::cout << "DatabaseMarkI, <10 inliers between df: " + std::to_string(_df->id()) + " and df " + std::to_string(id_) + " " << std::endl;
         }else{

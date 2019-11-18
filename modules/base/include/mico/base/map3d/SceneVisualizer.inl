@@ -177,7 +177,86 @@ namespace mico {
         mViewer->spinOnce(10, true);
     }
 
+    //---------------------------------------------------------------------------------------------------------------------
+#ifdef HAS_DARKNET
+    template <typename PointType_>
+    inline void SceneVisualizer<PointType_>::drawEntity(std::vector<std::shared_ptr<mico::Entity<PointType_>>> _entity, bool _drawPoints, bool _drawCube, float _opacity){
+        if(!mViewer)
+            return;
 
+        for(auto &e: _entity){
+            int id = e->id();
+            int firstDf = e->dfs()[0];
+
+            if(mExistingEntity.find(id) != mExistingDf.end()){
+                mViewer->removeCoordinateSystem("e_cs_" + std::to_string(id));
+                mViewer->removeText3D("e_text_" + std::to_string(id));
+                if(mUseOctree)
+                    mViewer->removePointCloud("octree");
+                else
+                    mViewer->removePointCloud("e_cloud_" + std::to_string(id));
+            }
+
+            Eigen::Matrix4f ePose = e->pose(firstDf);
+            mViewer->addCoordinateSystem(0.1, Eigen::Affine3f(ePose), "e_cs_" + std::to_string(id));
+            
+            pcl::PointXYZ position(ePose(0, 3), ePose(1, 3), ePose(2, 3));
+            mViewer->addText3D(std::to_string(id), position, 0.015, 1,0,0, "e_text_" + std::to_string(id));
+
+            // Draw cloud
+            if (e->cloud(firstDf) != nullptr && _drawPoints){ 
+                if(mUseOctree){
+                    pcl::PointCloud<PointType_> cloud;
+                    pcl::transformPointCloudWithNormals(*e->cloud(firstDf), cloud, ePose);
+                    mOctreeVis.setInputCloud (cloud.makeShared());
+                    mOctreeVis.addPointsFromInputCloud ();
+
+                    OctreeIterator treeIt;
+                    OctreeIterator treeItEnd = mOctreeVis.end();
+                    
+                    // int depth = mOctreeVis.getTreeDepth() / 1.25;
+
+                    pcl::PointCloud<PointType_> denseCloud;
+                    PointType_ pt;
+                    Eigen::Vector3f voxel_min, voxel_max;
+                    for (treeIt = mOctreeVis.begin(mOctreeDepth); treeIt!=treeItEnd; ++treeIt) {
+                        mOctreeVis.getVoxelBounds(treeIt, voxel_min, voxel_max);
+
+                        pt.x = (voxel_min.x() + voxel_max.x()) / 2.0f;
+                        pt.y = (voxel_min.y() + voxel_max.y()) / 2.0f;
+                        pt.z = (voxel_min.z() + voxel_max.z()) / 2.0f;
+                        
+                        denseCloud.push_back(pt);
+                    }
+
+                    mViewer->addPointCloud<PointType_>(denseCloud.makeShared(), "octree");
+                    mViewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "octree");
+                }
+                else{
+                    pcl::PointCloud<PointType_> cloudDrawn;
+                    if(mUseVoxel){
+                        mVoxeler.setInputCloud (e->cloud(firstDf));
+                        mVoxeler.filter (cloudDrawn);
+                        mViewer->addPointCloud<PointType_>(cloudDrawn.makeShared(), "e_cloud_" + std::to_string(id));
+                    }else{
+                        mViewer->addPointCloud<PointType_>(e->cloud(firstDf), "e_cloud_" + std::to_string(id));
+                    }
+                    mViewer->updatePointCloudPose("e_cloud_" + std::to_string(id), Eigen::Affine3f(ePose));
+                }
+            }
+            // Draw cube
+            if (e->cloud(firstDf) != nullptr){
+                const Eigen::Matrix3f rotMat = ePose.block(0,0,3,3);
+                const Eigen::Quaternionf bboxQuaternion(rotMat);
+                const Eigen::Vector3f bboxTransform = ePose.block(0,3,3,1);
+                const std::vector<float> bc = e->boundingCube(firstDf);
+                mViewer->addCube(bboxTransform, bboxQuaternion, bc[0] - bc[1], bc[2] - bc[3], bc[4] - bc[5], "e_box_" + std::to_string(id), 0);
+                mViewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_OPACITY, _opacity ,"e_box_" + std::to_string(id));
+            }
+        }
+    }
+#endif
+    //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_>
     inline void SceneVisualizer<PointType_>::drawWords(std::map<int, std::shared_ptr<Word<PointType_>>> _words){
         mViewer->removePointCloud("words");
@@ -205,7 +284,7 @@ namespace mico {
             }
         }
     }
-
+    
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_>
     inline void SceneVisualizer<PointType_>::updateDataframe(int _dfId, const Eigen::Matrix4f &_newPose){
@@ -343,6 +422,9 @@ namespace mico {
         // #else
         //     std::cout << "DBOW 2 not installed, or library not compiled with it. Cant compute dictionarty." << std::endl;
         // #endif
+        }
+        else if (_event.keyDown() && _event.getKeySym() == "r") {
+            mViewer->setCameraPosition (1.59696, 0.285761, -3.40482, -0.084178, -0.989503, -0.117468);
         }
     };
 

@@ -102,8 +102,11 @@ namespace mico{
                 renderWindowInteractor->DestroyTimer(timerId);
             }
         });
-
+        #ifdef HAS_DARKNET
+        iPolicy_ = new flow::Policy({"dataframe", "pose", "v_entity"});
+        #else
         iPolicy_ = new flow::Policy({"dataframe", "pose"});
+        #endif
 
         iPolicy_->registerCallback({"dataframe"}, 
                                 [&](std::unordered_map<std::string,std::any> _data){
@@ -125,6 +128,22 @@ namespace mico{
                                 }
                             );
 
+        #ifdef HAS_DARKNET
+        iPolicy_->registerCallback({"v_entity"}, 
+                                [&](std::unordered_map<std::string,std::any> _data){
+                                    if(idle_){
+                                        printf("New v_entity");
+                                        std::vector<std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>> entities = std::any_cast<std::vector<std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>>>(_data["v_entity"]); 
+                                        for(auto &e: entities){
+                                            auto dfs = e->dfs();
+                                            updateRender(e->id(), e->cloud(dfs[0]), e->pose(dfs[0]));
+                                            entities_[e->id()] = e;
+                                        }
+                                    }
+                                }
+                            );
+        #endif
+
         redrawerThread_ = std::thread([&](){
             while(running_){    //666 better condition for proper finalization.
                 for(auto &df: dataframes_){
@@ -138,8 +157,22 @@ namespace mico{
                         df.second->isOptimized(false);
                     }
                 }
+
+                #ifdef HAS_DARKNET
+                for(auto &e: entities_){
+                    if(e.second != nullptr){
+                        actorsGuard_.lock();
+                        actorsToDelete_.push_back(actors_[e.first]);
+                        actorsGuard_.unlock();
+                        auto dfs = e.second->dfs();
+                        updateRender(e.first, e.second->cloud(dfs[0]), e.second->pose(dfs[0]));
+                    }
+                }
+                #endif
+
                 std::this_thread::sleep_for(std::chrono::milliseconds(500));    // low frame rate.
             }
+
         });
     }
 

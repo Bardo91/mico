@@ -82,6 +82,7 @@ void registerDataModels(FlowVisualInterface::RegistryType_ &_register) {
     //Savers
     _register->registerModel<FlowVisualBlock<SaverImage>>                   ("Savers");
     _register->registerModel<FlowVisualBlock<SaverTrajectory>>              ("Savers");
+    _register->registerModel<FlowVisualBlock<SaverEntity>>                  ("Savers");
 
     // Queuers
     _register->registerModel<FlowVisualBlock<BlockQueuer<QueuerTraitClusterframes>>> ("Queuer");

@@ -121,6 +121,14 @@ namespace mico {
                                        double _mRansacMinInliers,
                                        double _mFactorDescriptorDistance,
                                        unsigned _mRansacRefineIterations=5);
+/// Compute principal component analysis.
+    /// \param _cloud:
+    /// \param _pose:
+    /// \param _limits:
+    template<typename PointType_, DebugLevels DebugLevel_ = DebugLevels::Null, OutInterfaces OutInterface_ = OutInterfaces::Null>
+    bool computePCA(typename pcl::PointCloud<PointType_> &_cloud,
+                    Eigen::Matrix4f &_pose,
+                    std::vector<float> &_limits);
 
 }
 
