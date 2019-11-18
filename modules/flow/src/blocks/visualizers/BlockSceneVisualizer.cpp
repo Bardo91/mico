@@ -70,6 +70,8 @@ namespace mico{
                                     idle_ = true;
                                 }
                             );
+
+    #ifdef HAS_DARKNET
         iPolicy_->registerCallback({"v_entity" }, 
                                 [&](std::unordered_map<std::string,std::any> _data){
                                     std::vector<std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>> entities = std::any_cast<std::vector<std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>>>(_data["v_entity"]); 
@@ -79,6 +81,7 @@ namespace mico{
                                     idle_ = true;
                                 }
                             );
+    #endif
         
     }
 
@@ -148,14 +151,15 @@ namespace mico{
                     sceneVisualizer_.drawDataframe(cf);
                 }
 
+            #ifdef HAS_DARKNET
                 while(queueEntities_.size() > 0){
                     queueEntitiesGuard_.lock();
                     auto e = queueEntities_.front();
                     queueEntities_.pop_front();
                     queueEntitiesGuard_.unlock();
-                    sceneVisualizer_.drawEntity(e, false, true, 0.4);
+                    sceneVisualizer_.drawEntity(e, true, 0.2);
                 }
-
+            #endif
                 // Check optimizations.
                 sceneVisualizer_.checkAndRedrawCf();
                 
