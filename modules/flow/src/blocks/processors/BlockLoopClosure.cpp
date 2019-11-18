@@ -74,6 +74,9 @@ namespace mico{
         cjson::Json jParams;
         for(auto &param: _params){
             if(param.first =="vocabulary"){
+                if(param.second == "")
+                    return false;
+                    
                 jParams["vocabulary"] = param.second;
             }
         }

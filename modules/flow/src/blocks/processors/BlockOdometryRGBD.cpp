@@ -86,7 +86,7 @@ namespace mico{
 
     bool BlockOdometryRGBD::configure(std::unordered_map<std::string, std::string> _params){
         for(auto &param: _params){
-            if(param.first == "calibration"){
+            if(param.first == "calibration" && param.second != ""){
 
                 cv::FileStorage fs(param.second, cv::FileStorage::READ);
 

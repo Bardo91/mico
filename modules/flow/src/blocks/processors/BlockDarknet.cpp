@@ -196,8 +196,9 @@ namespace mico{
             }else if(p.first == "weights"){
                 weightsFile = p.second;
             }else if(p.first == "confidence_threshold"){
-                if(p.second.compare("confidence_threshold"))
+                if(p.second.compare("confidence_threshold") && p.second != ""){
                     confidenceThreshold = stof(p.second);
+                }
             }else if(p.first == "dense_cloud"){
                 if(!p.second.compare("true")){
                     useDenseCloud_ = true;

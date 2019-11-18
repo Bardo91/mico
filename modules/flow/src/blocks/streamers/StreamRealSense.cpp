@@ -32,8 +32,8 @@ namespace mico{
         }
 
         bool StreamRealSense::configure(std::unordered_map<std::string, std::string> _params) {
-            if(runLoop_) // Cant configure if already running.
-                return false;
+            if(runLoop_ || hasInitCamera_) // Cant configure if already running.
+                return true;
 
             cjson::Json jParams = {};
             for(auto &p:_params){

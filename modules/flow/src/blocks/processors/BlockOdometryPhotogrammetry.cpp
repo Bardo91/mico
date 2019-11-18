@@ -94,7 +94,9 @@ namespace mico{
     bool BlockOdometryPhotogrammetry::configure(std::unordered_map<std::string, std::string> _params){
         for(auto &param: _params){
             if(param.first == "calibration"){
-
+                if(param.second == "")
+                    return false;
+                    
                 cv::FileStorage fs(param.second, cv::FileStorage::READ);
                 fs["MatrixLeft"]            >> matrixLeft_;
                 fs["DistCoeffsLeft"]        >> distCoefLeft_;
