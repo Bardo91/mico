@@ -25,7 +25,6 @@
 #include <mico/base/LIDAR/LidarSICKTimHandlerUSB.h>
 
 namespace mico{
-
     LidarSICKTimHandlerUSB::LidarSICKTimHandlerUSB(LidarParser* _parser, int _deviceNumber){
         parser_ = _parser;
         deviceNumber_ = _deviceNumber;
@@ -79,7 +78,7 @@ namespace mico{
     // Send a SOPAS command to the device and print out the response to the console.
     int LidarSICKTimHandlerUSB::sendSOPASCommand(const char* _request, std::vector<unsigned char> * _reply){
       if (deviceHandle_ == NULL) {
-        printf("LIBUSB - device not open");
+        this->error("LIBUSB","device not open");
         return ExitError;
       }
 
@@ -88,21 +87,21 @@ namespace mico{
 
       
       // Write a SOPAS variable read request to the device.
-      printf("LIBUSB - Write data... %s", _request);
+      // printf("LIBUSB","Write data... %s",_request );
 
       int actual_length = 0;
       int requestLength = strlen(_request);
       result = libusb_bulk_transfer(deviceHandle_, (2 | LIBUSB_ENDPOINT_OUT), (unsigned char*)_request, requestLength,
                                     &actual_length, 0);
       if (result != 0 || actual_length != requestLength){
-        printf("LIBUSB - Write Error: %i.", result);
+        this->error("LIBUSB","Write Error: " + std::to_string(result));
         return result;
       }
 
       // Read the SOPAS device response with the given timeout.
       result = libusb_bulk_transfer(deviceHandle_, (1 | LIBUSB_ENDPOINT_IN), receiveBuffer, 65535, &actual_length, USB_TIMEOUT);
       if (result != 0){
-        printf("LIBUSB - Read Error: %i.", result);
+        this->error("LIBUSB","Read Error: " + std::to_string(result));
         return result;
       }
 
@@ -128,7 +127,7 @@ namespace mico{
 
         result = init_scanner();
         if(result != 0){
-            std::cout << "Failed to init scanner: " << result << std::endl;
+            std::cout << "Failed to init device: " << result << std::endl;
         }
 
         return result;
@@ -142,7 +141,7 @@ namespace mico{
         std::vector<unsigned char> identReply;
         int result = sendSOPASCommand(requestDeviceIdent, &identReply);
         if (result != 0){
-            std::cout << "SOPAS - Error reading variable 'DeviceIdent' \n";
+            this->error("SOPAS","Error reading variable 'DeviceIdent'.");
         }
 
         // Read the SOPAS variable 'SerialNumber' by name
@@ -150,7 +149,7 @@ namespace mico{
         std::vector<unsigned char> serialReply;
         result = sendSOPASCommand(requestSerialNumber, &serialReply);
         if (result != 0){
-            std::cout << "SOPAS - Error reading variable 'SerialNumber' \n";
+            this->error("SOPAS","Error reading variable 'SerialNumber'.");
         }
 
         // set hardware ID based on DeviceIdent and SerialNumber
@@ -164,7 +163,7 @@ namespace mico{
         const char requestFirmwareVersion[] = {"\x02sRN FirmwareVersion\x03\0"};
         result = sendSOPASCommand(requestFirmwareVersion, NULL);
         if (result != 0){
-            std::cout << "SOPAS - Error reading variable 'FirmwareVersion' \n";
+            this->error("SOPAS","Error reading variable 'FirmwareVersion'.");
         }
 
         // Read Device State
@@ -172,7 +171,7 @@ namespace mico{
         std::vector<unsigned char> deviceStateReply;
         result = sendSOPASCommand(requestDeviceState, &deviceStateReply);
         if (result != 0){
-            std::cout << "SOPAS - Error reading variable 'deviceState' \n";
+            this->error("SOPAS","Error reading variable 'deviceState'.");
         }
         std::string deviceStateReplyStr = replyToString(deviceStateReply);
 
@@ -180,23 +179,23 @@ namespace mico{
         // Process device state, 0=Busy, 1=Ready, 2=Error
         // If configuration parameter is set, try resetting device in error state
         if (deviceStateReplyStr == "sRA SCdevicestate 0"){
-            std::cout << "Laser is busy \n";
+            // this->warning("Laser is busy");
         }
         else if (deviceStateReplyStr == "sRA SCdevicestate 1"){
-            std::cout << "Laser is ready \n";
+            // this->warning("Laser is ready");
         }
         else if (deviceStateReplyStr == "sRA SCdevicestate 2"){
-            std::cout << "Laser reports error state: " << deviceStateReplyStr << std::endl;        
+            // this->warning("Laser reports error state: " + deviceStateReplyStr);      
         }
         else{
-            std::cout << "Laser reports unknown devicestate: " << deviceStateReplyStr << std::endl;
+            // this->warning("Laser reports unknown devicestate: " + deviceStateReplyStr);
         }
 
         // Start streaming 'LMDscandata'.
         const char requestScanData[] = {"\x02sEN LMDscandata 1\x03\0"};
         result = sendSOPASCommand(requestScanData, NULL);
         if (result != 0){
-            std::cout << "SOPAS - Error starting to stream 'LMDscandata' \n"; 
+            this->error("SOPAS","Error starting to stream 'LMDscandata'.");
             return ExitError;
         }
 
@@ -211,9 +210,9 @@ namespace mico{
         int result = sendSOPASCommand(requestScanData0, NULL);
         if (result != 0){
             // use printf because we cannot use printf from the destructor
-            printf("\nSOPAS - Error stopping streaming scan data!\n");
+            this->warning("SOPAS","Error stopping streaming scan data!");
         }else{
-            printf("\nSOPAS - Stopped streaming scan data.\n");
+            this->warning("SOPAS","Stopped streaming scan data.");
         }
       return result;
     }
@@ -224,7 +223,7 @@ namespace mico{
         //Create and initialize a new LIBUSB session.
         int result = libusb_init(&ctx_);
         if (result != 0){
-            printf("LIBUSB - Initialization failed with the following error code: %i.", result);
+            this->error("LIBUSB","Initialization failed with the following error code: " + std::to_string(result));
             return ExitError;
         }
         
@@ -257,7 +256,7 @@ namespace mico{
             return ExitError;
         }
         else{
-            printf("LIBUSB - Device opened");
+            // this->status("LIBUSB - Device opened");
         }
 
         if (libusb_kernel_driver_active(deviceHandle_, 0) == 1){
@@ -270,10 +269,10 @@ namespace mico{
         // Claim the interface 0
         result = libusb_claim_interface(deviceHandle_, 0);
         if (result < 0){
-            std::cout << "LIBUSB - Cannot claim interface \n";
+            this->error("LIBUSB","Cannot claim interface");
             return ExitError;
         }else{
-            std::cout << "LIBUSB - Claimed interface \n";
+            this->status("LIBUSB","Claimed interface");
         }
 
         return ExitSuccess;
@@ -297,7 +296,7 @@ namespace mico{
             struct libusb_device_descriptor desc;
             int result = libusb_get_device_descriptor(devices[i], &desc);
             if (result < 0){
-                std::cout << "LIBUSB - Failed to get device descriptor \n";
+                this->warning("LIBUSB","Failed to get device descriptor");
                 continue;
             }
 
@@ -351,7 +350,7 @@ namespace mico{
                 *_actualLength = 0;
                 return ExitSuccess; // return success with size 0 to continue looping
             }else{
-                printf("LIBUSB - Read Error: %i.", result);
+                this->error("LIBUSB","Read Error: "+ std::to_string(result));
                 return result; // return failure to exit node
             }
         }
@@ -369,7 +368,7 @@ namespace mico{
 
         int result = get_datagram(receiveBuffer, 65536, &actual_length);
         if (result != 0){
-            printf("Read Error when getting datagram: %i.", result);
+            printf("Read Error when getting datagram: %i",result);
             return ExitError; // return failure to exit node
         }
         if(actual_length <= 0){
@@ -404,9 +403,9 @@ namespace mico{
             // Release the interface
             result = libusb_release_interface(deviceHandle_, 0);
             if (result != 0)
-            printf("LIBUSB - Cannot Release Interface!\n");
+                this->status("LIBUSB","Cannot Release Interface!");
             else
-            printf("LIBUSB - Released Interface.\n");
+                this->status("LIBUSB","Released Interface!");
 
             //Close the device handle.
             libusb_close(deviceHandle_);

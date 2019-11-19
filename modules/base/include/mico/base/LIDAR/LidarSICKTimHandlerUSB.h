@@ -29,14 +29,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <libusb.h>
+#include <mico/base/utils/LogManager.h>
 
 #include "LidarSICKTim517_parser.h"
 
-#include "ros/ros.h"
+#include <ros/ros.h>
 
 namespace mico{
-
-    class LidarSICKTimHandlerUSB{
+    class LidarSICKTimHandlerUSB  : public LoggableInterface<DebugLevels::Debug, OutInterfaces::Cout>{
 
     public:
         LidarSICKTimHandlerUSB(LidarParser* _parser, int _deviceNumber);
