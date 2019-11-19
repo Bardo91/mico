@@ -18,7 +18,9 @@
 //  OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
-
+//
+// Adaptation of code taken from: https://github.com/uos/sick_tim
+//
 
 #ifndef MICO_BASE_LIDAR_LIDARSICKTIMHANDLERUSB_H_
 #define MICO_BASE_LIDAR_LIDARSICKTIMHANDLERUSB_H_
@@ -38,7 +40,7 @@ namespace mico{
 
     public:
         LidarSICKTimHandlerUSB(LidarParser* _parser, int _deviceNumber);
-        ~LidarSICKTimHandlerUSB(){};
+        ~LidarSICKTimHandlerUSB();
         
         int init();
         int loopOnce();
@@ -51,28 +53,28 @@ namespace mico{
 
         
         /// Send a SOPAS command to the device and print out the response to the console.
-        /**
-         * \param [in] request the command to send.
-         * \param [out] reply if not NULL, will be filled with the reply package to the command.
-         */
+        // 
+        // \param [in] request the command to send.
+        // \param [out] reply if not NULL, will be filled with the reply package to the command.
         int sendSOPASCommand(const char* _request, std::vector<unsigned char> * _reply);
 
         /// Read a datagram from the device.
-        /**
-         * \param [in] receiveBuffer data buffer to fill
-         * \param [in] bufferSize max data size to write to buffer (result should be 0 terminated)
-         * \param [out] actual_length the actual amount of data written
-         */
+        /// 
+        /// \param [in] receiveBuffer data buffer to fill
+        /// \param [in] bufferSize max data size to write to buffer (result should be 0 terminated)
+        /// \param [out] actual_length the actual amount of data written
         int get_datagram(unsigned char* _receiveBuffer, int _bufferSize, int* _actualLength);
         
         /// Converts reply from sendSOPASCommand to string
-        /**
-         * \param [in] reply reply from sendSOPASCommand
-         * \returns reply as string with special characters stripped out
-         */
+        ///
+        ///\param [in] reply reply from sendSOPASCommand
+        ///\returns reply as string with special characters stripped out
         static std::string replyToString(const std::vector<unsigned char> &_reply);
 
         bool isCompatibleDevice(const std::string _identStr);
+
+        ssize_t getSOPASDeviceList(libusb_context *_ctx, uint16_t _vendorID, uint16_t _productID, libusb_device ***_list);
+        void freeSOPASDeviceList(libusb_device **_list);
 
     private:
         static const unsigned int USB_TIMEOUT = 1000; // milliseconds

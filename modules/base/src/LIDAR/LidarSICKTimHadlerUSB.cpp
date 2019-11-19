@@ -18,7 +18,9 @@
 //  OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
-
+//
+// Adaptation of code taken from: https://github.com/uos/sick_tim
+//
 
 #include <mico/base/LIDAR/LidarSICKTimHandlerUSB.h>
 
@@ -28,12 +30,18 @@ namespace mico{
         parser_ = _parser;
         deviceNumber_ = _deviceNumber;
         ctx_             = nullptr;
-        numberOfDevices_ = NULL;
+        numberOfDevices_ = 0;
         devices_         = nullptr;
         deviceHandle_   = nullptr;
 
         // init publisher handler.. eg. can be ROS publisher
         lidarPub_ = nh_.advertise<sensor_msgs::LaserScan>("scan", 1000);
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+    LidarSICKTimHandlerUSB::~LidarSICKTimHandlerUSB(){
+        stop_scanner();
+        close_device();
     }
 
     //---------------------------------------------------------------------------------------------------------------------
@@ -67,9 +75,8 @@ namespace mico{
     }
     
     //---------------------------------------------------------------------------------------------------------------------
-    /**
-     * Send a SOPAS command to the device and print out the response to the console.
-     */
+
+    // Send a SOPAS command to the device and print out the response to the console.
     int LidarSICKTimHandlerUSB::sendSOPASCommand(const char* _request, std::vector<unsigned char> * _reply){
       if (deviceHandle_ == NULL) {
         printf("LIBUSB - device not open");
@@ -79,27 +86,22 @@ namespace mico{
       int result = 0;
       unsigned char receiveBuffer[65536];
 
-      /*
-       * Write a SOPAS variable read request to the device.
-       */
-      ROS_DEBUG("LIBUSB - Write data... %s", _request);
+      
+      // Write a SOPAS variable read request to the device.
+      printf("LIBUSB - Write data... %s", _request);
 
       int actual_length = 0;
       int requestLength = strlen(_request);
       result = libusb_bulk_transfer(deviceHandle_, (2 | LIBUSB_ENDPOINT_OUT), (unsigned char*)_request, requestLength,
                                     &actual_length, 0);
-      if (result != 0 || actual_length != requestLength)
-      {
+      if (result != 0 || actual_length != requestLength){
         printf("LIBUSB - Write Error: %i.", result);
         return result;
       }
 
-      /*
-       * Read the SOPAS device response with the given timeout.
-       */
+      // Read the SOPAS device response with the given timeout.
       result = libusb_bulk_transfer(deviceHandle_, (1 | LIBUSB_ENDPOINT_IN), receiveBuffer, 65535, &actual_length, USB_TIMEOUT);
-      if (result != 0)
-      {
+      if (result != 0){
         printf("LIBUSB - Read Error: %i.", result);
         return result;
       }
@@ -134,9 +136,8 @@ namespace mico{
 
     //---------------------------------------------------------------------------------------------------------------------
     int LidarSICKTimHandlerUSB::init_scanner(){
-        /*
-        * Read the SOPAS variable 'DeviceIdent' by index.
-        */
+
+        //Read the SOPAS variable 'DeviceIdent' by index.
         const char requestDeviceIdent[] = "\x02sRI0\x03\0";
         std::vector<unsigned char> identReply;
         int result = sendSOPASCommand(requestDeviceIdent, &identReply);
@@ -144,9 +145,7 @@ namespace mico{
             std::cout << "SOPAS - Error reading variable 'DeviceIdent' \n";
         }
 
-        /*
-        * Read the SOPAS variable 'SerialNumber' by name.
-        */
+        // Read the SOPAS variable 'SerialNumber' by name
         const char requestSerialNumber[] = "\x02sRN SerialNumber\x03\0";
         std::vector<unsigned char> serialReply;
         result = sendSOPASCommand(requestSerialNumber, &serialReply);
@@ -161,18 +160,14 @@ namespace mico{
         if (!isCompatibleDevice(identStr))
             return ExitFatal;
 
-        /*
-        * Read the SOPAS variable 'FirmwareVersion' by name.
-        */
+        //Read the SOPAS variable 'FirmwareVersion' by name
         const char requestFirmwareVersion[] = {"\x02sRN FirmwareVersion\x03\0"};
         result = sendSOPASCommand(requestFirmwareVersion, NULL);
         if (result != 0){
             std::cout << "SOPAS - Error reading variable 'FirmwareVersion' \n";
         }
 
-        /*
-        * Read Device State
-        */
+        // Read Device State
         const char requestDeviceState[] = {"\x02sRN SCdevicestate\x03\0"};
         std::vector<unsigned char> deviceStateReply;
         result = sendSOPASCommand(requestDeviceState, &deviceStateReply);
@@ -181,10 +176,9 @@ namespace mico{
         }
         std::string deviceStateReplyStr = replyToString(deviceStateReply);
 
-        /*
-        * Process device state, 0=Busy, 1=Ready, 2=Error
-        * If configuration parameter is set, try resetting device in error state
-        */
+        
+        // Process device state, 0=Busy, 1=Ready, 2=Error
+        // If configuration parameter is set, try resetting device in error state
         if (deviceStateReplyStr == "sRA SCdevicestate 0"){
             std::cout << "Laser is busy \n";
         }
@@ -198,9 +192,7 @@ namespace mico{
             std::cout << "Laser reports unknown devicestate: " << deviceStateReplyStr << std::endl;
         }
 
-        /*
-        * Start streaming 'LMDscandata'.
-        */
+        // Start streaming 'LMDscandata'.
         const char requestScanData[] = {"\x02sEN LMDscandata 1\x03\0"};
         result = sendSOPASCommand(requestScanData, NULL);
         if (result != 0){
@@ -213,9 +205,8 @@ namespace mico{
 
     //---------------------------------------------------------------------------------------------------------------------
     int LidarSICKTimHandlerUSB::stop_scanner(){
-        /*
-         * Stop streaming measurements
-         */
+        
+        // Stop streaming measurements
         const char requestScanData0[] = {"\x02sEN LMDscandata 0\x03\0"};
         int result = sendSOPASCommand(requestScanData0, NULL);
         if (result != 0){
@@ -229,49 +220,39 @@ namespace mico{
 
     //---------------------------------------------------------------------------------------------------------------------
     int LidarSICKTimHandlerUSB::init_device(){
-        /*
-        * Create and initialize a new LIBUSB session.
-        */
+
+        //Create and initialize a new LIBUSB session.
         int result = libusb_init(&ctx_);
         if (result != 0){
             printf("LIBUSB - Initialization failed with the following error code: %i.", result);
             return ExitError;
         }
+        printf("Initialization conection \n");  
 
-        /*
-        * Set the verbosity level to 3 as suggested in the documentation.
-        */
+        
+        // Set the verbosity level to 3 as suggested in the documentation.
         libusb_set_debug(ctx_, 3);
 
-        /*
-        * Get a list of all SICK TIM3xx devices connected to the USB bus.
-        *
-        * As a shortcut, you can also use the LIBUSB function:
-        * libusb_open_device_with_vid_pid(ctx, 0x19A2, 0x5001).
-        */
-        // int vendorID = 0x19A2; // SICK AG
-        // int deviceID = 0x5001; // TIM3XX
-        // numberOfDevices_ = getSOPASDeviceList(ctx_, vendorID, deviceID, &devices_);
+        // Get a list of all SICK TIM5xx devices connected to the USB bus.
+        //   As a shortcut, you can also use the LIBUSB function:
+        //   libusb_open_device_with_vid_pid(ctx, 0x19A2, 0x5001).
+        int vendorID = 0x19A2; // SICK AG
+        int deviceID = 0x5001; // TIM5XX
+        numberOfDevices_ = getSOPASDeviceList(ctx_, vendorID, deviceID, &devices_);
+        
+        // If available, open the first SICK TIM5xx device
+        if (numberOfDevices_ == 0){
+            std::cout << "No SICK TiM devices connected! \n";
+            return ExitError;
+        }else if (numberOfDevices_ <= deviceNumber_){
+            printf("Device number %d too high, only %zu SICK TiM scanners connected", deviceNumber_, numberOfDevices_);
+            return ExitError;
+        }
 
-        // /*
-        // * If available, open the first SICK TIM3xx device.
-        // */
-        // if (numberOfDevices_ == 0){
-        //     std::cout << "No SICK TiM devices connected! \n";
-        //     return ExitError;
-        // }else if (numberOfDevices_ <= deviceNumber_){
-        //     printf("Device number %d too high, only %zu SICK TiM scanners connected", device_number_, numberOfDevices_);
-        //     return ExitError;
-        // }
-
-        // /*
-        // * Print out the SOPAS device information to the console.
-        // */
+        //Print out the SOPAS device information to the console.
         // printSOPASDeviceInformation(numberOfDevices_, devices_);
 
-        /*
-        * Open the device handle and detach all kernel drivers.
-        */
+        // Open the device handle and detach all kernel drivers.
         libusb_open(devices_[deviceNumber_], &deviceHandle_);
         if (deviceHandle_ == NULL){
             std::cout << "LIBUSB - Cannot open device (permission denied?); please read sick_tim/README.md \n";
@@ -288,9 +269,7 @@ namespace mico{
             }
         }
 
-        /*
-        * Claim the interface 0
-        */
+        // Claim the interface 0
         result = libusb_claim_interface(deviceHandle_, 0);
         if (result < 0){
             std::cout << "LIBUSB - Cannot claim interface \n";
@@ -303,11 +282,72 @@ namespace mico{
     }
 
     //---------------------------------------------------------------------------------------------------------------------
+    
+    // Returns a list of USB devices currently attached to the system and matching the given vendorID and _productID.
+    ssize_t LidarSICKTimHandlerUSB::getSOPASDeviceList(libusb_context *_ctx, uint16_t _vendorID, uint16_t _productID,
+                                                libusb_device ***_list){
+        
+        libusb_device **resultDevices = NULL;
+        ssize_t numberOfResultDevices = 0;
+        libusb_device **devices;
+
+        //Get a list of all USB devices connected.
+        ssize_t numberOfDevices = libusb_get_device_list(_ctx, &devices);
+
+        // Iterate through the list of the connected USB devices and search for devices with the given _vendorID and _productID.
+        for (ssize_t i = 0; i < numberOfDevices; i++){
+            struct libusb_device_descriptor desc;
+            int result = libusb_get_device_descriptor(devices[i], &desc);
+            if (result < 0){
+                std::cout << "LIBUSB - Failed to get device descriptor \n";
+                continue;
+            }
+
+            if (desc.idVendor == _vendorID && desc.idProduct == 0x5001){ //666 with _productID
+                
+                // Add the matching device to the function result list and increase the device reference count.
+                resultDevices = (libusb_device **)realloc(resultDevices, sizeof(libusb_device *) * (numberOfResultDevices + 2));
+                if (resultDevices == NULL){
+                    std::cout << "LIBUSB - Failed to allocate memory for the device result list. \n";
+                }else{
+                    resultDevices[numberOfResultDevices] = devices[i];
+                    resultDevices[numberOfResultDevices + 1] = NULL;
+                    libusb_ref_device(devices[i]);
+                    numberOfResultDevices++;
+                }
+            }
+        }
+
+        // Free the list of the connected USB devices and decrease the device reference count.
+        libusb_free_device_list(devices, 1);
+
+        
+        // Prepare the return values of the function.
+        *_list = resultDevices;
+        return numberOfResultDevices;
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+    
+    // Free the list of devices obtained from the function 'getSOPASDeviceList'.
+    void LidarSICKTimHandlerUSB::freeSOPASDeviceList(libusb_device **_list){
+        if (!_list)
+            return;
+
+        int i = 0;
+        struct libusb_device *dev;
+        while ((dev = _list[i++]) != NULL){
+            libusb_unref_device(dev);
+        }
+        free(_list);
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
     int LidarSICKTimHandlerUSB::get_datagram(unsigned char* _receiveBuffer, int _bufferSize, int* _actualLength){
+
         int result = libusb_bulk_transfer(deviceHandle_, (1 | LIBUSB_ENDPOINT_IN), _receiveBuffer, _bufferSize - 1, _actualLength,
                                         USB_TIMEOUT);   // read up to _bufferSize - 1 to leave space for \0
-        if (result != 0)
-        {
+        if (result != 0){
             if (result == LIBUSB_ERROR_TIMEOUT){
                 std::cout <<"LIBUSB - Read Error: LIBUSB_ERROR_TIMEOUT. \n";
                 *_actualLength = 0;
@@ -327,20 +367,19 @@ namespace mico{
 
         unsigned char receiveBuffer[65536];
         int actual_length = 0;
-        static unsigned int iteration_count = 0;
+        // static unsigned int iteration_count = 0;
 
         int result = get_datagram(receiveBuffer, 65536, &actual_length);
         if (result != 0){
             printf("Read Error when getting datagram: %i.", result);
             return ExitError; // return failure to exit node
         }
-        if(actual_length <= 0)
+        if(actual_length <= 0){
             return ExitSuccess; // return success to continue looping
-
+        }
+        
         sensor_msgs::LaserScan msg;
-        /*
-        * datagrams are enclosed in <STX> (0x02), <ETX> (0x03) pairs
-        */
+        // Datagrams are enclosed in <STX> (0x02), <ETX> (0x03) pairs
         char* buffer_pos = (char*)receiveBuffer;
         char *dstart, *dend;
         while( (dstart = strchr(buffer_pos, 0x02)) && (dend = strchr(dstart + 1, 0x03)) )
@@ -351,7 +390,6 @@ namespace mico{
             int success = parser_->parse_datagram(dstart, dlength, msg);
             if (success == ExitSuccess){
                 // publish data
-
                 lidarPub_.publish(msg);
             }
             buffer_pos = dend + 1;
@@ -359,6 +397,29 @@ namespace mico{
 
         return ExitSuccess; // return success to continue looping
            
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+    int LidarSICKTimHandlerUSB::close_device(){
+        int result = 0;
+        if (deviceHandle_ != NULL){    
+            // Release the interface
+            result = libusb_release_interface(deviceHandle_, 0);
+            if (result != 0)
+            printf("LIBUSB - Cannot Release Interface!\n");
+            else
+            printf("LIBUSB - Released Interface.\n");
+
+            //Close the device handle.
+            libusb_close(deviceHandle_);
+        }
+        
+        // Free the list of the USB devices.
+        freeSOPASDeviceList(devices_);
+
+        //Close the LIBUSB session.
+        libusb_exit(ctx_);
+        return result;
     }
         
     

@@ -18,21 +18,26 @@
 //  OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
-
+//
+// Adaptation of code taken from: https://github.com/uos/sick_tim
+//
 
 #include <mico/base/LIDAR/LidarSICKTimHandlerUSB.h>
 #include <mico/base/LIDAR/LidarSICKTim517_parser.h>
 
 int main(int _argc, char **_argv){
+
   ros::init(_argc, _argv, "mico_sickTim571_node");
   mico::LidarSICKTim571Parser* parser = new mico::LidarSICKTim571Parser();
       
   int device_number = 0;
-  mico::LidarSICKTimHandlerUSB* handlerUsb = new mico::LidarSICKTimHandlerUSB(parser, device_number);
-  int result = mico::ExitError;
-  result = handlerUsb->init();
       
+  int result = mico::ExitError;
   while (ros::ok()){
+
+    mico::LidarSICKTimHandlerUSB* handlerUsb = new mico::LidarSICKTimHandlerUSB(parser, device_number);
+    result = handlerUsb->init();
+    
     while(ros::ok() && (result == mico::ExitSuccess)){
       ros::spinOnce();
       result = handlerUsb->loopOnce();
@@ -42,8 +47,10 @@ int main(int _argc, char **_argv){
     if (result == mico::ExitFatal)
       return result;
       
-    if (ros::ok())
+    if (ros::ok()){
       ros::Duration(1.0).sleep(); // Only attempt USB connections once per second
+      // std::cout << "hei\n";
+    }
   }
 
   delete parser;

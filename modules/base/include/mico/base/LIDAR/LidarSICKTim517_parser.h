@@ -18,7 +18,9 @@
 //  OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
-
+//
+// Adaptation of code taken from: https://github.com/uos/sick_tim
+//
 
 #ifndef MICO_BASE_LIDAR_LIDARSICKTIM571_PARSER_H_
 #define MICO_BASE_LIDAR_LIDARSICKTIM571_PARSER_H_
@@ -34,13 +36,13 @@ namespace mico{
 
             virtual int parse_datagram(char* _datagram, size_t _datagramLength,sensor_msgs::LaserScan &_msg);
 
-            void set_range_min(float _min);
-            void set_range_max(float _max);
-            void set_time_increment(float _time);
+            // void set_range_min(float _min);
+            // void set_range_max(float _max);
+            // void set_time_increment(float _time);
 
         private:
-            float override_range_min_, override_range_max_;
-            float override_time_increment_;
+            float overrideRangeMin_, overrideRangeMax_;
+            float overrideTimeIncrement_;
             float maxAngle_ = 0.75 * M_PI;
             float minAngle_ =-0.75 * M_PI;
             bool intensity_ = true;
