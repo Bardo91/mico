@@ -227,8 +227,6 @@ namespace mico{
             printf("LIBUSB - Initialization failed with the following error code: %i.", result);
             return ExitError;
         }
-        printf("Initialization conection \n");  
-
         
         // Set the verbosity level to 3 as suggested in the documentation.
         libusb_set_debug(ctx_, 3);

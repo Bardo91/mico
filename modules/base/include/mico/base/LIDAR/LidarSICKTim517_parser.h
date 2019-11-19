@@ -34,7 +34,7 @@ namespace mico{
             LidarSICKTim571Parser();
             virtual ~LidarSICKTim571Parser(){};
 
-            virtual int parse_datagram(char* _datagram, size_t _datagramLength,sensor_msgs::LaserScan &_msg);
+            virtual int parse_datagram(char* _datagram, size_t _datagramLength,sensor_msgs::LaserScan &_msg) override;
 
             // void set_range_min(float _min);
             // void set_range_max(float _max);
