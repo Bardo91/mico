@@ -166,7 +166,7 @@ namespace mico {
 
         cv::Mat mExtrinsicColorToDepth; // 4x4 transformation between color and depth camera
 
-		bool mUseUncolorizedPoints = true;
+		bool mSetDenseCloud = true;
 		bool mHasRGB = false, mComputedDepth = false;
         cv::Mat mLastRGB, mLastDepthInColor;
 		int mDeviceId = 0;

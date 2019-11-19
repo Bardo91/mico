@@ -25,6 +25,7 @@
 
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
+#include <pcl/common/transforms.h>
 
 #include <opencv2/opencv.hpp>
 #ifdef USE_DBOW2

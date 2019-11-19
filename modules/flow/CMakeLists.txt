@@ -66,6 +66,7 @@ target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC mico::mico-base)
 if(BUILD_DNN)
   target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC mico::mico-dnn)
 endif(BUILD_DNN)
+target_link_libraries(${COMPONENT_NAME} PRIVATE "stdc++fs")
 #########################################
 ######			SAMPLES 		   ######
 #########################################

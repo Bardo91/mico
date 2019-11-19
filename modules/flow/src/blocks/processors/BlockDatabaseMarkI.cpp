@@ -57,15 +57,19 @@ namespace mico{
     bool BlockDatabaseMarkI::configure(std::unordered_map<std::string, std::string> _params){
         cjson::Json jParams;
         for(auto &param: _params){
-            if(param.first =="vocabulary"){
+            if(param.second == "")
+                return false;
+
+            if(param.first == "vocabulary"){
                 jParams["vocabulary"] = param.second;
+            }else if(param.first == "similarity_score"){
+                std::istringstream istr(_params["similarity_score"]);
+                float similarityScore;
+                istr >> similarityScore;
+                jParams["similarity_score"] = similarityScore;
             }
         }
         jParams["clusterComparison"] = 1;
-        std::istringstream istr(_params["similarity_score"]);
-        float similarityScore;
-        istr >> similarityScore;
-        jParams["similarity_score"] = similarityScore;
 
         return database_.init(jParams);
     }

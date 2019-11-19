@@ -50,6 +50,10 @@
 #include <mico/flow/blocks/visualizers/VtkVisualizer3D.h>
 #include <mico/base/map3d/Dataframe.h>
 
+#ifdef HAS_DARKNET
+    #include <mico/dnn/map3d/Entity.h>
+#endif
+
 #include <map>
 
 namespace mico{
@@ -86,6 +90,10 @@ namespace mico{
 
 
         std::unordered_map<int, std::shared_ptr<Dataframe<pcl::PointXYZRGBNormal>>> dataframes_;
+    #ifdef HAS_DARKNET
+        std::unordered_map<int, std::shared_ptr<Entity<pcl::PointXYZRGBNormal>>> entities_;
+    #endif
+
         std::map<int, vtkSmartPointer<vtkActor>>  actors_;
         std::vector<vtkSmartPointer<vtkActor>>  actorsToDelete_;
         std::vector<int> idsToDraw_;

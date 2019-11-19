@@ -123,7 +123,7 @@ namespace mico {
 
 
             if(mConfig.contains("useUncolorizedPoints")){
-			    mUseUncolorizedPoints = (bool) mConfig["useUncolorizedPoints"];
+			    mSetDenseCloud = (bool) mConfig["useUncolorizedPoints"];
             }
 
 			// Other params
@@ -212,6 +212,12 @@ namespace mico {
 	//-----------------------------------------------------------------------------------------------------------------
 	bool StereoCameraRealSense::cloud(pcl::PointCloud<pcl::PointXYZ>& _cloud) {
         #if defined(ENABLE_LIBREALSENSE_V1) || defined(ENABLE_LIBREALSENSE_V2)
+
+        if(mSetDenseCloud){
+            _cloud.resize(mLastDepthInColor.rows * mLastDepthInColor.cols);
+            setOrganizedAndDense(_cloud);
+        }
+
         for (int dy = 0; dy < mLastDepthInColor.rows; dy = dy + mDownsampleStep) {
             for (int dx = 0; dx < mLastDepthInColor.cols; dx = dx + mDownsampleStep) {
 					// Retrieve the 16-bit depth value and map it into a depth in meters
@@ -220,23 +226,23 @@ namespace mico {
 
                     // Skip over pixels with a depth value of zero, which is used to indicate no data
                     if (depth_value == 0) {
-                        if (mUseUncolorizedPoints) {
+                        if (mSetDenseCloud) {
                             _cloud.push_back(pcl::PointXYZ(NAN, NAN, NAN));
                         }
-                        //else
-                            continue;
                     }
                     else {
                         // Map from pixel coordinates in the depth image to pixel coordinates in the color image
                         cv::Point2f depth_pixel(dx, dy);
                         cv::Point3f depth_point = deproject(depth_pixel, depth_in_meters);
 
-						_cloud.push_back(pcl::PointXYZ(depth_point.x, depth_point.y, depth_point.z));
+                        if(mSetDenseCloud)
+                            _cloud.at(dx, dy) = pcl::PointXYZ(depth_point.x, depth_point.y, depth_point.z);
+                        else
+	    					_cloud.push_back(pcl::PointXYZ(depth_point.x, depth_point.y, depth_point.z));
 					}
 				}
 			}
-			if (mUseUncolorizedPoints)
-				setOrganizedAndDense(_cloud);
+            
 
 			return true;
 		#else
@@ -255,7 +261,7 @@ namespace mico {
                     // Set invalid pixels with a depth value of zero, which is used to indicate no data
                     pcl::PointXYZRGB point;
                     if (depth_value == 0) {
-                        if (mUseUncolorizedPoints) {
+                        if (mSetDenseCloud) {
                             point.x = NAN;
                             point.y = NAN;
                             point.z = NAN;
@@ -280,7 +286,7 @@ namespace mico {
 					_cloud.push_back(point);
                 }
             }
-            if(mUseUncolorizedPoints)
+            if(mSetDenseCloud)
 				setOrganizedAndDense(_cloud);
             return true;
 
@@ -291,7 +297,7 @@ namespace mico {
 
 	//-----------------------------------------------------------------------------------------------------------------
 	bool StereoCameraRealSense::cloud(pcl::PointCloud<pcl::PointXYZRGBNormal>& _cloud) {
-		if (!mUseUncolorizedPoints) {
+		if (!mSetDenseCloud) {
 			std::cout << "[STEREOCAMERA][REALSENSE] Cannot compute the normals if points out of the colorized region are ignored. Please set the \"UseUncolorizedPoints\" to true in the configuration of the camera" << std::endl;
 			return false;
 		}

@@ -56,6 +56,9 @@ namespace mico{
 
     bool BlockOptimizerCF::configure(std::unordered_map<std::string, std::string> _params){
         for(auto &param: _params){
+            if(param.second == "")
+                    return false;
+            
             if(param.first =="min_error"){
                 std::istringstream istr(_params["min_error"]);
                 float minError;

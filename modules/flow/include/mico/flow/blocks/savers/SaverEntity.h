@@ -1,7 +1,7 @@
 //---------------------------------------------------------------------------------------------------------------------
 //  mico
 //---------------------------------------------------------------------------------------------------------------------
-//  Copyright 2018 Pablo Ramon Soria (a.k.a. Bardo91) pabramsor@gmail.com
+//  Copyright 2019 Pablo Ramon Soria (a.k.a. Bardo91) pabramsor@gmail.com & Ricardo Lopez Lopez (a.k.a Ric92)
 //---------------------------------------------------------------------------------------------------------------------
 //  Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 //  and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -20,41 +20,32 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-#ifndef MICO_FLOW_STREAMERS_BLOCKS_PROCESSORS_BLOCKDARKNET_H_
-#define MICO_FLOW_STREAMERS_BLOCKS_PROCESSORS_BLOCKDARKNET_H_
+
+#ifndef MICO_FLOW_BLOCKS_SAVER_ENTITY_H_
+#define MICO_FLOW_BLOCKS_SAVER_ENTITY_H_
 
 #include <flow/Block.h>
-#include <mico/base/map3d/Dataframe.h>
-#ifdef HAS_DARKNET
-    #include <mico/dnn/object_detection/dnn/WrapperDarknet.h>
-    #include <mico/dnn/map3d/Entity.h>
-    #include <pcl/filters/filter.h>
-#endif
-#include <experimental/filesystem>
+#include <mutex>
+#include <fstream>
 
 namespace mico{
 
-    class BlockDarknet: public flow::Block{
+    class SaverEntity:public flow::Block{
     public:
-        static std::string name() {return "Darknet";}
-
-        BlockDarknet();
-        // ~BlockDarknet(){};
-
-        bool configure(std::unordered_map<std::string, std::string> _params) override;
+        static std::string name() {return "Saver Entity";}
+        
+        SaverEntity();
+        // ~SaverEntity(){};
+        
+        virtual bool configure(std::unordered_map<std::string, std::string> _params) override;
         std::vector<std::string> parameters() override;
-
     private:
-        bool idle_ = true;
-        bool hasParameters_ = false; //weights, cfg, confidence threshold and use dense cloud
-        float confidenceThreshold = 0.7;
-        int numEntities_ = 0;
-        bool useDenseCloud_ = false;
-        #ifdef HAS_DARKNET
-        mico::WrapperDarknet detector_;
-        #endif
+        std::string pathFolder_;
+        std::ofstream file_;
     };
 
 }
+
+
 
 #endif
