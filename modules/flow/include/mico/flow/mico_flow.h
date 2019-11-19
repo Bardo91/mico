@@ -24,14 +24,11 @@
 #include <mico/flow/blocks/streamers/StreamRealSense.h>
 #include <mico/flow/blocks/streamers/StreamDataset.h>
 #include <mico/flow/blocks/streamers/StreamPixhawk.h>
-#include <mico/flow/blocks/streamers/ros/BlockROSSuscriber.h>
 
-// Streamers
-#include <mico/flow/blocks/streamers/ros/ROSStreamers.h>
-
-// Publishers
-#include <mico/flow/blocks/publishers/ros/BlockROSPublisher.h>
-#include <mico/flow/blocks/publishers/ros/ROSPublishers.h>
+#ifdef MICO_USE_ROS
+    #include <flow/visual/blocks/streamers/ros/ROSStreamers.h>
+    #include <flow/visual/blocks/publishers/ros/ROSPublishers.h>
+#endif
 
 // Processors
 #include <mico/flow/blocks/processors/BlockOdometryRGBD.h>
