@@ -43,6 +43,10 @@ namespace mico{
 
             virtual int parse_datagram(char* _datagram, size_t _datagramLength,pcl::PointCloud<PointType_> &_cloud) = 0;
 
+            virtual void cloud(const pcl::PointCloud<PointType_>::Ptr & _cloud) = 0;
+            
+            virtual pcl::PointCloud<PointType_>::Ptr cloud() const = 0;
+
 
     };
 }

@@ -65,7 +65,7 @@ namespace mico{
                     && strncmp("TiM3", device_string, 4) == 0
                     && version_major >= 2 && version_minor >= 50){
             std::cout << "This scanner model/firmware combination does not support ranging output! \n";
-            printf("This is a %s, firmware version %d.%d", device_string, version_major, version_minor);
+            printf("This is a %s, firmware version %d.%d \n", device_string, version_major, version_minor);
 
             return false;
         }
@@ -106,7 +106,7 @@ namespace mico{
       }
 
       receiveBuffer[actual_length] = 0;
-      printf("LIBUSB - Read data...  %s", receiveBuffer);
+      // printf("LIBUSB - Read data...  %s", receiveBuffer);
       if(_reply) {
           _reply->clear();
           for(int i = 0; i < actual_length; i++) {
@@ -242,7 +242,7 @@ namespace mico{
             std::cout << "No SICK TiM devices connected! \n";
             return ExitError;
         }else if (numberOfDevices_ <= deviceNumber_){
-            printf("Device number %d too high, only %zu SICK TiM scanners connected", deviceNumber_, numberOfDevices_);
+            printf("Device number %d too high, only %zu SICK TiM scanners connected \n", deviceNumber_, numberOfDevices_);
             return ExitError;
         }
 
@@ -368,7 +368,7 @@ namespace mico{
 
         int result = get_datagram(receiveBuffer, 65536, &actual_length);
         if (result != 0){
-            printf("Read Error when getting datagram: %i",result);
+            printf("Read Error when getting datagram: %i \n",result);
             return ExitError; // return failure to exit node
         }
         if(actual_length <= 0){
@@ -387,7 +387,7 @@ namespace mico{
             int success = parser_->parse_datagram(dstart, dlength, *cloud2D);
             if (success == ExitSuccess){
                 
-                // = 2Dcloud;
+                parser_->cloud(cloud2D);
 
             }
             buffer_pos = dend + 1;

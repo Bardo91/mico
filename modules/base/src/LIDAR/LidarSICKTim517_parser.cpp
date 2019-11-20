@@ -219,7 +219,7 @@ namespace mico{
         }
 
         // AQUI RELLENAR NUBE
-        // _cloud = nananana;
+        // this->cloud(_cloud);
 
         std::vector<float> lidarIntensities;
         if (intensity_) {

@@ -40,9 +40,13 @@ namespace mico{
             // void set_range_max(float _max);
             // void set_time_increment(float _time);
 
-            pcl::PointCloud<PointType_> cloud(){
+            virtual void cloud(const pcl::PointCloud<PointType_>::Ptr & _cloud) override{
+                cloud_ = _cloud;
+            };
+
+            virtual pcl::PointCloud<PointType_>::Ptr cloud()const override{
                 return cloud_;
-            }
+            };
 
         private:
             float overrideRangeMin_, overrideRangeMax_;
@@ -53,7 +57,7 @@ namespace mico{
             double timeOffset_ = -0.001;
 
             std::chrono::time_point<std::chrono::system_clock> timeStamp_;
-            pcl::PointCloud<PointType_> cloud_;
+            pcl::PointCloud<PointType_>::Ptr cloud_ = nullptr;
             float freqScan_;
             float timeIncrement_;
             float startAngle_;

@@ -43,7 +43,7 @@ int main(int _argc, char **_argv){
     while((result == ExitSuccess)){
       result = handlerUsb->loopOnce();
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
-      // parser->cloud();
+      parser->cloud();
     }
     delete handlerUsb;
      
