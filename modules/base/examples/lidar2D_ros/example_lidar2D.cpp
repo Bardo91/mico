@@ -24,35 +24,33 @@
 
 #include <mico/base/LIDAR/LidarSICKTimHandlerUSB.h>
 #include <mico/base/LIDAR/LidarSICKTim517_parser.h>
+#include <thread>
 
 using namespace mico;
 
 int main(int _argc, char **_argv){
 
-  ros::init(_argc, _argv, "mico_sickTim571_node");
   LidarSICKTim571Parser* parser = new LidarSICKTim571Parser();
       
   int device_number = 0;
       
   int result = ExitError;
-  while (ros::ok()){
+  while (true){
 
     LidarSICKTimHandlerUSB *handlerUsb = new LidarSICKTimHandlerUSB(parser, device_number);
     result = handlerUsb->init();
     
-    while(ros::ok() && (result == ExitSuccess)){
-      ros::spinOnce();
+    while((result == ExitSuccess)){
       result = handlerUsb->loopOnce();
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      // parser->cloud();
     }
     delete handlerUsb;
      
     if (result == ExitFatal)
       return result;
       
-    if (ros::ok()){
-      ros::Duration(1.0).sleep(); // Only attempt USB connections once per second
-      // std::cout << "hei\n";
-    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   }
 
   delete parser;

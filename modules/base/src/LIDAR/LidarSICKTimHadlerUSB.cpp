@@ -34,7 +34,7 @@ namespace mico{
         deviceHandle_   = nullptr;
 
         // init publisher handler.. eg. can be ROS publisher
-        lidarPub_ = nh_.advertise<sensor_msgs::LaserScan>("scan", 1000);
+
     }
 
     //---------------------------------------------------------------------------------------------------------------------
@@ -375,7 +375,7 @@ namespace mico{
             return ExitSuccess; // return success to continue looping
         }
         
-        sensor_msgs::LaserScan msg;
+        pcl::PointCloud<PointType_>::Ptr cloud2D(new pcl::PointCloud<PointType_>);
         // Datagrams are enclosed in <STX> (0x02), <ETX> (0x03) pairs
         char* buffer_pos = (char*)receiveBuffer;
         char *dstart, *dend;
@@ -384,10 +384,11 @@ namespace mico{
             size_t dlength = dend - dstart;
             *dend = '\0';
             dstart++;
-            int success = parser_->parse_datagram(dstart, dlength, msg);
+            int success = parser_->parse_datagram(dstart, dlength, *cloud2D);
             if (success == ExitSuccess){
-                // publish data
-                lidarPub_.publish(msg);
+                
+                // = 2Dcloud;
+
             }
             buffer_pos = dend + 1;
         }

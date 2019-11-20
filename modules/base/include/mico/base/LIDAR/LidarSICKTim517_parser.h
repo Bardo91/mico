@@ -26,6 +26,7 @@
 #define MICO_BASE_LIDAR_LIDARSICKTIM571_PARSER_H_
 
 #include <mico/base/LidarParser.h>
+#include <chrono>
 
 namespace mico{
     class LidarSICKTim571Parser : public LidarParser{
@@ -33,12 +34,15 @@ namespace mico{
         public:
             LidarSICKTim571Parser();
             virtual ~LidarSICKTim571Parser(){};
-
-            virtual int parse_datagram(char* _datagram, size_t _datagramLength,sensor_msgs::LaserScan &_msg) override;
-
+            
+            virtual int parse_datagram(char* _datagram, size_t _datagramLength,pcl::PointCloud<PointType_> &_cloud) override;
             // void set_range_min(float _min);
             // void set_range_max(float _max);
             // void set_time_increment(float _time);
+
+            pcl::PointCloud<PointType_> cloud(){
+                return cloud_;
+            }
 
         private:
             float overrideRangeMin_, overrideRangeMax_;
@@ -48,6 +52,13 @@ namespace mico{
             bool intensity_ = true;
             double timeOffset_ = -0.001;
 
+            std::chrono::time_point<std::chrono::system_clock> timeStamp_;
+            pcl::PointCloud<PointType_> cloud_;
+            float freqScan_;
+            float timeIncrement_;
+            float startAngle_;
+            float endAngle_;
+            float angleIncrement_;
     };
 }
 

@@ -23,7 +23,9 @@
 #ifndef LIDAR_PARSER_H_
 #define LIDAR_PARSER_H_
 
-#include <sensor_msgs/LaserScan.h>
+#include <pcl/point_types.h>
+#include <pcl/point_cloud.h>
+#include <pcl/common/transforms.h>
 
 namespace mico{
     enum ExitCode{
@@ -34,10 +36,12 @@ namespace mico{
 
     class LidarParser{
         public:
+            typedef pcl::PointXYZRGBNormal PointType_;
+
             LidarParser();
             virtual ~LidarParser(){};
 
-            virtual int parse_datagram(char* _datagram, size_t _datagramLength,sensor_msgs::LaserScan &_msg) = 0;
+            virtual int parse_datagram(char* _datagram, size_t _datagramLength,pcl::PointCloud<PointType_> &_cloud) = 0;
 
 
     };

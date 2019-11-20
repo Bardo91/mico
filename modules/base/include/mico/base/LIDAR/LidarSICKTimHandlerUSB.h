@@ -32,13 +32,16 @@
 #include <mico/base/utils/LogManager.h>
 
 #include "LidarSICKTim517_parser.h"
-
-#include <ros/ros.h>
+#ifdef MICO_USE_ROS
+    #include <ros/ros.h>
+#endif
 
 namespace mico{
     class LidarSICKTimHandlerUSB  : public LoggableInterface<DebugLevels::Debug, OutInterfaces::Cout>{
 
     public:
+        typedef pcl::PointXYZRGBNormal PointType_;
+
         LidarSICKTimHandlerUSB(LidarParser* _parser, int _deviceNumber);
         ~LidarSICKTimHandlerUSB();
         
@@ -88,11 +91,6 @@ namespace mico{
 
         // Parser
         LidarParser* parser_ = nullptr;
-
-        // ROS
-        ros::NodeHandle nh_;
-        ros::Publisher lidarPub_;
-
     };
 }
 

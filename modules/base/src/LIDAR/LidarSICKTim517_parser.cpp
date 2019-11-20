@@ -32,7 +32,7 @@ namespace mico{
         overrideTimeIncrement_ = -1.0;
     }
 
-    int LidarSICKTim571Parser::parse_datagram(char* _datagram, size_t _datagramLength,sensor_msgs::LaserScan &_msg){
+    int LidarSICKTim571Parser::parse_datagram(char* _datagram, size_t _datagramLength,pcl::PointCloud<PointType_> &_cloud){
         // general message structure:
         //
         // - message header   20 fields
@@ -129,11 +129,7 @@ namespace mico{
             }
         }
 
-        // ----- read fields into msg
-        _msg.header.frame_id = "map";
-        
-        ros::Time start_time = ros::Time::now(); // will be adjusted in the end
-
+       timeStamp_ = std::chrono::system_clock::now(); 
         // <STX> (\x02)
         // 0: Type of command (SN)
         // 1: Command (LMDscandata)
@@ -152,18 +148,18 @@ namespace mico{
         // 16: Scanning Frequency (5DC)
         unsigned short scanning_freq = -1;
         sscanf(fields[16], "%hx", &scanning_freq);
-        _msg.scan_time = 1.0 / (scanning_freq / 100.0);
-        // printf("hex: %s, scanning_freq: %d, scan_time: %f", fields[16], scanning_freq, _msg.scan_time);
+        freqScan_ = 1.0 / (scanning_freq / 100.0);
+        // printf("hex: %s, scanning_freq: %d, scan_time: %f", fields[16], scanning_freq, freqScan_);
 
         // 17: Measurement Frequency (36)
         unsigned short measurement_freq = -1;
         sscanf(fields[17], "%hx", &measurement_freq);
-        _msg.time_increment = 1.0 / (measurement_freq * 100.0);
+        timeIncrement_ = 1.0 / (measurement_freq * 100.0);
         if (overrideTimeIncrement_ > 0.0){
             // Some lasers may report incorrect measurement frequency
-            _msg.time_increment = overrideTimeIncrement_;
+            timeIncrement_ = overrideTimeIncrement_;
         }
-        // printf("measurement_freq: %d, time_increment: %f", measurement_freq, _msg.time_increment);
+        // printf("measurement_freq: %d, time_increment: %f", measurement_freq, timeIncrement_);
 
         // 18: Number of encoders (0)
         // 19: Number of 16 bit channels (1)
@@ -181,46 +177,51 @@ namespace mico{
         // 23: Starting angle (FFF92230)
         int starting_angle = -1;
         sscanf(fields[23], "%x", &starting_angle);
-        _msg.angle_min = (starting_angle / 10000.0) / 180.0 * M_PI - M_PI / 2;
-        // printf("starting_angle: %d, angle_min: %f", starting_angle, _msg.angle_min);
+        startAngle_ = (starting_angle / 10000.0) / 180.0 * M_PI - M_PI / 2;
+        // printf("starting_angle: %d, angle_min: %f", starting_angle, startAngle_);
 
         // 24: Angular step width (2710)
         unsigned short angular_step_width = -1;
         sscanf(fields[24], "%hx", &angular_step_width);
-        _msg.angle_increment = (angular_step_width / 10000.0) / 180.0 * M_PI;
-        _msg.angle_max = _msg.angle_min + (number_of_data - 1) * _msg.angle_increment;
+        angleIncrement_ = (angular_step_width / 10000.0) / 180.0 * M_PI;
+        endAngle_ = startAngle_ + (number_of_data - 1) * angleIncrement_;
 
         // 25: Number of data (<= 10F)
         // This is already determined above in number_of_data
 
         // adjust angle_min to min_ang config param
         int index_min = 0;
-        while (_msg.angle_min + _msg.angle_increment < minAngle_){
-            _msg.angle_min += _msg.angle_increment;
+        while (startAngle_ + angleIncrement_ < minAngle_){
+            startAngle_ += angleIncrement_;
             index_min++;
         }
 
         // adjust angle_max to max_ang config param
         int index_max = number_of_data - 1;
-        while (_msg.angle_max - _msg.angle_increment > maxAngle_){
-            _msg.angle_max -= _msg.angle_increment;
+        while (endAngle_ - angleIncrement_ > maxAngle_){
+            endAngle_ -= angleIncrement_;
             index_max--;
         }
 
         printf("index_min: %d, index_max: %d", index_min, index_max);
-        // printf("angular_step_width: %d, angle_increment: %f, angle_max: %f", angular_step_width, _msg.angle_increment, _msg.angle_max);
+        // printf("angular_step_width: %d, angle_increment: %f, angle_max: %f", angular_step_width, angleIncrement_, endAngle_);
 
         // 26..26 + n - 1: Data_1 .. Data_n
-        _msg.ranges.resize(index_max - index_min + 1);
+        std::vector<float> lidarMeasures;
+        lidarMeasures.resize(index_max - index_min + 1);
         for (int j = index_min; j <= index_max; ++j){
             unsigned short range;
             sscanf(fields[j + HEADER_FIELDS], "%hx", &range);
             if (range == 0)
-            _msg.ranges[j - index_min] = std::numeric_limits<float>::infinity();
+                lidarMeasures[j - index_min] = std::numeric_limits<float>::infinity();
             else
-            _msg.ranges[j - index_min] = range / 1000.0;
+                lidarMeasures[j - index_min] = range / 1000.0;
         }
 
+        // AQUI RELLENAR NUBE
+        // _cloud = nananana;
+
+        std::vector<float> lidarIntensities;
         if (intensity_) {
             if (rssi)
             {
@@ -238,12 +239,12 @@ namespace mico{
                 //   26 + n + 7 + n + 2 .. count - 4 = device label as a length-prefixed string, e.g. 0xA "Scipio_LRF" or 0xB "not defined"
                 //   count - 3 .. count - 1 = unknown (but seems to be 0 always)
                 //   <ETX> (\x03)
-                _msg.intensities.resize(index_max - index_min + 1);
+                lidarIntensities.resize(index_max - index_min + 1);
                 size_t offset = HEADER_FIELDS + number_of_data + 7;
                 for (int j = index_min; j <= index_max; ++j){
                     unsigned short intensity;
                     sscanf(fields[j + offset], "%hx", &intensity);
-                    _msg.intensities[j - index_min] = intensity;
+                    lidarIntensities[j - index_min] = intensity;
                 }
             } else {
             printf("Intensity parameter is enabled, but the scanner is not configured to send RSSI values! "
@@ -258,28 +259,25 @@ namespace mico{
         //   count - 3 .. count - 1 = unknown (but seems to be 0 always)
         //   <ETX> (\x03)
 
-        _msg.range_min = overrideRangeMin_;
-        _msg.range_max = overrideRangeMax_;
-
         // ----- adjust start time
         // - last scan point = now  ==>  first scan point = now - number_of_data * time increment
-        double start_time_adjusted = start_time.toSec()
-                    - number_of_data * _msg.time_increment   // shift backward to time of first scan point
-                    + index_min * _msg.time_increment        // shift forward to time of first published scan point
-                    + timeOffset_;                   // add time offset (usually negative) to account for USB latency etc.
-        if (start_time_adjusted >= 0.0){   // ensure that ros::Time is not negative (otherwise runtime error)
-            _msg.header.stamp.fromSec(start_time_adjusted);
-        } else {
-            printf("ROS time is 0! Did you set the parameter use_sim_time to true?");
-        }
+        // double start_time_adjusted = timeStamp_
+        //             number_of_data * timeIncrement_   // shift backward to time of first scan point
+        //             + index_min * timeIncrement_        // shift forward to time of first published scan point
+        //             + timeOffset_;                   // add time offset (usually negative) to account for USB latency etc.
+        // if (start_time_adjusted >= 0.0){   // ensure that ros::Time is not negative (otherwise runtime error)
+        //     // _msg.header.stamp.fromSec(start_time_adjusted);
+        // } else {
+        //     printf("ROS time is 0! Did you set the parameter use_sim_time to true?");
+        // }
 
         // ----- consistency check
-        float expected_time_increment = _msg.scan_time * _msg.angle_increment / (2.0 * M_PI);
-        if (fabs(expected_time_increment - _msg.time_increment) > 0.00001){
+        float expected_time_increment = freqScan_ * angleIncrement_ / (2.0 * M_PI);
+        if (fabs(expected_time_increment - timeIncrement_) > 0.00001){
         printf("The time_increment, scan_time and angle_increment values reported by the scanner are inconsistent! "
             "Expected time_increment: %.9f, reported time_increment: %.9f. "
             "Perhaps you should set the parameter time_increment to the expected value. This message will print every 60 seconds.",
-            expected_time_increment, _msg.time_increment);
+            expected_time_increment, timeIncrement_);
         }
 
         return ExitSuccess;
