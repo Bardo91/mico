@@ -25,3 +25,9 @@ target_link_libraries(loop_finder LINK_PRIVATE mico-base)
 target_link_libraries(loop_finder LINK_PRIVATE gtest gtest_main)
 add_test(test_loop_finder loop_finder)
 
+
+add_executable(map_saver map_saver.cpp)
+target_link_libraries(map_saver LINK_PRIVATE mico-base)
+target_link_libraries(map_saver LINK_PRIVATE gtest gtest_main)
+add_test(test_map_saver map_saver)
+

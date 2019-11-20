@@ -154,6 +154,11 @@ namespace mico {
 
         void reinforce(std::shared_ptr<Dataframe<PointType_>> &_df);
         
+        friend std::ostream& operator<<(std::ostream& os, const Dataframe<PointType_>::Ptr _df){
+            os << _df->id();
+            return os;
+        };
+        
     private:
         Dataframe();    // Private void constructor to prevent its creation without ID.
 

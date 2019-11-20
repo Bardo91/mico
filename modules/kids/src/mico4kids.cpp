@@ -48,6 +48,7 @@ void registerDataModels(FlowVisualInterface::RegistryType_ &_register) {
     _register->registerModel<FlowVisualBlock<StreamPixhawk, true>>          ("Streamers");
 
     #ifdef MICO_USE_ROS
+    #ifdef FLOW_USE_ROS
         // ROS Streamers
         _register->registerModel<FlowVisualBlock<BlockROSSuscriberImu>>              ("ROS");
         _register->registerModel<FlowVisualBlock<BlockROSSuscriberGPS>>              ("ROS");
@@ -58,6 +59,7 @@ void registerDataModels(FlowVisualInterface::RegistryType_ &_register) {
         // ROS Publishers
         _register->registerModel<FlowVisualBlock<BlockROSPublisherPoseStamped>>      ("ROS");
         _register->registerModel<FlowVisualBlock<BlockROSPublisherPointCloud>>       ("ROS");
+    #endif
     #endif
 
     // DNN
@@ -105,9 +107,11 @@ int main(int _argc, char *_argv[]) {
     signal(SIGINT, signalHandler);  
 
     #ifdef MICO_USE_ROS
-        ros::init(_argc, _argv, "SLAM4KIDS");
+    #ifdef FLOW_USE_ROS
+        ros::init(_argc, _argv, "MICO4KIDS");
         ros::AsyncSpinner spinner(4);
         spinner.start();
+    #endif
     #endif
 
     // Disable pcl warnings.
