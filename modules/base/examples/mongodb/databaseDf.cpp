@@ -23,11 +23,19 @@ using namespace mico;
 
 class ConcatDf{
     public:
+        ConcatDf(int _id){
+            id_ = _id;
+            position_ = Eigen::Vector3f::Identity();
+        };
         int id() const{
             return id_;
         };
+        Eigen::Vector3f position() const{
+            return position_;
+        };
     private:
-        int id_ = 2;
+        int id_;
+        Eigen::Vector3f position_;
 };
 
 int main(int _argc, char** _argv) {
@@ -43,12 +51,16 @@ int main(int _argc, char** _argv) {
 
     Dataframe<pcl::PointXYZINormal>::Ptr dataf = Dataframe<pcl::PointXYZINormal>::Ptr(new Dataframe<pcl::PointXYZINormal>(10));
 
+    ConcatDf concat(2);
+
     for (int i = 0 ; i < 10 ; i++){
         auto builderDf = bsoncxx::builder::stream::document{};
             bsoncxx::document::value doc_value = builderDf
-                    << "id" << i
-                    << "position"    << open_array << 3 << 3 << 3 << close_array
-                    << "orientation" << open_array << 3 << 3 << 3 << 1 << close_array
+                    << "id" << concat.id()
+                    << "position"    << open_array 
+                                     << concat.position()[0] << concat.position()[1] << concat.position()[2] // 666 make it iterating
+                                     << close_array
+                    << "orientation" << open_array << 0 << 0 << 0 << 1 << close_array
                 << finalize;
 
         auto res = db["dataframeMap"].insert_one(std::move(doc_value));
