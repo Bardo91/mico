@@ -19,67 +19,72 @@ using bsoncxx::builder::stream::document;
 using bsoncxx::builder::stream::open_document;
 using bsoncxx::builder::stream::close_document;
 using bsoncxx::builder::stream::finalize;
+
+using bsoncxx::builder::basic::kvp;
+using bsoncxx::builder::basic::sub_array;
+
 using namespace mico;
 
 class ConcatDf{
     public:
         ConcatDf(int _id){
             id_ = _id;
-            position_ = Eigen::Vector3f::Identity();
+            position_ = {1.0 , 10.0 , 100.0};
         };
         int id() const{
             return id_;
         };
-        Eigen::Vector3f position() const{
+        std::vector<float> position() const{
             return position_;
         };
     private:
         int id_;
-        Eigen::Vector3f position_;
+        std::vector<float> position_;
 };
 
 int main(int _argc, char** _argv) {
-    // The mongocxx::instance constructor and destructor initialize and shut down the driver,
-    // respectively. Therefore, a mongocxx::instance must be created before using the driver and
-    // must remain alive for as long as the driver is in use.
-    mongocxx::instance inst{};
+    mongocxx::instance instance{};
     mongocxx::uri uri("mongodb://localhost:27017");;
     mongocxx::client conn{uri};
 
-    auto db = conn["dataframeMap"];
-	mongocxx::collection coll = db["dataframeMap"];
+    auto db = conn["micoDatabase"];
+	// mongocxx::collection coll = db["micoDatabase"];
 
-    Dataframe<pcl::PointXYZINormal>::Ptr dataf = Dataframe<pcl::PointXYZINormal>::Ptr(new Dataframe<pcl::PointXYZINormal>(10));
-
-    ConcatDf concat(2);
-
+    // fill db with dummy dataframes
     for (int i = 0 ; i < 10 ; i++){
-        auto builderDf = bsoncxx::builder::stream::document{};
-            bsoncxx::document::value doc_value = builderDf
-                    << "id" << concat.id()
-                    << "position"    << open_array 
-                                     << concat.position()[0] << concat.position()[1] << concat.position()[2] // 666 make it iterating
-                                     << close_array
-                    << "orientation" << open_array << 0 << 0 << 0 << 1 << close_array
-                << finalize;
+        Dataframe<pcl::PointXYZINormal> dataf = Dataframe<pcl::PointXYZINormal>(i);
+        Eigen::Matrix4f pose = Eigen::Matrix4f::Identity();
+        dataf.pose(pose);
 
-        auto res = db["dataframeMap"].insert_one(std::move(doc_value));
+        auto doc = bsoncxx::builder::basic::document{};
+        doc.append(kvp("id" , dataf.id()));
+        doc.append(kvp("position", [&](sub_array _child) {
+            std::vector<float> pos(dataf.position().data(), dataf.position().data() + dataf.position().size());
+            for (const auto& element : pos ) {
+                _child.append(element);
+            }
+        }));
+        auto res = db["micoDatabase"].insert_one(doc.view()); 
+    }
+    
+    // create array to update db
+    const auto elements = {1, 2, 3};
+    auto array_builder = bsoncxx::builder::basic::array{};
+    for (const auto& element : elements) {
+        array_builder.append(element);
     }
 
-    
-    db["dataframeMap"].update_one(document{} << "id" << 5 << finalize,
+    // update data if new id == 5
+    db["micoDatabase"].update_one(document{} << "id" << 5 << finalize,
                       document{} << "$set" << open_document
-                      << "position" << open_array << 100 << 1000 << 1000 << 1000 << close_array 
+                      << "position" << open_array << array_builder << close_array 
                       << close_document << finalize);
     
-	mongocxx::cursor cursor = coll.find({});
-	 for(auto doc : cursor) {
-	   std::cout << bsoncxx::to_json(doc) << "\n";
-	 }
-	return 0;
-}
+    // print all db
+	mongocxx::cursor cursor = db["micoDatabase"].find({});
+	for(auto doc : cursor) {
+	  std::cout << bsoncxx::to_json(doc) << "\n";
+	}
 
-bsoncxx::builder::stream::open_document_type& operator<< (bsoncxx::builder::stream::open_document_type& _os, ConcatDf& _conc){
-    // _os << _conc.id;
-    return _os;
+	return 0;
 }
