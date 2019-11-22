@@ -50,8 +50,6 @@ TEST(map_saver, map_saver){
 
     std::stringstream ss;
 
-    std::string expectedId = "10\n";
-    // ss << d;
     for (auto &df : database){
         ss << df.first << " - ";
         for (auto &seen :df.second->covisibility()){
@@ -70,16 +68,15 @@ TEST(map_saver, map_saver){
     ASSERT_EQ(expectedResult.str() , ss.str());
 }
 
-
-std::ostream& operator<<(std::ostream& os, const std::map<int, Dataframe<pcl::PointXYZINormal>::Ptr>& _database){
-    for (auto &df : _database){
-            os << df.first << " "<< df.second;
-    }
-    return os;
-}
-
-// std::ostream& operator<<(std::ostream& os, const Dataframe<pcl::PointXYZINormal>::Ptr _df){
-//     os << _df->id() << "\n";
+// template <typename Point_>
+// std::ostream& operator<<(std::ostream& os, const std::map<int, std::shared_ptr<Dataframe<Point_>>>& _database){
+//     for (auto &df : _database){
+//         os << df.first << " - ";
+//         for (auto &seen :df.second->covisibility()){
+//             os << seen << ",";
+//         }
+//         os << "\n";
+//     }
 //     return os;
 // }
 

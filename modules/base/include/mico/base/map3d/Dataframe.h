@@ -77,6 +77,12 @@ namespace mico {
         /// Get current estimated pose of the dataframe
         Eigen::Matrix4f pose() const;
 
+        /// Get current estimated position of the dataframe
+        Eigen::Vector3f position() const;
+
+        /// Get current estimated orientation of the dataframe
+        Eigen::Quaternionf orientation() const;
+
         /// Set dense point cloud of the dataframe
         void cloud(const typename pcl::PointCloud<PointType_>::Ptr & _cloud);
 
@@ -154,11 +160,6 @@ namespace mico {
 
         void reinforce(std::shared_ptr<Dataframe<PointType_>> &_df);
         
-        friend std::ostream& operator<<(std::ostream& os, const Dataframe<PointType_>::Ptr _df){
-            os << _df->id();
-            return os;
-        };
-        
     private:
         Dataframe();    // Private void constructor to prevent its creation without ID.
 
@@ -203,6 +204,15 @@ namespace mico {
             DBoW2::FeatureVector featVec_;
         #endif
     };
+
+    template <typename PointType_>
+    std::ostream& operator<<(std::ostream& os, const std::shared_ptr<Dataframe<PointType_>> _df){
+        // os <<_df->id();
+        os << "id: " << _df->id() << " , position:" << _df->position().transpose() << " , orientation:" << _df->orientation().vec().transpose();
+
+        return os;
+    }
+        
 }
 
 #include <mico/base/map3d/Dataframe.inl>

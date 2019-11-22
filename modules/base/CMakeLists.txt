@@ -53,6 +53,7 @@ option(USE_DBOW2			"Using DBoW2 in the slam algorithms"	 	ON)
 option(MICO_USE_ROS			"Compile ROS dependent modules"	 			OFF)
 
 option(USE_MAVLINK 			"Compile MAVLINK interface classes"			ON)
+option(USE_MONGO 			"Compile Mongo databse"			            ON)
 
 # Others
 option(BUILD_TOOLS			"Compile mico-base tools" 					ON)
@@ -241,6 +242,16 @@ if (${USE_MAVLINK})
 	else()
 		set(USE_MAVLINK OFF)
 	endif()
+endif()
+
+if(${USE_MONGO})
+	find_package(libmongocxx REQUIRED)
+	find_package(libbsoncxx REQUIRED)
+	
+	target_compile_definitions(${COMPONENT_NAME} PUBLIC "HAS_MONGO")	
+	target_include_directories(${COMPONENT_NAME} PUBLIC ${LIBMONGOCXX_INCLUDE_DIRS})
+	target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC ${LIBMONGOCXX_LIBRARIES})
+	
 endif()
 
 #########################################

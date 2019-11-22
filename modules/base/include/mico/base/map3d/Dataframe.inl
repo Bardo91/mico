@@ -81,6 +81,16 @@ namespace mico {
     }
 
     template<typename PointType_>
+    inline Eigen::Vector3f Dataframe<PointType_>::position() const{
+        return position_;
+    }
+
+    template<typename PointType_>
+    inline Eigen::Quaternionf Dataframe<PointType_>::orientation() const{
+        return orientation_;
+    }
+
+    template<typename PointType_>
     inline void Dataframe<PointType_>::cloud(const typename pcl::PointCloud<PointType_>::Ptr &_cloud){
         cloud_ = _cloud;
     }
