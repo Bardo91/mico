@@ -247,11 +247,14 @@ endif()
 if(${USE_MONGO})
 	find_package(libmongocxx REQUIRED)
 	find_package(libbsoncxx REQUIRED)
-	
-	target_compile_definitions(${COMPONENT_NAME} PUBLIC "HAS_MONGO")	
-	target_include_directories(${COMPONENT_NAME} PUBLIC ${LIBMONGOCXX_INCLUDE_DIRS})
-	target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC ${LIBMONGOCXX_LIBRARIES})
-	
+	#if (${LIBMONGOCXX_FOUND})
+		target_compile_definitions(${COMPONENT_NAME} PUBLIC "HAS_MONGO")	
+		target_include_directories(${COMPONENT_NAME} PUBLIC ${LIBMONGOCXX_INCLUDE_DIRS})
+		target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC ${LIBMONGOCXX_LIBRARIES})
+		MESSAGE(STATUS "Found mongocxx")
+	#else()
+	#	set(USE_MONGO OFF)
+	#endif()
 endif()
 
 #########################################

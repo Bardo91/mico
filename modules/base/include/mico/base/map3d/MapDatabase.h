@@ -1,7 +1,7 @@
 //---------------------------------------------------------------------------------------------------------------------
 //  mico
 //---------------------------------------------------------------------------------------------------------------------
-//  Copyright 2018 Pablo Ramon Soria (a.k.a. Bardo91) pabramsor@gmail.com
+//  Copyright 2018 Pablo Ramon Soria (a.k.a. Bardo91) pabramsor@gmail.com & Ricardo Lopez Lopez (a.k.a Ric92)
 //---------------------------------------------------------------------------------------------------------------------
 //  Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 //  and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -19,26 +19,52 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#ifndef MICO_BASE_RGBDTOOLS_H_
-#define MICO_BASE_RGBDTOOLS_H_
+#ifndef MICO_MAP3D_MAPDATABASE_H_
+#define MICO_MAP3D_MAPDATABASE_H_
 
-#include <mico/base/StereoCamera.h>
+#include <mico/base/map3d/Dataframe.h>
+#include <vector>
 
-#include <mico/base/utils/Graph2d.h>
-#include <mico/base/utils/Gui.h>
-#include <mico/base/utils/LogManager.h>
+#include <bsoncxx/builder/basic/array.hpp>
+#include <bsoncxx/builder/stream/document.hpp>
+#include <bsoncxx/types.hpp>
+#include <bsoncxx/json.hpp>
 
-#include <mico/base/cjson/json.h>
+#include <mongocxx/client.hpp>
+#include <mongocxx/instance.hpp>
+#include <mongocxx/uri.hpp>
 
-#include <mico/base/map3d/RansacP2P.h>
-#include <mico/base/map3d/utils3d.h>
-#include <mico/base/map3d/GMMEM.h>
-#include <mico/base/map3d/BundleAdjuster.h>
-#include <mico/base/map3d/utils3d.h>
-#include <mico/base/map3d/MapDatabase.h>
+using bsoncxx::builder::stream::document;
+using bsoncxx::builder::stream::finalize;
 
-#include <mico/base/object_detection/feature_based/FeatureModel.h>
-#include <mico/base/object_detection/feature_based/FeatureObjectTracker.h>
+using bsoncxx::builder::basic::kvp;
+using bsoncxx::builder::basic::sub_array;
+
+namespace mico {
+
+    template <typename PointType_>
+    class MapDatabase{
+        public:
+            typedef std::shared_ptr<MapDatabase<PointType_>> Ptr;
+
+            MapDatabase(std::string _databaseName);
+            ~MapDatabase();
+
+            bool init();
+
+            bool update(std::shared_ptr<mico::Dataframe<PointType_>> &_df);
+
+            bool printDb();
+
+        private:
+
+            std::string dbName_;
+            mongocxx::database db_; 
+            
+    };
+} // namespace mico 
+
+#include <mico/base/map3d/MapDatabase.inl>
+
 
 #endif
- 
