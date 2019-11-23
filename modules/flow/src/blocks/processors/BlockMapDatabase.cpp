@@ -1,7 +1,7 @@
 //---------------------------------------------------------------------------------------------------------------------
 //  mico
 //---------------------------------------------------------------------------------------------------------------------
-//  Copyright 2018 Pablo Ramon Soria (a.k.a. Bardo91) pabramsor@gmail.com & Marco Montes Grova (a.k.a marrcogrova)
+//  Copyright 2019 Pablo Ramon Soria (a.k.a. Bardo91) pabramsor@gmail.com & Marco Montes Grova (a.k.a marrcogrova)
 //---------------------------------------------------------------------------------------------------------------------
 //  Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 //  and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -19,62 +19,43 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#ifndef MICO_MAP3D_MAPDATABASE_H_
-#define MICO_MAP3D_MAPDATABASE_H_
 
-#include <mico/base/map3d/Dataframe.h>
-#include <vector>
+#include <mico/flow/blocks/processors/BlockMapDatabase.h>
 
-#include <bsoncxx/builder/basic/array.hpp>
-#include <bsoncxx/builder/stream/document.hpp>
-#include <bsoncxx/types.hpp>
-#include <bsoncxx/json.hpp>
+namespace mico{
 
-#include <mongocxx/client.hpp>
-#include <mongocxx/instance.hpp>
-#include <mongocxx/uri.hpp>
+    BlockMapDatabase::BlockMapDatabase(){
+        iPolicy_ = new flow::Policy({"dataframe"});
 
-#include <opencv2/opencv.hpp>
-#include <pcl/io/pcd_io.h>
+        iPolicy_->registerCallback({"dataframe"}, 
+            [&](std::unordered_map<std::string,std::any> _data){
+                if(idle_){
+                    idle_ = false;
+                    std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> df = std::any_cast<std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>>>(_data["dataframe"]);
+                    database_.update(df);
 
-#include <sys/stat.h>
+                    idle_ = true;
+                }
+            }
+        );
+    }
+    
+    BlockMapDatabase::~BlockMapDatabase(){
+        database_.saveDatabase();
+    }
 
-using bsoncxx::builder::stream::document;
-using bsoncxx::builder::stream::finalize;
+    bool BlockMapDatabase::configure(std::unordered_map<std::string, std::string> _params){
+        for(auto &param:_params){
+            if(param.first == "database_name"){
+                return database_.init(param.second);
+            }
+        }
+        return false;
+    }
+    
+    std::vector<std::string> BlockMapDatabase::parameters(){
+        return {"database_name"}; //666 add uri?
+    }
 
-using bsoncxx::builder::basic::kvp;
-using bsoncxx::builder::basic::sub_array;
-
-namespace mico {
-
-    template <typename PointType_>
-    class MapDatabase{
-        public:
-            typedef std::shared_ptr<MapDatabase<PointType_>> Ptr;
-
-            MapDatabase();
-            ~MapDatabase();
-
-            bool init(std::string _databaseName);
-            bool init(std::string _databaseName , std::string _uri);
-
-            bool update(std::shared_ptr<mico::Dataframe<PointType_>> &_df); // using template only for it
-
-            bool printDatabase();
-            bool saveDatabase();
-
-        private:
-            mongocxx::uri uri_;
-            mongocxx::client connClient_;
-            mongocxx::database db_; 
-            std::string dbName_;
-
-            std::string pathDbFolder_;
-            
-    };
-} // namespace mico 
-
-#include <mico/base/map3d/MapDatabase.inl>
-
-
-#endif
+    
+}

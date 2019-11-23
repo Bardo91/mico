@@ -1,7 +1,7 @@
 //---------------------------------------------------------------------------------------------------------------------
 //  mico
 //---------------------------------------------------------------------------------------------------------------------
-//  Copyright 2018 Pablo Ramon Soria (a.k.a. Bardo91) pabramsor@gmail.com & Marco Montes Grova (a.k.a marrcogrova)
+//  Copyright 2019 Pablo Ramon Soria (a.k.a. Bardo91) pabramsor@gmail.com & Marco Montes Grova (a.k.a marrcogrova)
 //---------------------------------------------------------------------------------------------------------------------
 //  Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 //  and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -19,62 +19,29 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#ifndef MICO_MAP3D_MAPDATABASE_H_
-#define MICO_MAP3D_MAPDATABASE_H_
+#ifndef MICO_FLOW_BLOCKS_BLOCKMAPDATABASE_H_
+#define MICO_FLOW_BLOCKS_BLOCKMAPDATABASE_H_
 
-#include <mico/base/map3d/Dataframe.h>
-#include <vector>
+#include <flow/Block.h>
+#include <mico/base/map3d/MapDatabase.h>
 
-#include <bsoncxx/builder/basic/array.hpp>
-#include <bsoncxx/builder/stream/document.hpp>
-#include <bsoncxx/types.hpp>
-#include <bsoncxx/json.hpp>
+namespace mico{
 
-#include <mongocxx/client.hpp>
-#include <mongocxx/instance.hpp>
-#include <mongocxx/uri.hpp>
+    class BlockMapDatabase:public flow::Block{
+    public:
+        static std::string name() {return "Block Map Database";}
+        
+        BlockMapDatabase();
+        ~BlockMapDatabase();
+        
+        virtual bool configure(std::unordered_map<std::string, std::string> _params) override;
+        std::vector<std::string> parameters() override;
 
-#include <opencv2/opencv.hpp>
-#include <pcl/io/pcd_io.h>
-
-#include <sys/stat.h>
-
-using bsoncxx::builder::stream::document;
-using bsoncxx::builder::stream::finalize;
-
-using bsoncxx::builder::basic::kvp;
-using bsoncxx::builder::basic::sub_array;
-
-namespace mico {
-
-    template <typename PointType_>
-    class MapDatabase{
-        public:
-            typedef std::shared_ptr<MapDatabase<PointType_>> Ptr;
-
-            MapDatabase();
-            ~MapDatabase();
-
-            bool init(std::string _databaseName);
-            bool init(std::string _databaseName , std::string _uri);
-
-            bool update(std::shared_ptr<mico::Dataframe<PointType_>> &_df); // using template only for it
-
-            bool printDatabase();
-            bool saveDatabase();
-
-        private:
-            mongocxx::uri uri_;
-            mongocxx::client connClient_;
-            mongocxx::database db_; 
-            std::string dbName_;
-
-            std::string pathDbFolder_;
-            
+    private:
+        MapDatabase<pcl::PointXYZRGBNormal> database_;
+        bool idle_ = true;
     };
-} // namespace mico 
 
-#include <mico/base/map3d/MapDatabase.inl>
-
+}
 
 #endif

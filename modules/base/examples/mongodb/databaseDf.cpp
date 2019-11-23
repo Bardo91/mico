@@ -10,9 +10,9 @@ using namespace mico;
 
 
 int main(int _argc, char** _argv) {
-    MapDatabase<pcl::PointXYZ>::Ptr mongoDatabase (new MapDatabase<pcl::PointXYZ>("foo"));
+    MapDatabase<pcl::PointXYZ>::Ptr mongoDatabase (new MapDatabase<pcl::PointXYZ>());
 
-    if(!mongoDatabase->init()){
+    if(!mongoDatabase->init("foo")){
         return 0;
     }
     // fill db with dummy dataframes

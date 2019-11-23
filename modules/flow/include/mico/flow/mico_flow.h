@@ -26,8 +26,8 @@
 #include <mico/flow/blocks/streamers/StreamPixhawk.h>
 
 #ifdef MICO_USE_ROS
-    #include <flow/visual/blocks/streamers/ros/ROSStreamers.h>
-    #include <flow/visual/blocks/publishers/ros/ROSPublishers.h>
+#   include <flow/visual/blocks/streamers/ros/ROSStreamers.h>
+#   include <flow/visual/blocks/publishers/ros/ROSPublishers.h>
 #endif
 
 // Processors
@@ -37,7 +37,11 @@
 #include <mico/flow/blocks/processors/BlockLoopClosure.h>
 #include <mico/flow/blocks/processors/BlockOptimizerCF.h>
 #include <mico/flow/blocks/processors/BlockEKFIMU.h>
+#include <mico/flow/blocks/processors/BlockMapDatabase.h>
 
+#ifdef HAS_DARKNET
+#   include <mico/flow/blocks/processors/BlockDarknet.h> // 666 HAS DARKNET
+#endif
 
 // Visualizers
 #include <mico/flow/blocks/visualizers/BlockImageVisualizer.h>
@@ -56,8 +60,3 @@
 #include <mico/flow/blocks/savers/SaverImage.h>
 #include <mico/flow/blocks/savers/SaverTrajectory.h>
 #include <mico/flow/blocks/savers/SaverEntity.h>
-
-// DNN
-#ifdef HAS_DARKNET
-    #include <mico/flow/blocks/processors/BlockDarknet.h> // 666 HAS DARKNET
-#endif

@@ -73,6 +73,8 @@ void registerDataModels(FlowVisualInterface::RegistryType_ &_register) {
     _register->registerModel<FlowVisualBlock<BlockLoopClosure>>             ("SLAM");
     _register->registerModel<FlowVisualBlock<BlockOptimizerCF>>             ("SLAM");
     
+    _register->registerModel<FlowVisualBlock<BlockMapDatabase>>             ("SLAM");
+    
     // Visualizers
     _register->registerModel<FlowVisualBlock<BlockImageVisualizer>>         ("Visualizers");
     _register->registerModel<FlowVisualBlock<BlockTrayectoryVisualizer>>    ("Visualizers");

@@ -1,7 +1,7 @@
 //---------------------------------------------------------------------------------------------------------------------
 //  mico
 //---------------------------------------------------------------------------------------------------------------------
-//  Copyright 2018 Pablo Ramon Soria (a.k.a. Bardo91) pabramsor@gmail.com & Ricardo Lopez Lopez (a.k.a Ric92)
+//  Copyright 2018 Pablo Ramon Soria (a.k.a. Bardo91) pabramsor@gmail.com & Marco Montes Grova (a.k.a marrcogrova)
 //---------------------------------------------------------------------------------------------------------------------
 //  Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 //  and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -23,15 +23,7 @@ namespace mico
 {   
 
     template<typename PointType_>
-    inline MapDatabase<PointType_>::MapDatabase(std::string _databaseName){
-        dbName_ = _databaseName;
-        uri_ = mongocxx::uri("mongodb://localhost:27017");
-    }
-    
-    template<typename PointType_>
-    inline MapDatabase<PointType_>::MapDatabase(std::string _databaseName , std::string _uri){
-        dbName_ = _databaseName;
-        uri_ = mongocxx::uri(_uri);
+    inline MapDatabase<PointType_>::MapDatabase(){
     }
 
     template<typename PointType_>
@@ -39,8 +31,30 @@ namespace mico
     }
     
     template<typename PointType_>
-    inline bool MapDatabase<PointType_>::init(){
+    inline bool MapDatabase<PointType_>::init(std::string _databaseName){
 
+        dbName_ = _databaseName;
+        uri_ = mongocxx::uri("mongodb://localhost:27017");
+        
+        mongocxx::instance instance{};
+        connClient_ = mongocxx::client{uri_};
+        db_ = connClient_[dbName_]; 
+
+        pathDbFolder_= "/home/marrcogrova/.mico/tmp";
+        int stat = mkdir(pathDbFolder_.c_str() , S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+        if (stat == -1){
+            std::cout << "Error creating tmp folder \n";
+            return false;
+        }
+        return true;
+    }
+
+    template<typename PointType_>
+    inline bool MapDatabase<PointType_>::init(std::string _databaseName, std::string _uri){
+
+        dbName_ = _databaseName;
+        uri_ = mongocxx::uri(_uri);
+        
         mongocxx::instance instance{};
         connClient_ = mongocxx::client{uri_};
         db_ = connClient_[dbName_]; 
@@ -74,9 +88,9 @@ namespace mico
         }
         
         cv::imwrite(dfFolder + "/color.png", _df->leftImage());
-        doc.append(kvp("left_path" , dfFolder + "/color.png"));
+        doc.append(kvp("left_path" , dfFolder + "/color.png")); //666 compress image?   
 
-        pcl::io::savePCDFile(dfFolder + "/cloud.pcd", *_df->cloud(), true );
+        pcl::io::savePCDFile(dfFolder + "/cloud.pcd", *_df->cloud(), true ); // true to use binary format
         doc.append(kvp("cloud_path" , dfFolder + "/cloud.pcd"));
 
         auto res = db_[dbName_].insert_one(doc.view());
@@ -93,10 +107,12 @@ namespace mico
             std::cout << "Error creating database json\n";
             return false;
         }
+
 	    mongocxx::cursor cursor = db_[dbName_].find({});
 	    for(auto doc : cursor) {
 	      file << bsoncxx::to_json(doc) << "\n";
 	    }
+        
         file.close();
         return true;
     }
