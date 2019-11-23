@@ -35,6 +35,9 @@
 #include <mongocxx/uri.hpp>
 
 #include <opencv2/opencv.hpp>
+#include <pcl/io/pcd_io.h>
+
+#include <sys/stat.h>
 
 using bsoncxx::builder::stream::document;
 using bsoncxx::builder::stream::finalize;
@@ -57,7 +60,8 @@ namespace mico {
 
             bool update(std::shared_ptr<mico::Dataframe<PointType_>> &_df);
 
-            bool printDb();
+            bool printDatabase();
+            bool saveDatabase();
 
         private:
             mongocxx::uri uri_;
@@ -65,7 +69,7 @@ namespace mico {
             mongocxx::database db_; 
             std::string dbName_;
 
-            // std::string pathFolder_= "/home/marrcorova/tmp";
+            std::string pathDbFolder_;
             
     };
 } // namespace mico 
