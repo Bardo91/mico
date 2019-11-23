@@ -34,6 +34,8 @@
 #include <mongocxx/instance.hpp>
 #include <mongocxx/uri.hpp>
 
+#include <opencv2/opencv.hpp>
+
 using bsoncxx::builder::stream::document;
 using bsoncxx::builder::stream::finalize;
 
@@ -48,6 +50,7 @@ namespace mico {
             typedef std::shared_ptr<MapDatabase<PointType_>> Ptr;
 
             MapDatabase(std::string _databaseName);
+            MapDatabase(std::string _databaseName , std::string _uri);
             ~MapDatabase();
 
             bool init();
@@ -57,9 +60,12 @@ namespace mico {
             bool printDb();
 
         private:
-
-            std::string dbName_;
+            mongocxx::uri uri_;
+            mongocxx::client connClient_;
             mongocxx::database db_; 
+            std::string dbName_;
+
+            // std::string pathFolder_= "/home/marrcorova/tmp";
             
     };
 } // namespace mico 

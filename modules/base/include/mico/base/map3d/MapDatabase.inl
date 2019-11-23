@@ -24,8 +24,14 @@ namespace mico
 
     template<typename PointType_>
     inline MapDatabase<PointType_>::MapDatabase(std::string _databaseName){
-        std::cout << "hi im mongo \n";
         dbName_ = _databaseName;
+        uri_ = mongocxx::uri("mongodb://localhost:27017");
+    }
+    
+    template<typename PointType_>
+    inline MapDatabase<PointType_>::MapDatabase(std::string _databaseName , std::string _uri){
+        dbName_ = _databaseName;
+        uri_ = mongocxx::uri(_uri);
     }
 
     template<typename PointType_>
@@ -35,22 +41,14 @@ namespace mico
     template<typename PointType_>
     inline bool MapDatabase<PointType_>::init(){
         mongocxx::instance instance{};
-        mongocxx::uri uri("mongodb://localhost:27017");;
-        mongocxx::client conn{uri};
+        connClient_ = mongocxx::client{uri_};
+        db_ = connClient_[dbName_]; 
 
-        db_ = conn["map"];
-        std::cout << "db initialized \n";
         return true;
     }
 
     template<typename PointType_>
     inline bool MapDatabase<PointType_>::update(std::shared_ptr<mico::Dataframe<PointType_>> &_df){
-        
-        // bsoncxx::stdx::optional<bsoncxx::document::value> maybe_result =
-        //     db_["map"].find_one(document{} << "id" << 3 << finalize);
-        // if(maybe_result) {
-        //   std::cout << bsoncxx::to_json(*maybe_result) << "\n";
-        // }
 
         auto doc = bsoncxx::builder::basic::document{};
         doc.append(kvp("id" , _df->id()));
@@ -60,7 +58,10 @@ namespace mico
                 for(unsigned j = 0; j < 4 ; j++)
                     _child.append(dfPose(i,j));
         }));
-        auto res = db_["map"].insert_one(doc.view());  // 666 break. Collection??
+        
+        // cv::imwrite(pathFolder_+"/color_"+std::to_string(_df->id())+".png", _df->leftImage());
+
+        auto res = db_[dbName_].insert_one(doc.view());
 
         return true;
     }
@@ -68,10 +69,10 @@ namespace mico
     template<typename PointType_>
     inline bool MapDatabase<PointType_>::printDb(){
 
-	    // mongocxx::cursor cursor = db_["map"].find({});
-	    // for(auto doc : cursor) {
-	    //   std::cout << bsoncxx::to_json(doc) << "\n";
-	    // }
+	    mongocxx::cursor cursor = db_[dbName_].find({});
+	    for(auto doc : cursor) {
+	      std::cout << bsoncxx::to_json(doc) << "\n";
+	    }
 
         return true;
     }

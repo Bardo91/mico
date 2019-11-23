@@ -35,8 +35,9 @@
 #include <mico/base/map3d/GMMEM.h>
 #include <mico/base/map3d/BundleAdjuster.h>
 #include <mico/base/map3d/utils3d.h>
-#include <mico/base/map3d/MapDatabase.h>
-
+#ifdef USE_MONGO
+#   include <mico/base/map3d/MapDatabase.h>
+#endif
 #include <mico/base/object_detection/feature_based/FeatureModel.h>
 #include <mico/base/object_detection/feature_based/FeatureObjectTracker.h>
 
