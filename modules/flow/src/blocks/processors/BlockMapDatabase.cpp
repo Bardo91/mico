@@ -41,7 +41,7 @@ namespace mico{
     }
     
     BlockMapDatabase::~BlockMapDatabase(){
-        database_.saveDatabase();
+        // database_.saveAllDatabase();
     }
 
     bool BlockMapDatabase::configure(std::unordered_map<std::string, std::string> _params){

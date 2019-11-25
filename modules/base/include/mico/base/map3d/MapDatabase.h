@@ -61,7 +61,7 @@ namespace mico {
             bool update(std::shared_ptr<mico::Dataframe<PointType_>> &_df); // using template only for it
 
             bool printDatabase();
-            bool saveDatabase();
+            bool saveAllDatabase();
 
         private:
             mongocxx::uri uri_;
@@ -70,6 +70,7 @@ namespace mico {
             std::string dbName_;
 
             std::string pathDbFolder_;
+            std::ofstream fileDatabase_;
             
     };
 } // namespace mico 

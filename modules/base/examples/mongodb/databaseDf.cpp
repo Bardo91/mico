@@ -34,7 +34,7 @@ int main(int _argc, char** _argv) {
         dataf->cloud(cloud.makeShared());
         mongoDatabase->update(dataf);
     }
-    mongoDatabase->saveDatabase();
+    mongoDatabase->saveAllDatabase();
 
 	return 0;
 }

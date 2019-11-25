@@ -54,10 +54,6 @@ namespace mico
 
         dbName_ = _databaseName;
         uri_ = mongocxx::uri(_uri);
-        
-        mongocxx::instance instance{};
-        connClient_ = mongocxx::client{uri_};
-        db_ = connClient_[dbName_]; 
 
         pathDbFolder_= "/home/marrcogrova/.mico/tmp";
         int stat = mkdir(pathDbFolder_.c_str() , S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
@@ -65,6 +61,12 @@ namespace mico
             std::cout << "Error creating tmp folder \n";
             return false;
         }
+
+        mongocxx::instance instance{};
+        connClient_ = mongocxx::client{uri_};
+        db_ = connClient_[dbName_]; 
+
+
         return true;
     }
 
@@ -94,26 +96,31 @@ namespace mico
         doc.append(kvp("cloud_path" , dfFolder + "/cloud.pcd"));
 
         auto res = db_[dbName_].insert_one(doc.view());
+    
+        fileDatabase_.open(pathDbFolder_ + "/database.json" , std::ofstream::app); //append mode
+        if (!fileDatabase_.is_open()){
+            std::cout << "Error opening database json\n";
+            return false;
+        }
+        fileDatabase_ << bsoncxx::to_json(doc) << "\n";
+        fileDatabase_.close();
 
         return true;
     }
 
     template<typename PointType_>
-    inline bool MapDatabase<PointType_>::saveDatabase(){
-        std::ofstream file;
-
-        file.open(pathDbFolder_ + "/database.json");
-        if (!file.is_open()){
-            std::cout << "Error creating database json\n";
+    inline bool MapDatabase<PointType_>::saveAllDatabase(){
+        fileDatabase_.open(pathDbFolder_ + "/database.json" , std::ofstream::app); //append mode
+        if (!fileDatabase_.is_open()){
+            std::cout << "Error opening database json\n";
             return false;
         }
 
 	    mongocxx::cursor cursor = db_[dbName_].find({});
 	    for(auto doc : cursor) {
-	      file << bsoncxx::to_json(doc) << "\n";
+	      fileDatabase_ << bsoncxx::to_json(doc) << "\n";
 	    }
-        
-        file.close();
+        fileDatabase_.close();
         return true;
     }
 
