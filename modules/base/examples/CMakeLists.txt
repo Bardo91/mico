@@ -30,7 +30,7 @@ set(ML_LDA_EXAMPLE_FILES   ml/classification/example_topic_modeling.cpp )
 build_example(example_ml_lda ML_LDA_EXAMPLE_FILES)
 
 if(${USE_MONGO})
-    set(MONGO_EXAMPLE_FILES   mongodb/databaseDf.cpp )
+    set(MONGO_EXAMPLE_FILES  mongodb/restoreDatabase.cpp )
     build_example(example_mongo MONGO_EXAMPLE_FILES)
 endif()
 

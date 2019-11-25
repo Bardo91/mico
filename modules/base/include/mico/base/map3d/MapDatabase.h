@@ -63,6 +63,8 @@ namespace mico {
             bool printDatabase();
             bool saveAllDatabase();
 
+            mongocxx::collection dbCollection();
+
         private:
             mongocxx::uri uri_;
             mongocxx::client connClient_;

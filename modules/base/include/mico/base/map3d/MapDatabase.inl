@@ -50,6 +50,11 @@ namespace mico
     }
 
     template<typename PointType_>
+    inline mongocxx::collection MapDatabase<PointType_>::dbCollection(){
+        return db_[dbName_];
+    }
+
+    template<typename PointType_>
     inline bool MapDatabase<PointType_>::init(std::string _databaseName, std::string _uri){
 
         dbName_ = _databaseName;
@@ -89,7 +94,9 @@ namespace mico
             return false;
         }
         
-        cv::imwrite(dfFolder + "/color.png", _df->leftImage());
+        // Save all things that df have !!!!!!
+
+        cv::imwrite(dfFolder + "/color.png", _df->leftImage()); //666 !!!!
         doc.append(kvp("left_path" , dfFolder + "/color.png")); //666 compress image?   
 
         pcl::io::savePCDFile(dfFolder + "/cloud.pcd", *_df->cloud(), true ); // true to use binary format
