@@ -45,16 +45,20 @@ namespace mico{
     }
 
     bool BlockMapDatabase::configure(std::unordered_map<std::string, std::string> _params){
+        std::string name , mode;
+        
         for(auto &param:_params){
             if(param.first == "database_name"){
-                return database_.init(param.second);
+                name = param.second;
+            }else if(param.first == "mode"){
+                mode = param.second;
             }
         }
-        return false;
+        return database_.init(name , mode);
     }
     
     std::vector<std::string> BlockMapDatabase::parameters(){
-        return {"database_name"}; //666 add uri?
+        return {"database_name" , "mode"}; //666 add uri?
     }
 
     

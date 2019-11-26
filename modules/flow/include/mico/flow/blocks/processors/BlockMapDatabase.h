@@ -29,7 +29,7 @@ namespace mico{
 
     class BlockMapDatabase:public flow::Block{
     public:
-        static std::string name() {return "Block Map Database";}
+        static std::string name() {return "Map Database";}
         
         BlockMapDatabase();
         ~BlockMapDatabase();

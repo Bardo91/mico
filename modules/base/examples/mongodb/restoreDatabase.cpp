@@ -10,33 +10,23 @@ using namespace mico;
 
 
 int main(int _argc, char** _argv) {
-    MapDatabase<pcl::PointXYZ>::Ptr mongoDatabase (new MapDatabase<pcl::PointXYZ>());
-
-    std::ifstream file;
-    file.open("/home/marrcogrova/Documents/datasets/databaseMongo/database.json"); 
-
-    if (!file.is_open()){
+    MapDatabase<pcl::PointXYZRGBNormal>::Ptr mongoDatabase (new MapDatabase<pcl::PointXYZRGBNormal>());
+    
+    if (!mongoDatabase->init("reloaded" ,"load")){
         return 0;
     }
-    std::cout << "file opened sucesfully\n";
+    mongoDatabase->restoreDatabase("/home/marrcogrova/Documents/datasets/databaseMongo/database.json");
     
-    if (!mongoDatabase->init("reloaded")){
-        return 0;
-    }
-    std::string line;
-    std::vector<std::string> lines;
-    while ( !std::getline(file,line).eof() ) 
-        lines.push_back(line);
-    file.close();
+    // now need iterate over all collection
+    
+    bsoncxx::stdx::optional<bsoncxx::document::value> resultDocument =
+            mongoDatabase->dbCollection().find_one(document{} << "id" << 3 << finalize);
+    bsoncxx::document::view viewDocumentResult = resultDocument.value();
 
-    std::vector<bsoncxx::document::value> vecDocs;
-    for (int i=0 ; i<lines.size() - 1 ; i++){ 
-        bsoncxx::document::value aux = bsoncxx::from_json(lines[i]);
-        bsoncxx::document::view aux_view = aux.view();
-        vecDocs.push_back(aux);
-    }
-    mongoDatabase->dbCollection().insert_many(vecDocs);
-    mongoDatabase->printDatabase();
-    
+    Dataframe<pcl::PointXYZRGBNormal> dataf = mongoDatabase->createDataframe(viewDocumentResult);
+
+    cv::imshow("left camera",dataf.leftImage());
+    cv::waitKey(0);
+
 	return 0;
 }

@@ -46,6 +46,13 @@ using bsoncxx::builder::basic::kvp;
 using bsoncxx::builder::basic::sub_array;
 
 namespace mico {
+    // use this struct?
+    struct DatabaseTags{ 
+        static std::string id_;
+        static std::string pose_;
+        static std::string leftPath_;
+        static std::string cloudPath_;
+    };
 
     template <typename PointType_>
     class MapDatabase{
@@ -55,13 +62,15 @@ namespace mico {
             MapDatabase();
             ~MapDatabase();
 
-            bool init(std::string _databaseName);
-            bool init(std::string _databaseName , std::string _uri);
+            bool init(std::string _databaseName , std::string _mode);
 
             bool update(std::shared_ptr<mico::Dataframe<PointType_>> &_df); // using template only for it
 
             bool printDatabase();
             bool saveAllDatabase();
+
+            bool restoreDatabase(std::string _pathDatabase);
+            Dataframe<PointType_> createDataframe(bsoncxx::document::view _doc ); //666 Solve this specialization
 
             mongocxx::collection dbCollection();
 
