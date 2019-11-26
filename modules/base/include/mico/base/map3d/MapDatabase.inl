@@ -26,19 +26,17 @@ namespace mico
     inline MapDatabase<PointType_>::MapDatabase(){
     }
 
+    
     template<typename PointType_>
     inline MapDatabase<PointType_>::~MapDatabase(){
     }
     
+
     template<typename PointType_>
     inline bool MapDatabase<PointType_>::init(std::string _databaseName, std::string _mode){
 
         dbName_ = _databaseName;
         uri_ = mongocxx::uri("mongodb://localhost:27017");
-        
-        mongocxx::instance instance{};
-        connClient_ = mongocxx::client{uri_};
-        db_ = connClient_[dbName_]; 
         
         if (_mode == "save"){
             pathDbFolder_= "/home/marrcogrova/.mico/tmp";
@@ -47,15 +45,18 @@ namespace mico
                 std::cout << "Error creating tmp folder \n";
                 return false;
             }
-
-            db_[dbName_].drop(); // clean db collection
-            return true;
         }else if (_mode == "load"){
-            db_[dbName_].drop(); // clean db collection
-            return true;
+            
         }
 
+        mongocxx::instance instance{};
+        connClient_ = mongocxx::client{uri_};
+        db_ = connClient_[dbName_]; 
+        db_[dbName_].drop(); // clean db collection
+
+        return true;
     }
+
 
     template<typename PointType_>
     inline bool MapDatabase<PointType_>::restoreDatabase(std::string _pathDatabase){
@@ -63,9 +64,8 @@ namespace mico
         std::ifstream file;
         file.open(_pathDatabase); 
 
-        if (!file.is_open()){
+        if (!file.is_open())
             return 0;
-        }
         
         std::string line;
         std::vector<std::string> lines;
@@ -83,22 +83,9 @@ namespace mico
         return true;
     }
 
-    template<typename PointType_>
-    inline mongocxx::collection MapDatabase<PointType_>::dbCollection(){
-        return db_[dbName_];
-    }
-    
+
     template<typename PointType_>
     inline bool MapDatabase<PointType_>::update(std::shared_ptr<mico::Dataframe<PointType_>> &_df){
-
-        auto doc = bsoncxx::builder::basic::document{};
-        doc.append(kvp("id" , _df->id()));
-        doc.append(kvp("pose", [&](sub_array _child) {
-            auto dfPose = _df->pose();
-            for(unsigned i = 0; i < 4 ; i++)
-                for(unsigned j = 0; j < 4 ; j++)
-                    _child.append(dfPose(i,j));
-        }));
 
         std::string dfFolder = pathDbFolder_ + "/dataframe_" + std::to_string(_df->id());
         int stat = mkdir(dfFolder.c_str() , S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
@@ -107,13 +94,41 @@ namespace mico
             return false;
         }
 
-        cv::imwrite(dfFolder + "/color.png", _df->leftImage()); //666 image is gray
-        doc.append(kvp("left_path" , dfFolder + "/color.png"));    
+        auto doc = bsoncxx::builder::basic::document{};
+        doc.append(kvp("id" , _df->id()));
+
+        doc.append(kvp("pose", [&](sub_array _child) {
+            Eigen::Matrix4f dfPose = _df->pose();
+            for(unsigned i = 0; i < _df->pose().rows() ; i++)
+                for(unsigned j = 0; j < _df->pose().cols() ; j++)
+                    _child.append(dfPose(i,j));
+        }));
+
+        doc.append(kvp("intrinsics", [&](sub_array _child) {
+            cv::Mat dfIntrinsics = _df->intrinsics();
+            for(int i = 0; i < dfIntrinsics.rows ; i++)
+                for(int j = 0; j < dfIntrinsics.cols ; j++)
+                    _child.append(dfIntrinsics.at<float>(i,j));
+        }));
+
+        doc.append(kvp("coefficients", [&](sub_array _child) {
+            cv::Mat dfCoeff = _df->distCoeff();
+            for(int i = 0; i < dfCoeff.rows ; i++)
+                for(int j = 0; j < dfCoeff.cols ; j++)
+                    _child.append(dfCoeff.at<float>(i,j));
+        }));
+
+        cv::imwrite(dfFolder + "/left.png", _df->leftImage()); //666 image is gray
+        doc.append(kvp("left_path" , dfFolder + "/left.png"));
+
+        cv::imwrite(dfFolder + "/depth.png", _df->depthImage());
+        doc.append(kvp("depth_path" , dfFolder + "/depth.png"));    
 
         pcl::io::savePCDFile(dfFolder + "/cloud.pcd", *_df->cloud(), true ); // true to use binary format
         doc.append(kvp("cloud_path" , dfFolder + "/cloud.pcd"));
         
-        // Save all df data
+        pcl::io::savePCDFile(dfFolder + "/featureCloud.pcd", *_df->featureCloud(), true );
+        doc.append(kvp("featureCloud_path" , dfFolder + "/featureCloud.pcd"));
 
         auto res = db_[dbName_].insert_one(doc.view());
     
@@ -128,34 +143,63 @@ namespace mico
         return true;
     }
 
+
+    std::vector<float> arrayView2Vector(bsoncxx::array::view _view){
+        std::vector<float> viewVector;
+        for (bsoncxx::array::element elem : _view) {
+            float data = static_cast<float>(elem.get_double());
+            viewVector.push_back(data);
+        }
+        return viewVector;
+    }
+    
+
     template<typename PointType_>
     inline Dataframe<PointType_> MapDatabase<PointType_>::createDataframe(bsoncxx::document::view _doc ){
         int id = _doc["id"].get_value().get_int32().value ;
 
         Dataframe<PointType_> df(id);
 
-        bsoncxx::array::view pose = _doc["pose"].get_value().get_array().value;
-        std::vector<float> poseVector;
-        for (bsoncxx::array::element elem : pose) {
-            float data = static_cast<float>(elem.get_double());
-            poseVector.push_back(data);
-        }
-        Eigen::Matrix4f poseEigen = Eigen::Map<Eigen::Matrix<float, 4, 4> >(poseVector.data());
-        df.pose( poseEigen );
+        bsoncxx::array::view intrinsics = _doc["intrinsics"].get_value().get_array().value;
+        std::vector<float> intrinsicsVector = arrayView2Vector(intrinsics);
+        cv::Mat intrinsicsMat(intrinsicsVector);
+        df.intrinsics(intrinsicsMat);
+
+        bsoncxx::array::view coefficients = _doc["coefficients"].get_value().get_array().value;
+        std::vector<float> coefficientsVector = arrayView2Vector(coefficients);
+        cv::Mat coefficientsMat(coefficientsVector);
+        df.distCoeff(coefficientsMat);
 
         auto pathLeft_doc = _doc["left_path"].get_value().get_utf8().value;
         std::string pathLeft = static_cast<std::string>(pathLeft_doc);
         cv::Mat left = cv::imread(pathLeft);
         df.leftImage(left);
 
+        auto pathDepth_doc = _doc["depth_path"].get_value().get_utf8().value;
+        std::string pathDepth = static_cast<std::string>(pathDepth_doc);
+        cv::Mat depth = cv::imread(pathDepth);
+        df.depthImage(depth);
+
+        bsoncxx::array::view pose = _doc["pose"].get_value().get_array().value;
+        std::vector<float> poseVector = arrayView2Vector(pose);
+        Eigen::Matrix4f poseEigen = Eigen::Map<Eigen::Matrix<float, 4, 4> >(poseVector.data());
+        df.pose( poseEigen );
+
         auto pathCloud_doc = _doc["cloud_path"].get_value().get_utf8().value;
         std::string pathCloud = static_cast<std::string>(pathCloud_doc);
         pcl::PointCloud<PointType_> cloud;
-        pcl::io::loadPCDFile<PointType_>(pathCloud, cloud );
+        pcl::io::loadPCDFile<PointType_>(pathCloud, cloud);
         df.cloud(cloud.makeShared());
         
+        auto pathFeatureCloud_doc = _doc["featureCloud_path"].get_value().get_utf8().value;
+        std::string pathFeatureCloud = static_cast<std::string>(pathFeatureCloud_doc);
+        pcl::PointCloud<PointType_> featureCloud;
+        pcl::io::loadPCDFile<PointType_>(pathFeatureCloud, featureCloud);
+        df.featureCloud(featureCloud.makeShared());
+
         return df;
     }
+
 
     template<typename PointType_>
     inline bool MapDatabase<PointType_>::saveAllDatabase(){
@@ -173,6 +217,7 @@ namespace mico
         return true;
     }
 
+
     template<typename PointType_>
     inline bool MapDatabase<PointType_>::printDatabase(){
 	    mongocxx::cursor cursor = db_[dbName_].find({});
@@ -180,6 +225,11 @@ namespace mico
 	      std::cout << bsoncxx::to_json(doc) << "\n";
 	    }
         return true;
+    }
+    
+    template<typename PointType_>
+    inline mongocxx::collection MapDatabase<PointType_>::dbCollection(){
+        return db_[dbName_];
     }
     
 } // namespace mico 

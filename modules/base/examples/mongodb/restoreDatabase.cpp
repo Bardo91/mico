@@ -15,7 +15,7 @@ int main(int _argc, char** _argv) {
     if (!mongoDatabase->init("reloaded" ,"load")){
         return 0;
     }
-    mongoDatabase->restoreDatabase("/home/marrcogrova/Documents/datasets/databaseMongo/database.json");
+    mongoDatabase->restoreDatabase("/home/marrcogrova/.mico/tmp/database.json");
     
     // now need iterate over all collection
     
@@ -24,6 +24,9 @@ int main(int _argc, char** _argv) {
     bsoncxx::document::view viewDocumentResult = resultDocument.value();
 
     Dataframe<pcl::PointXYZRGBNormal> dataf = mongoDatabase->createDataframe(viewDocumentResult);
+
+    std::cout << "id: " << dataf.id() << " Cloud size: " << dataf.cloud()->size() << "\n";
+    std::cout << "intrinsics coefficients: " << dataf.intrinsics() << "\n";
 
     cv::imshow("left camera",dataf.leftImage());
     cv::waitKey(0);
