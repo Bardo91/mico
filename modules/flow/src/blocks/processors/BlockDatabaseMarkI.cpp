@@ -22,24 +22,25 @@
 #include <mico/flow/blocks/processors/BlockDatabaseMarkI.h>
 #include <flow/Policy.h>
 #include <flow/Outpipe.h>
+#include <flow/DataFlow.h>
 
 #include <sstream>
 
 namespace mico{
 
     BlockDatabaseMarkI::BlockDatabaseMarkI(){
-        iPolicy_ = new flow::Policy({"dataframe"});
+        iPolicy_ = new flow::Policy({{{"Next Dataframe", "dataframe"}}});
 
-        opipes_["dataframe"] = new flow::Outpipe("dataframe");
+        opipes_["Keyframe"] = new flow::Outpipe("Keyframe", "dataframe");
         
         iPolicy_->registerCallback({"dataframe"}, 
-                                [&](std::unordered_map<std::string,std::any> _data){
+                                [&](flow::DataFlow _data){
                                     if(idle_){
                                         idle_ = false;
-                                        std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> df = std::any_cast<std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>>>(_data["dataframe"]);
+                                        auto df = _data.get<std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>>>("Next Dataframe");
 
                                         if(database_.addDataframe(df)){ // New dataframe created 
-                                            opipes_["dataframe"]->flush(database_.lastDataframe());
+                                            opipes_["Keyframe"]->flush(database_.lastDataframe());
                                         }
                                         idle_ = true;
                                     }

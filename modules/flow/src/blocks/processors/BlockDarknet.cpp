@@ -32,8 +32,8 @@ namespace mico{
         
         iPolicy_ = new flow::Policy({{{"Color Image", "image"}, {"Dataframe", "dataframe"}}});
 
-        opipes_["color"] = new flow::Outpipe("Color Image", "image");
-        opipes_["v_entity"] = new flow::Outpipe("Entities", "v-entity");
+        opipes_["Color Image"] = new flow::Outpipe("Color Image", "image");
+        opipes_["Entities"] = new flow::Outpipe("Entities", "v-entity");
 
         iPolicy_->registerCallback({"Color Image"}, 
                                 [&](flow::DataFlow _data){
@@ -71,11 +71,11 @@ namespace mico{
                                             }
 
                                             // send image with detections
-                                            if(opipes_["color"]->registrations() !=0 )
-                                                opipes_["color"]->flush(image);
+                                            if(opipes_["Color Image"]->registrations() !=0 )
+                                                opipes_["Color Image"]->flush(image);
                                             // send entities
-                                            if(opipes_["v_entity"]->registrations() !=0 )
-                                                opipes_["v_entity"]->flush(entities);
+                                            if(opipes_["Entities"]->registrations() !=0 )
+                                                opipes_["Entities"]->flush(entities);
                                             
                                         }else{
                                             std::cout << "No weights and cfg provided to Darknet\n";
@@ -171,11 +171,11 @@ namespace mico{
                                                 }
                                             }
                                             // send entities
-                                            if(opipes_["v_entity"]->registrations() !=0 )
-                                                opipes_["v_entity"]->flush(entities);
+                                            if(opipes_["Entities"]->registrations() !=0 )
+                                                opipes_["Entities"]->flush(entities);
                                             // send image with detections
-                                            if(opipes_["color"]->registrations() !=0 )
-                                                opipes_["color"]->flush(image);
+                                            if(opipes_["Color Image"]->registrations() !=0 )
+                                                opipes_["Color Image"]->flush(image);
                                             //auto end = std::chrono::steady_clock::now();
                                             //printf("Detector: Elapsed time in milliseconds : %i", std::chrono::duration_cast<std::chrono::milliseconds>(end - strt).count());
                                         }else{
