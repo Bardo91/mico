@@ -19,46 +19,10 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
+#include <mico/mico_flow.h>
 
-// Streamers
-#undef Q_FOREACH
-#include <mico/flow/blocks/streamers/StreamRealSense.h>
-#include <mico/flow/blocks/streamers/StreamDataset.h>
-#include <mico/flow/blocks/streamers/StreamPixhawk.h>
-
-#ifdef MICO_USE_ROS
-    #include <flow/visual/blocks/streamers/ros/ROSStreamers.h>
-    #include <flow/visual/blocks/publishers/ros/ROSPublishers.h>
-#endif
-
-// Processors
-#include <mico/flow/blocks/processors/BlockOdometryRGBD.h>
-#include <mico/flow/blocks/processors/BlockOdometryPhotogrammetry.h>
-#include <mico/flow/blocks/processors/BlockDatabaseMarkI.h>
-#include <mico/flow/blocks/processors/BlockLoopClosure.h>
-#include <mico/flow/blocks/processors/BlockOptimizerCF.h>
-#include <mico/flow/blocks/processors/BlockEKFIMU.h>
-
-
-// Visualizers
-#include <mico/flow/blocks/visualizers/BlockImageVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockTrayectoryVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockDatabaseVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockSceneVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockPointCloudVisualizer.h>
-
-// Casters
-#include <mico/flow/blocks/CastBlocks.h>
-
-// Queuers
-#include <mico/flow/blocks/BlockQueuer.h>
-
-// Savers
-#include <mico/flow/blocks/savers/SaverImage.h>
-#include <mico/flow/blocks/savers/SaverTrajectory.h>
-#include <mico/flow/blocks/savers/SaverEntity.h>
-
-// DNN
-#ifdef HAS_DARKNET
-    #include <mico/flow/blocks/processors/BlockDarknet.h> // 666 HAS DARKNET
-#endif
+// Type registration
+FLOW_TYPE_REGISTER("dataframe", mico::dataframe)
+FLOW_TYPE_REGISTER("v-dataframes", std::vector<mico::dataframe>)
+FLOW_TYPE_REGISTER("image", cv::Mat)
+FLOW_TYPE_REGISTER("v-images", std::vector<cv::Mat>)

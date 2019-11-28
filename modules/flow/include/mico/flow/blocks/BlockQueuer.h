@@ -37,12 +37,12 @@ namespace mico{
 
         BlockQueuer(){
             opipes_[Trait_::Output_] = new flow::OutPipe(Trait_::Output_);
-            iPolicy_ = new flow::Policy({Trait_::Input_});
-            iPolicy_->registerCallback({Trait_::Input_}, 
-                                [&](std::unordered_map<std::string,std::any> _data){
+            iPolicy_ = new flow::Policy({{{Trait_::InputName_, Trait_::InputType_}}});
+            iPolicy_->registerCallback({Trait_::InputName_}, 
+                                [&](DataFlow _data){
                                     if(idle_){
                                         idle_ = false;
-                                        typename Trait_::Type_ data = std::any_cast<typename Trait_::Type_>(_data[Trait_::Input_]);
+                                        typename Trait_::Type_ data = _data.get<typename Trait_::Type_>(Trait_::InputName_);
                                         queue_.push_back(data);
                                         if(queue_.size() > size_){
                                             queue_.pop_front();
@@ -82,16 +82,20 @@ namespace mico{
     //-----------------------------------------------------------------------------------------------------------------
     struct QueuerTraitClusterframes{
         constexpr static const char * Name_ = "Queuer Dataframes";
-        constexpr static const char * Output_ = "v-dataframe";
-        constexpr static const char * Input_ = "dataframe";
+        constexpr static const char * OutputType_ = "v-dataframes";
+        constexpr static const char * OutputName_ = "Vec dataframes";
+        constexpr static const char * InputType_ = "dataframe";
+        constexpr static const char * InputName_ = "dataframe";
         typedef mico::Dataframe<pcl::PointXYZRGBNormal>::Ptr Type_;
     };
 
     //-----------------------------------------------------------------------------------------------------------------
     struct QueuerTraitColor{
         constexpr static const char * Name_ = "Queuer Color Images";
-        constexpr static const char * Output_ = "v-color";
-        constexpr static const char * Input_ = "color";
+        constexpr static const char * OutputType_ = "v-images";
+        constexpr static const char * OutputName_ = "Vec images";
+        constexpr static const char * InputType_ = "image";
+        constexpr static const char * InputName_ = "image";
         typedef cv::Mat Type_;
     };
 
