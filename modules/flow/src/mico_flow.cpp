@@ -22,7 +22,12 @@
 #include <mico/mico_flow.h>
 
 // Type registration
-FLOW_TYPE_REGISTER("dataframe", mico::dataframe)
-FLOW_TYPE_REGISTER("v-dataframes", std::vector<mico::dataframe>)
+FLOW_TYPE_REGISTER("dataframe", std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>>)
+FLOW_TYPE_REGISTER("v-dataframe", std::vector<std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>>>)
+
 FLOW_TYPE_REGISTER("image", cv::Mat)
-FLOW_TYPE_REGISTER("v-images", std::vector<cv::Mat>)
+FLOW_TYPE_REGISTER("v-image", std::vector<cv::Mat>)
+
+// DNN
+FLOW_TYPE_REGISTER("entity", std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>)
+FLOW_TYPE_REGISTER("v-entity", std::vector<std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>>)

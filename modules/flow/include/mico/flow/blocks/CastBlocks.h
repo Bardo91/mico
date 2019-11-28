@@ -24,7 +24,7 @@
 #define MICO_KIDS_BLOCKS_CASTBLOCKS_H_
 
 #include <flow/Policy.h>
-#include <flow/OutPipe.h>
+#include <flow/Outpipe.h>
 #include <flow/Block.h>
 
 #include <iostream>
@@ -62,7 +62,7 @@ namespace mico{
     class BlockDataframeToPose: public BlockDataframeToSomething{
     public:
         static std::string name() {return "Dataframe -> Pose";}
-        BlockDataframeToPose(){ opipes_["pose"] = new flow::OutPipe("pose"); }
+        BlockDataframeToPose(){ opipes_["pose"] = new flow::Outpipe("pose"); }
         // ~BlockDataframeToPose(){};
 
     protected:

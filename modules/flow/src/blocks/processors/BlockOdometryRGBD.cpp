@@ -21,7 +21,7 @@
 
 #include <mico/flow/blocks/processors/BlockOdometryRGBD.h>
 #include <flow/Policy.h>
-#include <flow/OutPipe.h>
+#include <flow/Outpipe.h>
 
 namespace mico{
 
@@ -29,7 +29,7 @@ namespace mico{
         
         iPolicy_ = new flow::Policy({"color", "depth", "cloud", "dataframe"});
 
-        opipes_["dataframe"] = new flow::OutPipe("dataframe");
+        opipes_["dataframe"] = new flow::Outpipe("dataframe");
 
         featureDetector_ = cv::ORB::create(1000);
         

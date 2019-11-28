@@ -21,7 +21,7 @@
 
 #include <mico/flow/blocks/processors/BlockEKFIMU.h>
 #include <flow/Policy.h>
-#include <flow/OutPipe.h>
+#include <flow/Outpipe.h>
 // #include <mico/flow/streamers/StreamPose.h>
 // #include <mico/flow/streamers/StreamDataframe.h>
 
@@ -30,7 +30,7 @@ namespace mico{
     BlockEKFIMU::BlockEKFIMU(){
         iPolicy_ = new flow::Policy({"pose", "acceleration"});
 
-        opipes_["pose"] = new flow::OutPipe("pose");
+        opipes_["pose"] = new flow::Outpipe("pose");
 
         prevT_ = std::chrono::system_clock::now();
 

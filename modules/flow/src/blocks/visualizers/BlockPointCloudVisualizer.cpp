@@ -23,7 +23,7 @@
 
 #include <mico/flow/blocks/visualizers/BlockPointCloudVisualizer.h>
 #include <flow/Policy.h>
-#include <flow/OutPipe.h>
+#include <flow/Outpipe.h>
 
 
 #include <mico/base/map3d/Dataframe.h>

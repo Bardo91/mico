@@ -36,7 +36,7 @@ namespace mico{
         static std::string name() {return Trait_::Name_;}
 
         BlockQueuer(){
-            opipes_[Trait_::Output_] = new flow::OutPipe(Trait_::Output_);
+            opipes_[Trait_::Output_] = new flow::Outpipe(Trait_::Output_);
             iPolicy_ = new flow::Policy({{{Trait_::InputName_, Trait_::InputType_}}});
             iPolicy_->registerCallback({Trait_::InputName_}, 
                                 [&](DataFlow _data){

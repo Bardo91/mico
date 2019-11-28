@@ -21,7 +21,7 @@
 
 #include <mico/flow/blocks/processors/BlockOptimizerCF.h>
 #include <flow/Policy.h>
-#include <flow/OutPipe.h>
+#include <flow/Outpipe.h>
 
 #include <sstream>
 

@@ -24,7 +24,7 @@
 #include <mico/flow/blocks/visualizers/BlockTrayectoryVisualizer.h>
 
 #include <flow/Policy.h>
-#include <flow/OutPipe.h>
+#include <flow/Outpipe.h>
 
 #include <Eigen/Eigen>
 

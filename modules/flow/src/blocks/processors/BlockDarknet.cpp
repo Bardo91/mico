@@ -21,7 +21,8 @@
 
 #include <mico/flow/blocks/processors/BlockDarknet.h>
 #include <flow/Policy.h>
-#include <flow/OutPipe.h>
+#include <flow/Outpipe.h>
+#include <flow/DataFlow.h>
 #include <boost/math/special_functions/fpclassify.hpp>
 #include <chrono>
 #include <iostream>
@@ -29,13 +30,13 @@ namespace mico{
 
     BlockDarknet::BlockDarknet(){
         
-        iPolicy_ = new flow::Policy({"color","dataframe"});
+        iPolicy_ = new flow::Policy({{{"Color Image", "image"}, {"Dataframe", "dataframe"}}});
 
-        opipes_["color"] = new flow::OutPipe("color");
-        opipes_["v_entity"] = new flow::OutPipe("v_entity");
+        opipes_["color"] = new flow::Outpipe("Color Image", "image");
+        opipes_["v_entity"] = new flow::Outpipe("Entities", "v-entity");
 
-        iPolicy_->registerCallback({"color"}, 
-                                [&](std::unordered_map<std::string,std::any> _data){
+        iPolicy_->registerCallback({"Color Image"}, 
+                                [&](flow::DataFlow _data){
                                     if(idle_){
                                         idle_ = false;
                                         #ifdef HAS_DARKNET
@@ -43,7 +44,7 @@ namespace mico{
                                             cv::Mat image;
                                             // check data received
                                             try{
-                                                image = std::any_cast<cv::Mat>(_data["color"]).clone();
+                                                image = _data.get<cv::Mat>("color").clone();
                                             }catch(std::exception& e){
                                                 std::cout << "Failure Darknet. " <<  e.what() << std::endl;
                                                 idle_ = true;
@@ -85,7 +86,7 @@ namespace mico{
                                 });
 
         iPolicy_->registerCallback({"dataframe"}, 
-                                [&](std::unordered_map<std::string,std::any> _data){
+                                [&](flow::DataFlow _data){
                                     if(idle_){
                                         idle_ = false;
                                         #ifdef HAS_DARKNET
@@ -95,7 +96,7 @@ namespace mico{
 
                                             // check data received
                                             try{
-                                                df = std::any_cast<std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>>>(_data["dataframe"]);
+                                                df = _data->get<std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>>>("Dataframe");
                                                 image = df->leftImage().clone();
                                                 
                                             }catch(std::exception& e){
