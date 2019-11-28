@@ -28,18 +28,18 @@
 namespace mico{
 
     BlockEKFIMU::BlockEKFIMU(){
-        iPolicy_ = new flow::Policy({"pose", "acceleration"});
+        iPolicy_ = new flow::Policy({{{"Last Pose", "mat44"},{"acceleration", "vec3"}}});
 
-        opipes_["pose"] = new flow::Outpipe("pose");
+        opipes_["pose"] = new flow::Outpipe("pose", "mat44");
 
         prevT_ = std::chrono::system_clock::now();
 
         iPolicy_->registerCallback({"pose"}, 
-                                [&](std::unordered_map<std::string,std::any> _data){
+                                [&](flow::DataFlow _data){
                                     //startFilter_ = true;
                                     if(idle_){
                                         idle_ = false;
-                                        Eigen::Matrix4f pose = std::any_cast<Eigen::Matrix4f>(_data["pose"]);
+                                        Eigen::Matrix4f pose = _data.get<Eigen::Matrix4f>("pose");
                                         startFilter_ = true;
                                         //if (pose.size == 0)
                                         Eigen::Vector3f position = pose.block<3,1>(0,3);
@@ -59,14 +59,14 @@ namespace mico{
         );
 
         iPolicy_->registerCallback({"acceleration"}, 
-                                [&](std::unordered_map<std::string,std::any> _data){
+                                [&](flow::DataFlow _data){
                                     if(idle_ ){
                                         idle_ = false;
                                         if (!startFilter_){
                                             idle_ = true;
                                             return;
                                         }
-                                        Eigen::Vector3f acc = std::any_cast<Eigen::Vector3f>(_data["acceleration"]);
+                                        Eigen::Vector3f acc = _data.get<Eigen::Vector3f>("acceleration");
                                         lastAcceleration_ = acc;
                                         // printf(" acceleration used in EKF: ax %f,ay %f,az %f \n",acc[0],acc[1],acc[2]);
                                         // New observation EKF

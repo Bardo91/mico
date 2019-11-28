@@ -28,6 +28,9 @@ FLOW_TYPE_REGISTER("v-dataframe", std::vector<std::shared_ptr<mico::Dataframe<pc
 FLOW_TYPE_REGISTER("image", cv::Mat)
 FLOW_TYPE_REGISTER("v-image", std::vector<cv::Mat>)
 
+FLOW_TYPE_REGISTER("mat44", Eigen::Matrix4f)
+FLOW_TYPE_REGISTER("vec3", Eigen::Vector3f)
+
 // DNN
 FLOW_TYPE_REGISTER("entity", std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>)
 FLOW_TYPE_REGISTER("v-entity", std::vector<std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>>)
