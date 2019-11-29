@@ -28,6 +28,8 @@ FLOW_TYPE_REGISTER("v-dataframe", std::vector<std::shared_ptr<mico::Dataframe<pc
 FLOW_TYPE_REGISTER("image", cv::Mat)
 FLOW_TYPE_REGISTER("v-image", std::vector<cv::Mat>)
 
+FLOW_TYPE_REGISTER("cloud", pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr)
+
 FLOW_TYPE_REGISTER("mat44", Eigen::Matrix4f)
 FLOW_TYPE_REGISTER("vec3", Eigen::Vector3f)
 

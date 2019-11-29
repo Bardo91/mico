@@ -25,25 +25,26 @@
 namespace mico{
 
     SaverImage::SaverImage(){
-        iPolicy_ = new flow::Policy({"color", "depth"});
+        iPolicy_ = new flow::Policy({{{ "Color", "image"}, 
+                                        {"Depth", "image"}}});
 
-        iPolicy_->registerCallback({"color"}, 
-                                [&](std::unordered_map<std::string,std::any> _data){                                
+        iPolicy_->registerCallback({"Color"}, 
+                                [&](flow::DataFlow _data){                                
                                     counterGuardColor.lock();
                                     int id = idCounterColor;
                                     idCounterColor++;
                                     counterGuardColor.unlock();
-                                    cv::Mat img = std::any_cast<cv::Mat>(_data["color"]);
+                                    cv::Mat img = _data.get<cv::Mat>("Color");
                                     cv::imwrite(pathFolder_+"/color_"+std::to_string(id)+".png", img);
                                 }
         );
-        iPolicy_->registerCallback({"depth"}, 
-                                [&](std::unordered_map<std::string,std::any> _data){                                
+        iPolicy_->registerCallback({"Depth"}, 
+                                [&](flow::DataFlow _data){                                
                                     counterGuardDepth.lock();
                                     int id = idCounterDepth;
                                     idCounterDepth++;
                                     counterGuardDepth.unlock();
-                                    cv::Mat img = std::any_cast<cv::Mat>(_data["depth"]);
+                                    cv::Mat img = _data.get<cv::Mat>("Depth");
                                     cv::imwrite(pathFolder_+"/depth_"+std::to_string(id)+".png", img);
                                 }
         );
