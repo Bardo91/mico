@@ -39,7 +39,7 @@ namespace mico{
             opipes_[Trait_::Output_] = new flow::Outpipe(Trait_::Output_);
             iPolicy_ = new flow::Policy({{{Trait_::InputName_, Trait_::InputType_}}});
             iPolicy_->registerCallback({Trait_::InputName_}, 
-                                [&](DataFlow _data){
+                                [&](flow::DataFlow _data){
                                     if(idle_){
                                         idle_ = false;
                                         typename Trait_::Type_ data = _data.get<typename Trait_::Type_>(Trait_::InputName_);

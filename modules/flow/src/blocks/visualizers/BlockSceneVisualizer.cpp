@@ -48,12 +48,15 @@ namespace mico{
         sBelonger_ = true;
 
 
+        iPolicy_ = new flow::Policy({{
+            {"Camera Pose", "mat44"},
+            {"Dataframe", "dataframe"},
+            {"Objects", "v-entity"}
+        }});
 
-        iPolicy_ = new flow::Policy({"pose", "dataframe", "v_entity"});
-
-        iPolicy_->registerCallback({"pose" }, 
-                                [&](std::unordered_map<std::string,std::any> _data){
-                                    Eigen::Matrix4f pose = std::any_cast<Eigen::Matrix4f>(_data["pose"]); 
+        iPolicy_->registerCallback({ "Camera Pose" }, 
+                                [&](flow::DataFlow  _data){
+                                    auto pose = _data.get<Eigen::Matrix4f>("Camera Pose"); 
                                     poseGuard_.lock();
                                     lastPose_ = pose;
                                     poseGuard_.unlock();
@@ -61,9 +64,9 @@ namespace mico{
                                 }
                             );
 
-        iPolicy_->registerCallback({"dataframe" }, 
-                                [&](std::unordered_map<std::string,std::any> _data){
-                                    Dataframe<pcl::PointXYZRGBNormal>::Ptr df = std::any_cast<Dataframe<pcl::PointXYZRGBNormal>::Ptr>(_data["dataframe"]); 
+        iPolicy_->registerCallback({ "Dataframe" }, 
+                                [&](flow::DataFlow  _data){
+                                    auto df = _data.get<Dataframe<pcl::PointXYZRGBNormal>::Ptr>("Dataframe"); 
                                     queueDfGuard_.lock();
                                     queueDfs_.push_back(df);
                                     queueDfGuard_.unlock();
@@ -72,8 +75,8 @@ namespace mico{
                             );
 
     #ifdef HAS_DARKNET
-        iPolicy_->registerCallback({"v_entity" }, 
-                                [&](std::unordered_map<std::string,std::any> _data){
+        iPolicy_->registerCallback({"Objects" }, 
+                                [&](flow::DataFlow  _data){
                                     std::vector<std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>> entities = std::any_cast<std::vector<std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>>>(_data["v_entity"]); 
                                     queueEntitiesGuard_.lock();
                                     queueEntities_.push_back(entities);

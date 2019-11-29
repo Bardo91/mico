@@ -41,13 +41,15 @@ namespace mico{
         window_ = vtkSmartPointer<vtkRenderWindow>::New();
         window_->AddRenderer(renderer_);
 
-        iPolicy_ = new flow::Policy({"color", "depth"});
-        iPolicy_->registerCallback({"color"}, 
-                                [&](std::unordered_map<std::string,std::any> _data){
+        iPolicy_ = new flow::Policy({{  {"Color", "image"}, 
+                                        {"Depth","image"}}});
+
+        iPolicy_->registerCallback({"Color"}, 
+                                [&](flow::DataFlow  _data){
                                     if(idle_){
                                         idle_ = false;  
                                         
-                                        cv::Mat image = std::any_cast<cv::Mat>(_data["color"]);
+                                        cv::Mat image = _data.get<cv::Mat>("Color");
                                         
                                         auto vtkImage = convertCVMatToVtkImageData(image, true);
                                         mapper_->SetInputData(vtkImage);
@@ -65,12 +67,12 @@ namespace mico{
                                 }
                             );
 
-        iPolicy_->registerCallback({"depth"}, 
-                                [&](std::unordered_map<std::string,std::any> _data){
+        iPolicy_->registerCallback({"Depth"}, 
+                                [&](flow::DataFlow  _data){
                                     if(idle_){
                                         idle_ = false;
                                         
-                                        cv::Mat image = std::any_cast<cv::Mat>(_data["depth"]);
+                                        cv::Mat image = _data.get<cv::Mat>("Depth");
                                         
                                         auto vtkImage = convertCVMatToVtkImageDataDepth(image, true);
                                         mapper_->SetInputData(vtkImage);

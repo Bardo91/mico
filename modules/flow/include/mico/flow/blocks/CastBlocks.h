@@ -36,13 +36,13 @@ namespace mico{
     public:
         BlockDataframeToSomething(){
 
-            iPolicy_ = new flow::Policy({"dataframe"});
+            iPolicy_ = new flow::Policy({{{"Dataframe", "dataframe"}}});
 
-            iPolicy_->registerCallback({"dataframe"}, 
-                                    [&](std::unordered_map<std::string,std::any> _data){
+            iPolicy_->registerCallback({"Dataframe"}, 
+                                    [&](flow::DataFlow _data){
                                             if(idle_){
                                                 idle_ = false;
-                                                    auto df = std::any_cast<std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>>>(_data["dataframe"]);  
+                                                    auto df = _data.get<mico::Dataframe<pcl::PointXYZRGBNormal>::Ptr>("Dataframe");  
                                                     opipes_[tagToGet()]->flush(dataToget(df));
                                                 idle_ = true;
                                             }
@@ -62,11 +62,11 @@ namespace mico{
     class BlockDataframeToPose: public BlockDataframeToSomething{
     public:
         static std::string name() {return "Dataframe -> Pose";}
-        BlockDataframeToPose(){ opipes_["pose"] = new flow::Outpipe("pose"); }
+        BlockDataframeToPose(){ opipes_["Pose"] = new flow::Outpipe("Pose","mat44"); }
         // ~BlockDataframeToPose(){};
 
     protected:
-        virtual std::any dataToget(std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> &_df)override{
+        virtual std::any dataToget(mico::Dataframe<pcl::PointXYZRGBNormal>::Ptr &_df)override{
             return _df->pose();
         };
         

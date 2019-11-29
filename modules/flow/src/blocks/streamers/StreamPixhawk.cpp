@@ -27,11 +27,11 @@
 
 namespace mico{
         StreamPixhawk::StreamPixhawk(){
-            opipes_["acceleration"] = new flow::Outpipe("acceleration");
-            opipes_["orientation"] = new flow::Outpipe("orientation");
-            opipes_["angular_speed"] = new flow::Outpipe("angular_speed");
-            opipes_["position"] = new flow::Outpipe("position");
-            opipes_["pose"] = new flow::Outpipe("pose");
+            opipes_["Acceleration"] = new flow::Outpipe("Acceleration", "vec3");
+            opipes_["Orientation"] = new flow::Outpipe("Orientation", "vec4");
+            opipes_["Angular Speed"] = new flow::Outpipe("Angular Speed", "vec3");
+            opipes_["Position"] = new flow::Outpipe("Position", "vec3");
+            opipes_["Pose"] = new flow::Outpipe("Pose", "mat44");
         }
 
         bool StreamPixhawk::configure(std::unordered_map<std::string, std::string> _params) {

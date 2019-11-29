@@ -103,25 +103,28 @@ namespace mico{
             }
         });
         #ifdef HAS_DARKNET
-        iPolicy_ = new flow::Policy({"dataframe", "pose", "v_entity"});
+        iPolicy_ = new flow::Policy({{  {"Last Dataframe","dataframe"}, 
+                                        {"Camera Pose","pose"}, 
+                                        {"Objects","v-entity"}}});
         #else
-        iPolicy_ = new flow::Policy({"dataframe", "pose"});
+        iPolicy_ = new flow::Policy({{{"Last Dataframe","dataframe"}, 
+                                        {"Camera Pose","pose"}}});
         #endif
 
-        iPolicy_->registerCallback({"dataframe"}, 
-                                [&](std::unordered_map<std::string,std::any> _data){
-                                        Dataframe<pcl::PointXYZRGBNormal>::Ptr df = std::any_cast<Dataframe<pcl::PointXYZRGBNormal>::Ptr>(_data["dataframe"]); 
+        iPolicy_->registerCallback({"Last Dataframe"}, 
+                                [&](flow::DataFlow _data){
+                                        auto df = _data.get<Dataframe<pcl::PointXYZRGBNormal>::Ptr>("Last Dataframe"); 
                                         pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud = pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr(new pcl::PointCloud<pcl::PointXYZRGBNormal>());
                                         updateRender(df->id(), df->cloud(), df->pose());
                                         dataframes_[df->id()] = df;
                                 }
                             );
         
-        iPolicy_->registerCallback({"pose"}, 
-                                [&](std::unordered_map<std::string,std::any> _data){
+        iPolicy_->registerCallback({"Camera Pose"}, 
+                                [&](flow::DataFlow _data){
                                     if(idle_){
                                         idle_ = false;
-                                        Eigen::Matrix4f pose = std::any_cast<Eigen::Matrix4f>(_data["pose"]);
+                                        Eigen::Matrix4f pose = _data.get<Eigen::Matrix4f>("Camera Pose");
                                         updateCoordinates(pose);
                                         idle_ = true;
                                     }
@@ -129,11 +132,11 @@ namespace mico{
                             );
 
         #ifdef HAS_DARKNET
-        iPolicy_->registerCallback({"v_entity"}, 
-                                [&](std::unordered_map<std::string,std::any> _data){
+        iPolicy_->registerCallback({"Objects"}, 
+                                [&](flow::DataFlow _data){
                                     if(idle_){
                                         printf("New v_entity");
-                                        std::vector<std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>> entities = std::any_cast<std::vector<std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>>>(_data["v_entity"]); 
+                                        auto entities = _data.get<std::vector<std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>>>("Objects"); 
                                         for(auto &e: entities){
                                             auto dfs = e->dfs();
                                             updateRender(e->id(), e->cloud(dfs[0]), e->pose(dfs[0]));

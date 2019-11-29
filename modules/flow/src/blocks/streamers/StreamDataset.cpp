@@ -25,9 +25,9 @@
 
 namespace mico{
         StreamDataset::StreamDataset(){
-            opipes_["color"] = new flow::Outpipe("color");
-            opipes_["depth"] = new flow::Outpipe("depth");
-            opipes_["cloud"] = new flow::Outpipe("cloud");
+            opipes_["Color"] = new flow::Outpipe("Color", "image");
+            opipes_["Depth"] = new flow::Outpipe("Depth", "image");
+            opipes_["Cloud"] = new flow::Outpipe("Cloud", "cloud");
         }
 
         bool StreamDataset::configure(std::unordered_map<std::string, std::string> _params) {

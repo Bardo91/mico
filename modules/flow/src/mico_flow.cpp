@@ -19,7 +19,7 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#include <mico/mico_flow.h>
+#include <mico/flow/mico_flow.h>
 
 // Type registration
 FLOW_TYPE_REGISTER("dataframe", std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>>)
@@ -34,5 +34,7 @@ FLOW_TYPE_REGISTER("mat44", Eigen::Matrix4f)
 FLOW_TYPE_REGISTER("vec3", Eigen::Vector3f)
 
 // DNN
-FLOW_TYPE_REGISTER("entity", std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>)
-FLOW_TYPE_REGISTER("v-entity", std::vector<std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>>)
+#ifdef HAS_DARKNET
+    FLOW_TYPE_REGISTER("entity", std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>)
+    FLOW_TYPE_REGISTER("v-entity", std::vector<std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>>)
+#endif
