@@ -69,17 +69,17 @@ namespace mico{
                 cv::Mat left, right, depth;
                 pcl::PointCloud<pcl::PointXYZRGBNormal> colorNormalCloud;
                 camera_.grab();
-                if(opipes_["color"]->registrations() !=0 ){
+                if(opipes_["Color"]->registrations() !=0 ){
                     if(camera_.rgb(left, right) && left.rows != 0)
-                        opipes_["color"]->flush(left);     
+                        opipes_["Color"]->flush(left);     
                 }
-                if(opipes_["depth"]->registrations() !=0 ){
+                if(opipes_["Depth"]->registrations() !=0 ){
                     if(camera_.depth(depth) && depth.rows != 0)
-                        opipes_["depth"]->flush(depth);
+                        opipes_["Depth"]->flush(depth);
                 }
-                if(opipes_["cloud"]->registrations() !=0 ){
+                if(opipes_["Cloud"]->registrations() !=0 ){
                     if(camera_.cloud(colorNormalCloud))
-                        opipes_["cloud"]->flush(colorNormalCloud.makeShared());
+                        opipes_["Cloud"]->flush(colorNormalCloud.makeShared());
                 }
             }         
         }
