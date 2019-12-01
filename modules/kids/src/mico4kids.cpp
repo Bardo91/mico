@@ -19,8 +19,7 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#include <flow/visual/FlowVisualInterface.h>
-#include <flow/visual/blocks/FlowVisualBlock.h>
+#include <flow/flow.h>
 // #include <gperftools/profiler.h>
 
 #include <mico/flow/mico_flow.h>

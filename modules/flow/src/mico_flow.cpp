@@ -21,17 +21,15 @@
 
 #include <mico/flow/mico_flow.h>
 
+#include <flow/DataFlow.h>
+#include <mico/base/map3d/Dataframe.h>
+
 // Type registration
 FLOW_TYPE_REGISTER("dataframe", std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>>)
 FLOW_TYPE_REGISTER("v-dataframe", std::vector<std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>>>)
 
 FLOW_TYPE_REGISTER("image", cv::Mat)
 FLOW_TYPE_REGISTER("v-image", std::vector<cv::Mat>)
-
-FLOW_TYPE_REGISTER("cloud", pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr)
-
-FLOW_TYPE_REGISTER("mat44", Eigen::Matrix4f)
-FLOW_TYPE_REGISTER("vec3", Eigen::Vector3f)
 
 // DNN
 #ifdef HAS_DARKNET
