@@ -51,7 +51,7 @@ int main(int _argc, char** _argv) {
         mongoDatabase->update(dataf);
     }
     mongoDatabase->saveAllDatabase();
-    mongoDatabase->printDatabase();
+    // mongoDatabase->printDatabase();
 
 	return 0;
 }

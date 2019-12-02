@@ -23,13 +23,18 @@ int main(int _argc, char** _argv) {
             mongoDatabase->dbCollection().find_one(document{} << "id" << 3 << finalize);
     bsoncxx::document::view viewDocumentResult = resultDocument.value();
 
-    Dataframe<pcl::PointXYZRGBNormal> dataf = mongoDatabase->createDataframe(viewDocumentResult);
+    // mongocxx::cursor cursor = mongoDatabase->dbCollection().find(
+    //                 document{} << "i" << open_document << "$gt" << 0 << close_document << finalize);
+// 
+    // for(auto doc : cursor) {
+      Dataframe<pcl::PointXYZRGBNormal> dataf = mongoDatabase->createDataframe(viewDocumentResult);
 
-    std::cout << "id: " << dataf.id() << " Cloud size: " << dataf.cloud()->size() << "\n";
-    std::cout << "intrinsics coefficients: " << dataf.intrinsics() << "\n";
+      std::cout << "id: " << dataf.id() << " Cloud size: " << dataf.cloud()->size() << "\n";
+      std::cout << "intrinsics coefficients: " << dataf.intrinsics() << "\n";
 
-    cv::imshow("left camera",dataf.leftImage());
-    cv::waitKey(0);
+      cv::imshow("left camera",dataf.leftImage());
+      cv::waitKey(0);
+    //}
 
 	return 0;
 }

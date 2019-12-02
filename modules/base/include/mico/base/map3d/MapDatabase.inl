@@ -130,6 +130,14 @@ namespace mico
         pcl::io::savePCDFile(dfFolder + "/featureCloud.pcd", *_df->featureCloud(), true );
         doc.append(kvp("featureCloud_path" , dfFolder + "/featureCloud.pcd"));
 
+        doc.append(kvp("covisibility_ids", [&](sub_array _child) {
+            for (auto visibleDf : _df->covisibility())
+            _child.append(visibleDf->id());
+        }));
+
+        // add wordsReference_
+
+
         auto res = db_[dbName_].insert_one(doc.view());
     
         fileDatabase_.open(pathDbFolder_ + "/database.json" , std::ofstream::app); //append mode
@@ -197,13 +205,22 @@ namespace mico
         pcl::io::loadPCDFile<PointType_>(pathFeatureCloud, featureCloud);
         df.featureCloud(featureCloud.makeShared());
 
+        bsoncxx::array::view covisibility = _doc["covisibility_ids"].get_value().get_array().value;
+        std::vector<float> covisibilityVector = arrayView2Vector(covisibility);
+        std::vector<std::shared_ptr<Dataframe<PointType_>>> cov;
+        for (auto idVisibleDf : covisibilityVector){
+            // cov.push_back(); // hacer push back de los dataframes con los id que haya en el vector
+        }
+
+        
+
         return df;
     }
 
 
     template<typename PointType_>
     inline bool MapDatabase<PointType_>::saveAllDatabase(){
-        fileDatabase_.open(pathDbFolder_ + "/database.json" , std::ofstream::app); 
+        fileDatabase_.open(pathDbFolder_ + "/database.json"); 
         if (!fileDatabase_.is_open()){
             std::cout << "Error opening database json\n";
             return false;
