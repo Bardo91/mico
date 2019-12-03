@@ -38,7 +38,6 @@ namespace mico{
         
         registerCallback({"Color Image", "Depth Image", "Point Cloud"}, 
                                 [&](flow::DataFlow _data){
-                                    std::cout <<"Callback rgbd" <<std::endl;
                                     if(idle_){
                                         idle_ = false;
                                         if(hasCalibration){

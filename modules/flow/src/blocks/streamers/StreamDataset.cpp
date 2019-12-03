@@ -72,17 +72,14 @@ namespace mico{
                 if(auto pipe = getPipe("Color"); pipe->registrations() !=0 ){
                     if(camera_.rgb(left, right) && left.rows != 0)
                         pipe->flush(left);     
-                    std::cout <<"flushed color" <<std::endl;
                 }
                 if(auto pipe = getPipe("Depth"); pipe->registrations() !=0 ){
                     if(camera_.depth(depth) && depth.rows != 0)
                         pipe->flush(depth);
-                    std::cout <<"flushed Depth" <<std::endl;
                 }
                 if(auto pipe = getPipe("Cloud"); pipe->registrations() !=0 ){
                     if(camera_.cloud(colorNormalCloud))
                         pipe->flush(colorNormalCloud.makeShared());
-                    std::cout <<"flushed cloud" <<std::endl;
                 }
             }         
         }
