@@ -55,7 +55,7 @@ namespace mico{
     };
     
     std::string BlockDataframeToPose::tagToGet() {
-        return "pose";
+        return "Pose";
     };
 
 
