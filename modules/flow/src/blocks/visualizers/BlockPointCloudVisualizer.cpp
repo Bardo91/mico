@@ -84,10 +84,10 @@ namespace mico{
             }
         });
 
-        iPolicy_ = new flow::Policy({{{ "Point Cloud", "cloud"}, 
+        createPolicy({{{ "Point Cloud", "cloud"}, 
                                         {"Dataframe", "dataframe"}}});
 
-        iPolicy_->registerCallback({"Point Cloud" }, 
+        registerCallback({"Point Cloud" }, 
                                 [&](flow::DataFlow  _data){
                                     if(idle_){
                                         idle_ = false;
@@ -98,7 +98,7 @@ namespace mico{
                                 }
                             );
         
-        iPolicy_->registerCallback({"Dataframe" }, 
+        registerCallback({"Dataframe" }, 
                                 [&](flow::DataFlow  _data){
                                     if(idle_){
                                         idle_ = false;

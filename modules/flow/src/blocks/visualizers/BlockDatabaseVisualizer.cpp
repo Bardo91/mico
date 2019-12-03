@@ -103,15 +103,15 @@ namespace mico{
             }
         });
         #ifdef HAS_DARKNET
-        iPolicy_ = new flow::Policy({{  {"Last Dataframe","dataframe"}, 
+        createPolicy({{  {"Last Dataframe","dataframe"}, 
                                         {"Camera Pose","pose"}, 
                                         {"Objects","v-entity"}}});
         #else
-        iPolicy_ = new flow::Policy({{{"Last Dataframe","dataframe"}, 
+        createPolicy({{{"Last Dataframe","dataframe"}, 
                                         {"Camera Pose","pose"}}});
         #endif
 
-        iPolicy_->registerCallback({"Last Dataframe"}, 
+        registerCallback({"Last Dataframe"}, 
                                 [&](flow::DataFlow _data){
                                         auto df = _data.get<Dataframe<pcl::PointXYZRGBNormal>::Ptr>("Last Dataframe"); 
                                         pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud = pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr(new pcl::PointCloud<pcl::PointXYZRGBNormal>());
@@ -120,7 +120,7 @@ namespace mico{
                                 }
                             );
         
-        iPolicy_->registerCallback({"Camera Pose"}, 
+        registerCallback({"Camera Pose"}, 
                                 [&](flow::DataFlow _data){
                                     if(idle_){
                                         idle_ = false;
@@ -132,7 +132,7 @@ namespace mico{
                             );
 
         #ifdef HAS_DARKNET
-        iPolicy_->registerCallback({"Objects"}, 
+        registerCallback({"Objects"}, 
                                 [&](flow::DataFlow _data){
                                     if(idle_){
                                         printf("New v_entity");

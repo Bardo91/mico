@@ -48,13 +48,13 @@ namespace mico{
         sBelonger_ = true;
 
 
-        iPolicy_ = new flow::Policy({{
+        createPolicy({{
             {"Camera Pose", "mat44"},
             {"Dataframe", "dataframe"},
             {"Objects", "v-entity"}
         }});
 
-        iPolicy_->registerCallback({ "Camera Pose" }, 
+        registerCallback({ "Camera Pose" }, 
                                 [&](flow::DataFlow  _data){
                                     auto pose = _data.get<Eigen::Matrix4f>("Camera Pose"); 
                                     poseGuard_.lock();
@@ -64,7 +64,7 @@ namespace mico{
                                 }
                             );
 
-        iPolicy_->registerCallback({ "Dataframe" }, 
+        registerCallback({ "Dataframe" }, 
                                 [&](flow::DataFlow  _data){
                                     auto df = _data.get<Dataframe<pcl::PointXYZRGBNormal>::Ptr>("Dataframe"); 
                                     queueDfGuard_.lock();
@@ -75,7 +75,7 @@ namespace mico{
                             );
 
     #ifdef HAS_DARKNET
-        iPolicy_->registerCallback({"Objects" }, 
+        registerCallback({"Objects" }, 
                                 [&](flow::DataFlow  _data){
                                     std::vector<std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>> entities = std::any_cast<std::vector<std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>>>(_data["v_entity"]); 
                                     queueEntitiesGuard_.lock();

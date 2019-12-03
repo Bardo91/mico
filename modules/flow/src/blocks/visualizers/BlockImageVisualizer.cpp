@@ -41,10 +41,10 @@ namespace mico{
         window_ = vtkSmartPointer<vtkRenderWindow>::New();
         window_->AddRenderer(renderer_);
 
-        iPolicy_ = new flow::Policy({{  {"Color", "image"}, 
+        createPolicy({{  {"Color", "image"}, 
                                         {"Depth","image"}}});
 
-        iPolicy_->registerCallback({"Color"}, 
+        registerCallback({"Color"}, 
                                 [&](flow::DataFlow  _data){
                                     if(idle_){
                                         idle_ = false;  
@@ -67,7 +67,7 @@ namespace mico{
                                 }
                             );
 
-        iPolicy_->registerCallback({"Depth"}, 
+        registerCallback({"Depth"}, 
                                 [&](flow::DataFlow  _data){
                                     if(idle_){
                                         idle_ = false;
