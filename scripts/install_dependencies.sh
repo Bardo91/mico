@@ -182,15 +182,48 @@ fi;
 
 
 ###################################################################
-###########				INSTALL MAVSDK					###########
+###########		INSTALL MAVSDK			###########
 ###################################################################
 install_git_repo "MAVSDK" "https://github.com/mavlink/MAVSDK"
 
 ###################################################################
-###########				INSTALL KIDS module DEPS		###########
+###########	INSTALL KIDS module DEPS		###########
 ###################################################################
 
 sudo apt-get install -y qt5-default
 sudo apt-get install -y libqt5opengl5 libqt5opengl5-dev
 #sudo apt-get install -y sudo apt-get install clang-7
 #install_git_repo "Catch2" "https://github.com/catchorg/Catch2"
+
+
+###################################################################
+###########			INSTALL MONGODBCXX					###########
+###################################################################
+read -r -p "Do you want to install mongo database cxx [y/N] " response
+if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]
+then
+ if [ -d "mongo-cxx-driver" ] 
+	then
+		echo "Library $1 already installed" 
+	else
+		# libbson and mongoc prequisites
+		git clone -b "r1.15" https://github.com/mongodb/mongo-c-driver.git
+
+		cd mongo-c-driver ; mkdir cmake-build ; cd cmake-build
+		cmake -DENABLE_AUTOMATIC_INIT_AND_CLEANUP=OFF ..
+		make -j$(nproc)
+		sudo make install 
+		cd ../..
+
+		# installation mongocxx library
+		git clone https://github.com/mongodb/mongo-cxx-driver.git \
+		    --branch releases/stable --depth 1
+		cd mongo-cxx-driver/build
+		cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local ..
+		# Only for MNMLSTC polyfill
+		sudo make EP_mnmlstc_core
+		make -j$(nproc)
+		sudo make install
+		cd ../..
+	fi
+fi;
