@@ -27,15 +27,15 @@
 
 namespace mico{
         StreamPixhawk::StreamPixhawk(){
-            opipes_["Acceleration"] = new flow::Outpipe("Acceleration", "vec3");
-            opipes_["Orientation"] = new flow::Outpipe("Orientation", "vec4");
-            opipes_["Angular Speed"] = new flow::Outpipe("Angular Speed", "vec3");
-            opipes_["Position"] = new flow::Outpipe("Position", "vec3");
-            opipes_["Pose"] = new flow::Outpipe("Pose", "mat44");
+            createPipe("Acceleration", "vec3");
+            createPipe("Orientation", "vec4");
+            createPipe("Angular Speed", "vec3");
+            createPipe("Position", "vec3");
+            createPipe("Pose", "mat44");
         }
 
         bool StreamPixhawk::configure(std::unordered_map<std::string, std::string> _params) {
-            if(runLoop_) // Cant configure if already running.
+            if(isRunningLoop()) // Cant configure if already running.
                 return false;
 
             #ifdef HAS_MAVSDK
@@ -54,27 +54,27 @@ namespace mico{
 
         void StreamPixhawk::loopCallback() {
             #ifdef HAS_MAVSDK
-            while(runLoop_){
+            while(isRunningLoop()){
                 std::this_thread::sleep_for(std::chrono::milliseconds(30)); // 666 Configure it as px freq
-                if(opipes_["Acceleration"]->registrations() !=0 ){
-                    opipes_["Acceleration"]->flush(px_.acceleration());     
+                if(getPipe("Acceleration")->registrations() !=0 ){
+                    getPipe("Acceleration")->flush(px_.acceleration());     
                 }
-                if(opipes_["Orientation"]->registrations() !=0 ){
-                    opipes_["Orientation"]->flush(px_.orientation());
+                if(getPipe("Orientation")->registrations() !=0 ){
+                    getPipe("Orientation")->flush(px_.orientation());
                 }
-                if(opipes_["Angular Speed"]->registrations() !=0 ){
-                    opipes_["Angular Speed"]->flush(px_.angularSpeed());
+                if(getPipe("Angular Speed")->registrations() !=0 ){
+                    getPipe("Angular Speed")->flush(px_.angularSpeed());
                 }
-                if(opipes_["Position"]->registrations() !=0 ){
-                    opipes_["Position"]->flush(px_.position());
+                if(getPipe("Position")->registrations() !=0 ){
+                    getPipe("Position")->flush(px_.position());
                 }
-                if(opipes_["Pose"]->registrations() !=0 ){
+                if(getPipe("Pose")->registrations() !=0 ){
                     auto position = px_.position();
                     auto orientation = px_.orientation();
                     Eigen::Matrix4f pose = Eigen::Matrix4f::Identity();
                     pose.block<3,1>(0,3) = position;
                     pose.block<3,3>(0,0) = orientation.matrix();
-                    opipes_["Pose"]->flush(pose);
+                    getPipe("Pose")->flush(pose);
                 }
             }      
             #else

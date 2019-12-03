@@ -36,9 +36,9 @@ namespace mico{
         static std::string name() {return Trait_::Name_;}
 
         BlockQueuer(){
-            opipes_[Trait_::OutputName_] = new flow::Outpipe(Trait_::OutputName_, Trait_::OutputType_);
-            iPolicy_ = new flow::Policy({{{Trait_::InputName_, Trait_::InputType_}}});
-            iPolicy_->registerCallback({Trait_::InputName_}, 
+            createPipe(Trait_::OutputName_, Trait_::OutputType_);
+            createPolicy({{{Trait_::InputName_, Trait_::InputType_}}});
+            registerCallback({Trait_::InputName_}, 
                                 [&](flow::DataFlow _data){
                                     if(idle_){
                                         idle_ = false;
@@ -47,7 +47,7 @@ namespace mico{
                                         if(queue_.size() > size_){
                                             queue_.pop_front();
                                             if(strideCounter_ % stride_ == 0){
-                                                opipes_[Trait_::OutputName_]->flush(std::vector<typename Trait_::Type_>({queue_.begin(), queue_.end()}));
+                                                getPipe(Trait_::OutputName_)->flush(std::vector<typename Trait_::Type_>({queue_.begin(), queue_.end()}));
                                                 strideCounter_ = 0;
                                             }
                                             strideCounter_++;

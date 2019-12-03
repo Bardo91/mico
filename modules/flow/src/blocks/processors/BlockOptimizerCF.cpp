@@ -28,9 +28,9 @@
 namespace mico{
 
     BlockOptimizerCF::BlockOptimizerCF(){
-        iPolicy_ = new flow::Policy({{{"Subset Dataframes","v-dataframe"}}});
+        createPolicy({{{"Subset Dataframes","v-dataframe"}}});
         
-        iPolicy_->registerCallback({"Subset Dataframes"}, 
+        registerCallback({"Subset Dataframes"}, 
                                 [&](flow::DataFlow _data){
                                     if(idle_){
                                         idle_ = false;

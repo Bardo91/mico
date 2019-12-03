@@ -28,18 +28,16 @@
 namespace mico{
 
     BlockEKFIMU::BlockEKFIMU(){
-        iPolicy_ = new flow::Policy({{{"Last Pose", "mat44"},{"acceleration", "vec3"}}});
+        createPipe("pose", "mat44");
 
-        opipes_["pose"] = new flow::Outpipe("pose", "mat44");
-
+        createPolicy({{{"Last Pose", "mat44"},{"Acceleration", "vec3"}}});
         prevT_ = std::chrono::system_clock::now();
-
-        iPolicy_->registerCallback({"pose"}, 
+        registerCallback({"Last Pose"}, 
                                 [&](flow::DataFlow _data){
                                     //startFilter_ = true;
                                     if(idle_){
                                         idle_ = false;
-                                        Eigen::Matrix4f pose = _data.get<Eigen::Matrix4f>("pose");
+                                        Eigen::Matrix4f pose = _data.get<Eigen::Matrix4f>("Last Pose");
                                         startFilter_ = true;
                                         //if (pose.size == 0)
                                         Eigen::Vector3f position = pose.block<3,1>(0,3);
@@ -58,7 +56,7 @@ namespace mico{
                                 }
         );
 
-        iPolicy_->registerCallback({"acceleration"}, 
+        registerCallback({"Acceleration"}, 
                                 [&](flow::DataFlow _data){
                                     if(idle_ ){
                                         idle_ = false;
@@ -66,7 +64,7 @@ namespace mico{
                                             idle_ = true;
                                             return;
                                         }
-                                        Eigen::Vector3f acc = _data.get<Eigen::Vector3f>("acceleration");
+                                        Eigen::Vector3f acc = _data.get<Eigen::Vector3f>("Acceleration");
                                         lastAcceleration_ = acc;
                                         // printf(" acceleration used in EKF: ax %f,ay %f,az %f \n",acc[0],acc[1],acc[2]);
                                         // New observation EKF
@@ -130,7 +128,7 @@ namespace mico{
         xk[1] = float(Xk(1,0));
         xk[2] = float(Xk(2,0));
         poseEKF.block<3,1>(0,3) = xk;
-        opipes_["pose"]->flush(poseEKF);
+        getPipe("pose")->flush(poseEKF);
         return true;
     }
 }

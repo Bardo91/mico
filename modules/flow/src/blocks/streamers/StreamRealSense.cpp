@@ -26,13 +26,13 @@
 namespace mico{
 
         StreamRealSense::StreamRealSense(){
-            opipes_["Color"] = new flow::Outpipe("Color", "image");
-            opipes_["Depth"] = new flow::Outpipe("Depth", "image");
-            opipes_["Cloud"] = new flow::Outpipe("Cloud", "cloud");
+            createPipe("Color", "image");
+            createPipe("Depth", "image");
+            createPipe("Cloud", "cloud");
         }
 
         bool StreamRealSense::configure(std::unordered_map<std::string, std::string> _params) {
-            if(runLoop_ || hasInitCamera_) // Cant configure if already running.
+            if(isRunningLoop() || hasInitCamera_) // Cant configure if already running.
                 return true;
 
             cjson::Json jParams = {};
@@ -68,21 +68,21 @@ namespace mico{
                 camera_.grab(); // 666 Grab some images to remove trash initial ones
             }
 
-            while(runLoop_){
+            while(isRunningLoop()){
                 cv::Mat left, right, depth;
                 pcl::PointCloud<pcl::PointXYZRGBNormal> colorNormalCloud;
                 camera_.grab();
-                if(opipes_["Color"]->registrations() !=0 ){
+                if(getPipe("Color")->registrations() !=0 ){
                     camera_.rgb(left, right);
-                    opipes_["Color"]->flush(left);     
+                    getPipe("Color")->flush(left);     
                 }
-                if(opipes_["Depth"]->registrations() !=0 ){
+                if(getPipe("Depth")->registrations() !=0 ){
                     camera_.depth(depth);
-                    opipes_["Depth"]->flush(depth);
+                    getPipe("Depth")->flush(depth);
                 }
-                if(opipes_["Cloud"]->registrations() !=0 ){
+                if(getPipe("Cloud")->registrations() !=0 ){
                     camera_.cloud(colorNormalCloud);
-                    opipes_["Cloud"]->flush(colorNormalCloud.makeShared());
+                    getPipe("Cloud")->flush(colorNormalCloud.makeShared());
                 }
             }      
         }

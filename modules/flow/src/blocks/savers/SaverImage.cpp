@@ -25,10 +25,10 @@
 namespace mico{
 
     SaverImage::SaverImage(){
-        iPolicy_ = new flow::Policy({{{ "Color", "image"}, 
+        createPolicy({{{ "Color", "image"}, 
                                         {"Depth", "image"}}});
 
-        iPolicy_->registerCallback({"Color"}, 
+        registerCallback({"Color"}, 
                                 [&](flow::DataFlow _data){                                
                                     counterGuardColor.lock();
                                     int id = idCounterColor;
@@ -38,7 +38,7 @@ namespace mico{
                                     cv::imwrite(pathFolder_+"/color_"+std::to_string(id)+".png", img);
                                 }
         );
-        iPolicy_->registerCallback({"Depth"}, 
+        registerCallback({"Depth"}, 
                                 [&](flow::DataFlow _data){                                
                                     counterGuardDepth.lock();
                                     int id = idCounterDepth;

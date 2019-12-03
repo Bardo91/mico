@@ -27,17 +27,18 @@ namespace mico{
 
     BlockOdometryRGBD::BlockOdometryRGBD(){
         
-        iPolicy_ = new flow::Policy({{  {"Color Image", "image"}, 
-                                        {"Depth Image", "image"}, 
-                                        {"Point Cloud", "cloud"}, 
-                                        {"Keyframe", "dataframe" }}});
+        createPolicy({{     {"Color Image", "image"}, 
+                            {"Depth Image", "image"}, 
+                            {"Point Cloud", "cloud"}, 
+                            {"Keyframe", "dataframe" }}});
 
-        opipes_["Estimated Dataframe"] = new flow::Outpipe("Estimated Dataframe" , "dataframe");
+        createPipe("Estimated Dataframe" , "dataframe");
 
         featureDetector_ = cv::ORB::create(1000);
         
-        iPolicy_->registerCallback({"color", "depth", "cloud"}, 
+        registerCallback({"Color Image", "Depth Image", "Point Cloud"}, 
                                 [&](flow::DataFlow _data){
+                                    std::cout <<"Callback rgbd" <<std::endl;
                                     if(idle_){
                                         idle_ = false;
                                         if(hasCalibration){
@@ -45,8 +46,8 @@ namespace mico{
                                             std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> df(new Dataframe<pcl::PointXYZRGBNormal>(nextDfId_));
                                             try{
                                                 df->leftImage(_data.get<cv::Mat>("Color Image"));
-                                                df->depthImage(_data.get<cv::Mat>("Color Image"));
-                                                df->cloud(_data.get<pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr>("cloud")); 
+                                                df->depthImage(_data.get<cv::Mat>("Depth Image"));
+                                                df->cloud(_data.get<pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr>("Point Cloud")); 
                                                 df->intrinsics(matrixLeft_);
                                                 df->distCoeff(distCoefLeft_);
                                             }catch(std::exception& e){
@@ -67,7 +68,7 @@ namespace mico{
                                             
                                             if(odom_.computeOdometry(referenceFrame, df)){
                                                 nextDfId_++;
-                                                opipes_["Estimated Dataframe"]->flush(df);  
+                                                getPipe("Estimated Dataframe")->flush(df);  
                                             }
                                             prevDf_ = df;
 
@@ -78,7 +79,7 @@ namespace mico{
                                     }
                                 });
                                 
-        iPolicy_->registerCallback({"Keyframe"}, 
+        registerCallback({"Keyframe"}, 
                                 [&](flow::DataFlow _data){
                                         currentKeyframe_ = _data.get<std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>>>("Keyframe");
                                     }

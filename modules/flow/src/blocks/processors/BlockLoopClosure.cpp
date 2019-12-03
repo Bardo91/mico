@@ -28,11 +28,11 @@
 namespace mico{
 
     BlockLoopClosure::BlockLoopClosure(){
-        iPolicy_ = new flow::Policy({{{"Next Keyframe", "dataframe"}}});
+        createPolicy({{{"Next Keyframe", "dataframe"}}});
 
-        opipes_["Loop"] = new flow::Outpipe("Loop","v-dataframe");
-        
-        iPolicy_->registerCallback({"Next Keyframe"}, 
+        createPipe("Loop","v-dataframe");
+
+        registerCallback({"Next Keyframe"}, 
                                 [&](flow::DataFlow _data){
                                     if(idle_){
                                         idle_ = false;
@@ -54,7 +54,7 @@ namespace mico{
 
                                             // mDatabase.dfComparison(loopClosureSubset, false);  666 do it or not? @Ric92
                                             
-                                            opipes_["loop"]->flush(loopPath);
+                                            getPipe("loop")->flush(loopPath);
 
                                         }
                                         idle_ = true;

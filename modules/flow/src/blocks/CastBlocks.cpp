@@ -27,14 +27,14 @@
 namespace mico{
     
     BlockDataframeToSomething::BlockDataframeToSomething(){
-        iPolicy_ = new flow::Policy({{{"Dataframe", "dataframe"}}});
+        createPolicy({{{"Dataframe", "dataframe"}}});
 
-        iPolicy_->registerCallback({"Dataframe"}, 
+        registerCallback({"Dataframe"}, 
                                 [&](flow::DataFlow _data){
                                         if(idle_){
                                             idle_ = false;
                                                 auto df = _data.get<mico::Dataframe<pcl::PointXYZRGBNormal>::Ptr>("Dataframe");  
-                                                opipes_[tagToGet()]->flush(dataToget(df));
+                                                getPipe(tagToGet())->flush(dataToget(df));
                                             idle_ = true;
                                         }
                                     }
@@ -47,7 +47,7 @@ namespace mico{
     }
     
     BlockDataframeToPose::BlockDataframeToPose(){ 
-        opipes_["Pose"] = new flow::Outpipe("Pose","mat44"); 
+        createPipe("Pose","mat44"); 
     }
     
     std::any BlockDataframeToPose::dataToget(mico::Dataframe<pcl::PointXYZRGBNormal>::Ptr &_df){

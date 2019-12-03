@@ -29,18 +29,17 @@
 namespace mico{
 
     BlockDatabaseMarkI::BlockDatabaseMarkI(){
-        iPolicy_ = new flow::Policy({{{"Next Dataframe", "dataframe"}}});
-
-        opipes_["Keyframe"] = new flow::Outpipe("Keyframe", "dataframe");
+        createPipe("Keyframe", "dataframe");
         
-        iPolicy_->registerCallback({"dataframe"}, 
+        createPolicy({{{"Next Dataframe", "dataframe"}}});
+        registerCallback({"dataframe"}, 
                                 [&](flow::DataFlow _data){
                                     if(idle_){
                                         idle_ = false;
                                         auto df = _data.get<std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>>>("Next Dataframe");
 
                                         if(database_.addDataframe(df)){ // New dataframe created 
-                                            opipes_["Keyframe"]->flush(database_.lastDataframe());
+                                            getPipe("Keyframe")->flush(database_.lastDataframe());
                                         }
                                         idle_ = true;
                                     }

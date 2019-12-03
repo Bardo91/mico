@@ -29,9 +29,9 @@
 namespace mico{
 
     SaverEntity::SaverEntity(){
-        iPolicy_ = new flow::Policy({{{"Objects", "v-entity"}}});
+        createPolicy({{{"Objects", "v-entity"}}});
 
-        iPolicy_->registerCallback({"v-entity"}, 
+        registerCallback({"Objects"}, 
                                 [&](flow::DataFlow _data){        
                                     #ifdef HAS_DARKNET
                                     auto entities = _data.get<std::vector<std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>>>("v-entity"); 

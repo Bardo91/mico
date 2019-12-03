@@ -26,15 +26,15 @@
 namespace mico{
 
     BlockOdometryPhotogrammetry::BlockOdometryPhotogrammetry(){
-        iPolicy_ = new flow::Policy({{  {"Color Image", "image"},
-                                        {"Altitude", "float"},
-                                        {"Next Dataframe", "dataframe"}}});
+        createPolicy({{     {"Color Image", "image"},
+                            {"Altitude", "float"},
+                            {"Next Dataframe", "dataframe"}}});
 
-        opipes_["Dataframe Positioned"] = new flow::Outpipe("Dataframe Positioned", "dataframe");
+        createPipe("Dataframe Positioned", "dataframe");
 
         featureDetector_ = cv::ORB::create(2000);
         
-        iPolicy_->registerCallback({"Color Image", "Altitude"}, 
+        registerCallback({"Color Image", "Altitude"}, 
                                 [&](flow::DataFlow _data){
                                     if(idle_){
                                         idle_ = false;
@@ -64,13 +64,13 @@ namespace mico{
                                             if(lastDataframe_ != nullptr){
                                                 if(odom_.computeOdometry(lastDataframe_, df)){
                                                     nextDfId_++;
-                                                    opipes_["Dataframe Positioned"]->flush(df);  
+                                                    getPipe("Dataframe Positioned")->flush(df);  
                                                 }
                                             }else{
                                                 if(prevDf_!=nullptr){
                                                     if(odom_.computeOdometry(prevDf_, df)){
                                                         nextDfId_++;
-                                                        opipes_["Dataframe Positioned"]->flush(df);  
+                                                        getPipe("Dataframe Positioned")->flush(df);  
                                                         prevDf_ = df;
                                                     }
                                                 }else{
@@ -83,7 +83,9 @@ namespace mico{
                                     idle_ = true;
                                     }
                                 });
-        iPolicy_->registerCallback({"Next Dataframe"}, 
+        
+        
+        registerCallback({"Next Dataframe"}, 
                                 [&](flow::DataFlow _data){
                                         lastDataframe_ = _data.get<typename mico::Dataframe<pcl::PointXYZRGBNormal>::Ptr>("dataframe");
                                     }

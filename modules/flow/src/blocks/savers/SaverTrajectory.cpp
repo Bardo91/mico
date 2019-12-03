@@ -25,9 +25,9 @@
 namespace mico{
 
     SaverTrajectory::SaverTrajectory(){
-        iPolicy_ = new flow::Policy({{{"Pose", "mat44"}}});
+        createPolicy({{{"Pose", "mat44"}}});
 
-        iPolicy_->registerCallback({"Pose"}, 
+        registerCallback({"Pose"}, 
                                 [&](flow::DataFlow _data){                                
                                     Eigen::Matrix4f pose = _data.get<Eigen::Matrix4f>("Pose");
                                     Eigen::Quaternionf q(pose.block<3,3>(0,0));

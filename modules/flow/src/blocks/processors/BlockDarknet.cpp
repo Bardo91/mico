@@ -29,13 +29,14 @@
 namespace mico{
 
     BlockDarknet::BlockDarknet(){
-        
-        iPolicy_ = new flow::Policy({{{"Color Image", "image"}, {"Dataframe", "dataframe"}}});
 
-        opipes_["Color Image"] = new flow::Outpipe("Color Image", "image");
-        opipes_["Entities"] = new flow::Outpipe("Entities", "v-entity");
+        createPipe("Color Image", "image");
+        createPipe("Entities", "v-entity");
 
-        iPolicy_->registerCallback({"Color Image"}, 
+        createPolicy({{ {"Color Image", "image"}, 
+                        {"Dataframe", "dataframe"}}});
+
+        registerCallback({"Color Image"}, 
                                 [&](flow::DataFlow _data){
                                     if(idle_){
                                         idle_ = false;
@@ -71,11 +72,11 @@ namespace mico{
                                             }
 
                                             // send image with detections
-                                            if(opipes_["Color Image"]->registrations() !=0 )
-                                                opipes_["Color Image"]->flush(image);
+                                            if(getPipe("Color Image")->registrations() !=0 )
+                                                getPipe("Color Image")->flush(image);
                                             // send entities
-                                            if(opipes_["Entities"]->registrations() !=0 )
-                                                opipes_["Entities"]->flush(entities);
+                                            if(getPipe("Entities")->registrations() !=0 )
+                                                getPipe("Entities")->flush(entities);
                                             
                                         }else{
                                             std::cout << "No weights and cfg provided to Darknet\n";
@@ -85,7 +86,7 @@ namespace mico{
                                     }
                                 });
 
-        iPolicy_->registerCallback({"dataframe"}, 
+        registerCallback({"Dataframe"}, 
                                 [&](flow::DataFlow _data){
                                     if(idle_){
                                         idle_ = false;
@@ -171,11 +172,11 @@ namespace mico{
                                                 }
                                             }
                                             // send entities
-                                            if(opipes_["Entities"]->registrations() !=0 )
-                                                opipes_["Entities"]->flush(entities);
+                                            if(getPipe("Entities")->registrations() !=0 )
+                                                getPipe("Entities")->flush(entities);
                                             // send image with detections
-                                            if(opipes_["Color Image"]->registrations() !=0 )
-                                                opipes_["Color Image"]->flush(image);
+                                            if(getPipe("Color Image")->registrations() !=0 )
+                                                getPipe("Color Image")->flush(image);
                                             //auto end = std::chrono::steady_clock::now();
                                             //printf("Detector: Elapsed time in milliseconds : %i", std::chrono::duration_cast<std::chrono::milliseconds>(end - strt).count());
                                         }else{
