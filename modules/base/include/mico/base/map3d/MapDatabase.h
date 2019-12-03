@@ -25,28 +25,32 @@
 #include <mico/base/map3d/Dataframe.h>
 #include <vector>
 
-#include <bsoncxx/builder/basic/array.hpp>
-#include <bsoncxx/builder/stream/document.hpp>
-#include <bsoncxx/types.hpp>
-#include <bsoncxx/json.hpp>
-
-#include <mongocxx/client.hpp>
-#include <mongocxx/instance.hpp>
-#include <mongocxx/uri.hpp>
-
 #include <opencv2/opencv.hpp>
 #include <pcl/io/pcd_io.h>
 
 #include <sys/stat.h>
 
-using bsoncxx::builder::stream::document;
-using bsoncxx::builder::stream::finalize;
+#ifdef USE_MONGO
+#   include <bsoncxx/builder/basic/array.hpp>
+#   include <bsoncxx/builder/stream/document.hpp>
+#   include <bsoncxx/types.hpp>
+#   include <bsoncxx/json.hpp>
 
-using bsoncxx::builder::basic::kvp;
-using bsoncxx::builder::basic::sub_array;
+#   include <mongocxx/client.hpp>
+#   include <mongocxx/instance.hpp>
+#   include <mongocxx/uri.hpp>
+#endif
 
-using bsoncxx::builder::stream::open_document;
-using bsoncxx::builder::stream::close_document;
+#ifdef USE_MONGO
+    using bsoncxx::builder::stream::document;
+    using bsoncxx::builder::stream::finalize;
+
+    using bsoncxx::builder::basic::kvp;
+    using bsoncxx::builder::basic::sub_array;
+
+    using bsoncxx::builder::stream::open_document;
+    using bsoncxx::builder::stream::close_document;
+#endif
 
 namespace mico {
     // use this struct?
@@ -73,18 +77,23 @@ namespace mico {
             bool saveAllDatabase();
 
             bool restoreDatabase(std::string _pathDatabase);
-            Dataframe<PointType_> createDataframe(bsoncxx::document::view _doc ); //666 Solve this specialization
+            #ifdef USE_MONGO
+                Dataframe<PointType_> createDataframe(bsoncxx::document::view _doc ); //666 Solve this specialization
 
             mongocxx::collection dbCollection();
+            #endif
 
         private:
-            mongocxx::uri uri_;
-            mongocxx::client connClient_;
-            mongocxx::database db_; 
             std::string dbName_;
 
             std::string pathDbFolder_;
             std::ofstream fileDatabase_;
+
+            #ifdef USE_MONGO
+                mongocxx::uri uri_;
+                mongocxx::client connClient_;
+                mongocxx::database db_;
+            #endif 
             
     };
 } // namespace mico 

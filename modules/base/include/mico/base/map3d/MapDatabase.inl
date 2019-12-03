@@ -35,133 +35,145 @@ namespace mico
     template<typename PointType_>
     inline bool MapDatabase<PointType_>::init(std::string _databaseName, std::string _mode){
 
-        dbName_ = _databaseName;
-        uri_ = mongocxx::uri("mongodb://localhost:27017");
-        
-        if (_mode == "save"){
-            pathDbFolder_= "/home/marrcogrova/.mico/tmp";
-            int stat = mkdir(pathDbFolder_.c_str() , S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-            if (stat == -1){
-                std::cout << "Error creating tmp folder \n";
-                return false;
-            }
-        }else if (_mode == "load"){
+        #ifdef USE_MONGO
+            dbName_ = _databaseName;
+            uri_ = mongocxx::uri("mongodb://localhost:27017");
             
-        }
+            if (_mode == "save"){
+                pathDbFolder_= "/home/marrcogrova/.mico/tmp";
+                int stat = mkdir(pathDbFolder_.c_str() , S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+                if (stat == -1){
+                    std::cout << "Error creating tmp folder \n";
+                    return false;
+                }
+            }else if (_mode == "load"){
+                
+            }
 
-        mongocxx::instance instance{};
-        connClient_ = mongocxx::client{uri_};
-        db_ = connClient_[dbName_]; 
-        db_[dbName_].drop(); // clean db collection
+            mongocxx::instance instance{};
+            connClient_ = mongocxx::client{uri_};
+            db_ = connClient_[dbName_]; 
+            db_[dbName_].drop(); // clean db collection
 
-        return true;
+            return true;
+        #else
+            return false;
+        #endif
     }
 
 
     template<typename PointType_>
     inline bool MapDatabase<PointType_>::restoreDatabase(std::string _pathDatabase){
+        #ifdef USE_MONGO
+            std::ifstream file;
+            file.open(_pathDatabase); 
 
-        std::ifstream file;
-        file.open(_pathDatabase); 
+            if (!file.is_open())
+                return 0;
+            
+            std::string line;
+            std::vector<std::string> lines;
+            while ( std::getline(file,line) ) 
+                lines.push_back(line);
+            file.close();
 
-        if (!file.is_open())
-            return 0;
-        
-        std::string line;
-        std::vector<std::string> lines;
-        while ( std::getline(file,line) ) 
-            lines.push_back(line);
-        file.close();
+            std::vector<bsoncxx::document::value> vecDocs;
+            for (unsigned int i=0 ; i<lines.size() - 1 ; i++){ 
+                bsoncxx::document::value aux = bsoncxx::from_json(lines[i]);
+                vecDocs.push_back(aux);
+            }
+            db_[dbName_].insert_many(vecDocs);
 
-        std::vector<bsoncxx::document::value> vecDocs;
-        for (unsigned int i=0 ; i<lines.size() - 1 ; i++){ 
-            bsoncxx::document::value aux = bsoncxx::from_json(lines[i]);
-            vecDocs.push_back(aux);
-        }
-        db_[dbName_].insert_many(vecDocs);
-
-        return true;
+            return true;
+        #else
+            return false;
+        #endif
     }
 
 
     template<typename PointType_>
     inline bool MapDatabase<PointType_>::update(std::shared_ptr<mico::Dataframe<PointType_>> &_df){
 
-        std::string dfFolder = pathDbFolder_ + "/dataframe_" + std::to_string(_df->id());
-        int stat = mkdir(dfFolder.c_str() , S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-        if (stat == -1){
-            std::cout << "Error creating dataframe folder \n";
-            return false;
-        }
+        #ifdef USE_MONGO
+            std::string dfFolder = pathDbFolder_ + "/dataframe_" + std::to_string(_df->id());
+            int stat = mkdir(dfFolder.c_str() , S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+            if (stat == -1){
+                std::cout << "Error creating dataframe folder \n";
+                return false;
+            }
 
-        auto doc = bsoncxx::builder::basic::document{};
-        doc.append(kvp("id" , _df->id()));
+            auto doc = bsoncxx::builder::basic::document{};
+            doc.append(kvp("id" , _df->id()));
 
-        doc.append(kvp("pose", [&](sub_array _child) {
-            Eigen::Matrix4f dfPose = _df->pose();
-            for(unsigned i = 0; i < _df->pose().rows() ; i++)
-                for(unsigned j = 0; j < _df->pose().cols() ; j++)
-                    _child.append(dfPose(i,j));
-        }));
+            doc.append(kvp("pose", [&](sub_array _child) {
+                Eigen::Matrix4f dfPose = _df->pose();
+                for(unsigned i = 0; i < _df->pose().rows() ; i++)
+                    for(unsigned j = 0; j < _df->pose().cols() ; j++)
+                        _child.append(dfPose(i,j));
+            }));
 
-        doc.append(kvp("intrinsics", [&](sub_array _child) {
-            cv::Mat dfIntrinsics = _df->intrinsics();
-            for(int i = 0; i < dfIntrinsics.rows ; i++)
-                for(int j = 0; j < dfIntrinsics.cols ; j++)
-                    _child.append(dfIntrinsics.at<float>(i,j));
-        }));
+            doc.append(kvp("intrinsics", [&](sub_array _child) {
+                cv::Mat dfIntrinsics = _df->intrinsics();
+                for(int i = 0; i < dfIntrinsics.rows ; i++)
+                    for(int j = 0; j < dfIntrinsics.cols ; j++)
+                        _child.append(dfIntrinsics.at<float>(i,j));
+            }));
 
-        doc.append(kvp("coefficients", [&](sub_array _child) {
-            cv::Mat dfCoeff = _df->distCoeff();
-            for(int i = 0; i < dfCoeff.rows ; i++)
-                for(int j = 0; j < dfCoeff.cols ; j++)
-                    _child.append(dfCoeff.at<float>(i,j));
-        }));
+            doc.append(kvp("coefficients", [&](sub_array _child) {
+                cv::Mat dfCoeff = _df->distCoeff();
+                for(int i = 0; i < dfCoeff.rows ; i++)
+                    for(int j = 0; j < dfCoeff.cols ; j++)
+                        _child.append(dfCoeff.at<float>(i,j));
+            }));
 
-        cv::imwrite(dfFolder + "/left.png", _df->leftImage()); //666 image is gray
-        doc.append(kvp("left_path" , dfFolder + "/left.png"));
+            cv::imwrite(dfFolder + "/left.png", _df->leftImage()); //666 image is gray
+            doc.append(kvp("left_path" , dfFolder + "/left.png"));
 
-        cv::imwrite(dfFolder + "/depth.png", _df->depthImage());
-        doc.append(kvp("depth_path" , dfFolder + "/depth.png"));    
+            cv::imwrite(dfFolder + "/depth.png", _df->depthImage());
+            doc.append(kvp("depth_path" , dfFolder + "/depth.png"));    
 
-        pcl::io::savePCDFile(dfFolder + "/cloud.pcd", *_df->cloud(), true ); // true to use binary format
-        doc.append(kvp("cloud_path" , dfFolder + "/cloud.pcd"));
+            pcl::io::savePCDFile(dfFolder + "/cloud.pcd", *_df->cloud(), true ); // true to use binary format
+            doc.append(kvp("cloud_path" , dfFolder + "/cloud.pcd"));
+            
+            pcl::io::savePCDFile(dfFolder + "/featureCloud.pcd", *_df->featureCloud(), true );
+            doc.append(kvp("featureCloud_path" , dfFolder + "/featureCloud.pcd"));
+
+            doc.append(kvp("covisibility_ids", [&](sub_array _child) {
+                for (auto visibleDf : _df->covisibility())
+                _child.append(visibleDf->id());
+            }));
+
+            // add wordsReference_
+
+
+            auto res = db_[dbName_].insert_one(doc.view());
         
-        pcl::io::savePCDFile(dfFolder + "/featureCloud.pcd", *_df->featureCloud(), true );
-        doc.append(kvp("featureCloud_path" , dfFolder + "/featureCloud.pcd"));
+            fileDatabase_.open(pathDbFolder_ + "/database.json" , std::ofstream::app); //append mode
+            if (!fileDatabase_.is_open()){
+                std::cout << "Error opening database json\n";
+                return false;
+            }
+            fileDatabase_ << bsoncxx::to_json(doc) << "\n";
+            fileDatabase_.close();
 
-        doc.append(kvp("covisibility_ids", [&](sub_array _child) {
-            for (auto visibleDf : _df->covisibility())
-            _child.append(visibleDf->id());
-        }));
-
-        // add wordsReference_
-
-
-        auto res = db_[dbName_].insert_one(doc.view());
-    
-        fileDatabase_.open(pathDbFolder_ + "/database.json" , std::ofstream::app); //append mode
-        if (!fileDatabase_.is_open()){
-            std::cout << "Error opening database json\n";
+            return true;
+        #else
             return false;
-        }
-        fileDatabase_ << bsoncxx::to_json(doc) << "\n";
-        fileDatabase_.close();
-
-        return true;
+        #endif
     }
 
-
-    std::vector<float> arrayView2Vector(bsoncxx::array::view _view){
-        std::vector<float> viewVector;
-        for (bsoncxx::array::element elem : _view) {
-            float data = static_cast<float>(elem.get_double());
-            viewVector.push_back(data);
+    #ifdef USE_MONGO
+        std::vector<float> arrayView2Vector(bsoncxx::array::view _view){
+            std::vector<float> viewVector;
+            for (bsoncxx::array::element elem : _view) {
+                float data = static_cast<float>(elem.get_double());
+                viewVector.push_back(data);
+            }
+            return viewVector;
         }
-        return viewVector;
-    }
+    #endif
     
-
+    #ifdef USE_MONGO
     template<typename PointType_>
     inline Dataframe<PointType_> MapDatabase<PointType_>::createDataframe(bsoncxx::document::view _doc ){
         int id = _doc["id"].get_value().get_int32().value ;
@@ -216,37 +228,48 @@ namespace mico
 
         return df;
     }
+    #endif
 
 
     template<typename PointType_>
     inline bool MapDatabase<PointType_>::saveAllDatabase(){
-        fileDatabase_.open(pathDbFolder_ + "/database.json"); 
-        if (!fileDatabase_.is_open()){
-            std::cout << "Error opening database json\n";
-            return false;
-        }
+        #ifdef USE_MONGO
+            fileDatabase_.open(pathDbFolder_ + "/database.json"); 
+            if (!fileDatabase_.is_open()){
+                std::cout << "Error opening database json\n";
+                return false;
+            }
 
-	    mongocxx::cursor cursor = db_[dbName_].find({});
-	    for(auto doc : cursor) {
-	      fileDatabase_ << bsoncxx::to_json(doc) << "\n";
-	    }
-        fileDatabase_.close();
-        return true;
+            mongocxx::cursor cursor = db_[dbName_].find({});
+            for(auto doc : cursor) {
+            fileDatabase_ << bsoncxx::to_json(doc) << "\n";
+            }
+            fileDatabase_.close();
+            return true;
+        #else
+            return false;
+        #endif
     }
 
 
     template<typename PointType_>
     inline bool MapDatabase<PointType_>::printDatabase(){
-	    mongocxx::cursor cursor = db_[dbName_].find({});
-	    for(auto doc : cursor) {
-	      std::cout << bsoncxx::to_json(doc) << "\n";
-	    }
-        return true;
+        #ifdef USE_MONGO
+            mongocxx::cursor cursor = db_[dbName_].find({});
+            for(auto doc : cursor) {
+            std::cout << bsoncxx::to_json(doc) << "\n";
+            }
+            return true;
+        #else
+            return false;
+        #endif
     }
     
-    template<typename PointType_>
-    inline mongocxx::collection MapDatabase<PointType_>::dbCollection(){
-        return db_[dbName_];
-    }
+    #ifdef USE_MONGO
+        template<typename PointType_>
+        inline mongocxx::collection MapDatabase<PointType_>::dbCollection(){
+            return db_[dbName_];
+        }
+    #endif
     
 } // namespace mico 
