@@ -157,7 +157,7 @@ else
 	git clone "https://github.com/RainerKuemmerle/g2o"
 	cd g2o
 	mkdir build; cd build
-	cmake -DBUILD_WITH_MARCH_NATIVE=ON .. 
+	cmake -DBUILD_WITH_MARCH_NATIVE=OFF .. 
 	make -j$(nproc)
 	sudo make install 
 	cd ../..
