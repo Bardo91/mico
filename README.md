@@ -27,6 +27,11 @@ make -j$(nproc)
 sudo make install
 ```
 
+# Tested Build configurations
+
+|   | Ubuntu  | OpenCV | OpenCV_contrib | PCL                          | CUDA | g2o |   ROS    |
+|---|---------|--------|----------------|------------------------------|------|-----|----------|
+| 1 | 18.04.1 | 3.3.1  | 3.3.1          | 1.8.1+dfsg1-2ubuntu2.18.04.1 | 10.0 | 1.0 |  Melodic |
 
 
 
