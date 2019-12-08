@@ -32,7 +32,7 @@ namespace mico{
         createPipe("Keyframe", "dataframe");
         
         createPolicy({{"Next Dataframe", "dataframe"}});
-        registerCallback({"dataframe"}, 
+        registerCallback({"Next Dataframe"}, 
                                 [&](flow::DataFlow _data){
                                     if(idle_){
                                         idle_ = false;
