@@ -62,6 +62,16 @@ namespace mico{
                                         pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud = pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr(new pcl::PointCloud<pcl::PointXYZRGBNormal>());
                                         updateRender(df->id(), df->cloud(), df->pose());
                                         dataframes_[df->id()] = df;
+                                        runOnUiThread([&](){
+                                            if(idsToDraw_.size() > 0){
+                                                for(auto id: idsToDraw_){
+                                                    renderer->AddActor(actors_[id]);
+                                                }
+                                            }
+                                            actorsGuard_.lock();
+                                            idsToDraw_.clear();
+                                            actorsGuard_.unlock();
+                                        });
                                 }
                             );
         
@@ -71,6 +81,17 @@ namespace mico{
                                         idle_ = false;
                                         Eigen::Matrix4f pose = _data.get<Eigen::Matrix4f>("Camera Pose");
                                         updateCoordinates(pose);
+                                        runOnUiThread([&](){
+                                            actorsGuard_.lock();
+                                            if(actorCs_ && actorCs_ != prevActorCs_){
+                                                if(prevActorCs_){
+                                                    renderer->RemoveActor(prevActorCs_);
+                                                }
+                                                prevActorCs_ = actorCs_;
+                                                renderer->AddActor(actorCs_);
+                                            }
+                                            actorsGuard_.unlock();
+                                        });
                                         idle_ = true;
                                     }
                                 }
@@ -92,36 +113,36 @@ namespace mico{
                             );
         #endif
 
-        redrawerThread_ = std::thread([&](){
-            while(running_){    //666 better condition for proper finalization.
-                for(auto &df: dataframes_){
-                    if(df.second != nullptr && df.second->isOptimized()){
+        // redrawerThread_ = std::thread([&](){
+        //     while(running_){    //666 better condition for proper finalization.
+        //         for(auto &df: dataframes_){
+        //             if(df.second != nullptr && df.second->isOptimized()){
                         
-                        actorsGuard_.lock();
-                        actorsToDelete_.push_back(actors_[df.first]);
-                        actorsGuard_.unlock();
-                        updateRender(df.first, df.second->cloud(), df.second->pose());
+        //                 actorsGuard_.lock();
+        //                 actorsToDelete_.push_back(actors_[df.first]);
+        //                 actorsGuard_.unlock();
+        //                 updateRender(df.first, df.second->cloud(), df.second->pose());
 
-                        df.second->isOptimized(false);
-                    }
-                }
+        //                 df.second->isOptimized(false);
+        //             }
+        //         }
 
-                #ifdef HAS_DARKNET
-                for(auto &e: entities_){
-                    if(e.second != nullptr){
-                        actorsGuard_.lock();
-                        actorsToDelete_.push_back(actors_[e.first]);
-                        actorsGuard_.unlock();
-                        auto dfs = e.second->dfs();
-                        updateRender(e.first, e.second->cloud(dfs[0]), e.second->pose(dfs[0]));
-                    }
-                }
-                #endif
+        //         #ifdef HAS_DARKNET
+        //         for(auto &e: entities_){
+        //             if(e.second != nullptr){
+        //                 actorsGuard_.lock();
+        //                 actorsToDelete_.push_back(actors_[e.first]);
+        //                 actorsGuard_.unlock();
+        //                 auto dfs = e.second->dfs();
+        //                 updateRender(e.first, e.second->cloud(dfs[0]), e.second->pose(dfs[0]));
+        //             }
+        //         }
+        //         #endif
 
-                std::this_thread::sleep_for(std::chrono::milliseconds(500));    // low frame rate.
-            }
+        //         std::this_thread::sleep_for(std::chrono::milliseconds(500));    // low frame rate.
+        //     }
 
-        });
+        // });
     }
 
     BlockDatabaseVisualizer::~BlockDatabaseVisualizer(){
@@ -134,7 +155,7 @@ namespace mico{
 
     }
 
-    void BlockDatabaseVisualizer::updateRender(int _id, const  pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr _cloud, const Eigen::Matrix4f &_pose){
+    int BlockDatabaseVisualizer::updateRender(int _id, const  pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr _cloud, const Eigen::Matrix4f &_pose){
         vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
         vtkSmartPointer<vtkUnsignedCharArray> colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
         colors->SetNumberOfComponents(3);
@@ -180,6 +201,7 @@ namespace mico{
         actors_[_id] = actor;
         idsToDraw_.push_back(_id);
         actorsGuard_.unlock();
+        return _id;
     }
 
     // Code from pclvisualizer

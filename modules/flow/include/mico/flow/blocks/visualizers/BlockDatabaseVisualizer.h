@@ -72,7 +72,7 @@ namespace mico{
         std::vector<std::string> parameters() override { return {"cs_scale"}; }
 
     private:
-        void updateRender(int _id, const  pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr _cloud, const  Eigen::Matrix4f &_pose);
+        int updateRender(int _id, const  pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr _cloud, const  Eigen::Matrix4f &_pose);
         void updateCoordinates(Eigen::Matrix4f &_pose);
 
         void convertToVtkMatrix( const Eigen::Matrix4f &_eigMat, vtkSmartPointer<vtkMatrix4x4> &vtk_matrix);
@@ -89,6 +89,7 @@ namespace mico{
         std::vector<int> idsToDraw_;
 
         vtkSmartPointer<vtkActor> actorCs_;
+        vtkSmartPointer<vtkActor> prevActorCs_ = nullptr;
 
         std::mutex actorsGuard_;
         float scaleCs_ = 1.0;
