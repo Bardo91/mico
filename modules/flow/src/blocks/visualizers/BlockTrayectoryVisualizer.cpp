@@ -44,7 +44,7 @@ namespace mico{
         actor->SetMapper(mapper);
         renderer->AddActor(actor);
 
-        createPolicy({{{"Camera Pose", "pose"}}});
+        createPolicy({{"Camera Pose", "pose"}});
 
         registerCallback({"Camera Pose"}, 
                                 [&](flow::DataFlow  _data){

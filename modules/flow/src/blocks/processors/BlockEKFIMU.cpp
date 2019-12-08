@@ -30,7 +30,7 @@ namespace mico{
     BlockEKFIMU::BlockEKFIMU(){
         createPipe("pose", "mat44");
 
-        createPolicy({{{"Last Pose", "mat44"},{"Acceleration", "vec3"}}});
+        createPolicy({{"Last Pose", "mat44"},{"Acceleration", "vec3"}});
         prevT_ = std::chrono::system_clock::now();
         registerCallback({"Last Pose"}, 
                                 [&](flow::DataFlow _data){

@@ -31,7 +31,7 @@ namespace mico{
     BlockDatabaseMarkI::BlockDatabaseMarkI(){
         createPipe("Keyframe", "dataframe");
         
-        createPolicy({{{"Next Dataframe", "dataframe"}}});
+        createPolicy({{"Next Dataframe", "dataframe"}});
         registerCallback({"dataframe"}, 
                                 [&](flow::DataFlow _data){
                                     if(idle_){

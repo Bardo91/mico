@@ -48,12 +48,12 @@ namespace mico{
 
     BlockDatabaseVisualizer::BlockDatabaseVisualizer(): VtkVisualizer3D("Database Visualizer") {
         #ifdef HAS_DARKNET
-        createPolicy({{     {"Last Dataframe","dataframe"}, 
+        createPolicy({     {"Last Dataframe","dataframe"}, 
                             {"Camera Pose","mat44"}, 
-                            {"Objects","v-entity"}}});
+                            {"Objects","v-entity"}});
         #else
-        createPolicy({{     {"Last Dataframe","dataframe"}, 
-                            {"Camera Pose","mat44"}}});
+        createPolicy({     {"Last Dataframe","dataframe"}, 
+                            {"Camera Pose","mat44"}});
         #endif
 
         registerCallback({"Last Dataframe"}, 

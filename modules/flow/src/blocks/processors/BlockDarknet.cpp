@@ -33,8 +33,8 @@ namespace mico{
         createPipe("Color Image", "image");
         createPipe("Entities", "v-entity");
 
-        createPolicy({{ {"Color Image", "image"}, 
-                        {"Dataframe", "dataframe"}}});
+        createPolicy({ {"Color Image", "image"}, 
+                        {"Dataframe", "dataframe"}});
 
         registerCallback({"Color Image"}, 
                                 [&](flow::DataFlow _data){

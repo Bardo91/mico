@@ -48,11 +48,11 @@ namespace mico{
         sBelonger_ = true;
 
 
-        createPolicy({{
+        createPolicy({
             {"Camera Pose", "mat44"},
             {"Dataframe", "dataframe"},
             {"Objects", "v-entity"}
-        }});
+        });
 
         registerCallback({ "Camera Pose" }, 
                                 [&](flow::DataFlow  _data){

@@ -25,7 +25,7 @@
 namespace mico{
 
     SaverTrajectory::SaverTrajectory(){
-        createPolicy({{{"Pose", "mat44"}}});
+        createPolicy({{"Pose", "mat44"}});
 
         registerCallback({"Pose"}, 
                                 [&](flow::DataFlow _data){                                

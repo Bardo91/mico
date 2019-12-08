@@ -26,9 +26,9 @@
 namespace mico{
 
     BlockOdometryPhotogrammetry::BlockOdometryPhotogrammetry(){
-        createPolicy({{     {"Color Image", "image"},
+        createPolicy({     {"Color Image", "image"},
                             {"Altitude", "float"},
-                            {"Next Dataframe", "dataframe"}}});
+                            {"Next Dataframe", "dataframe"}});
 
         createPipe("Dataframe Positioned", "dataframe");
 

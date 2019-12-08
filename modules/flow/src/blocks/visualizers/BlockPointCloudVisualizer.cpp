@@ -84,8 +84,8 @@ namespace mico{
             }
         });
 
-        createPolicy({{{ "Point Cloud", "cloud"}, 
-                                        {"Dataframe", "dataframe"}}});
+        createPolicy({{ "Point Cloud", "cloud"}, 
+                                        {"Dataframe", "dataframe"}});
 
         registerCallback({"Point Cloud" }, 
                                 [&](flow::DataFlow  _data){

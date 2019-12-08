@@ -29,7 +29,7 @@
 namespace mico{
 
     SaverEntity::SaverEntity(){
-        createPolicy({{{"Objects", "v-entity"}}});
+        createPolicy({{"Objects", "v-entity"}});
 
         registerCallback({"Objects"}, 
                                 [&](flow::DataFlow _data){        

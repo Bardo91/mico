@@ -27,10 +27,10 @@ namespace mico{
 
     BlockOdometryRGBD::BlockOdometryRGBD(){
         
-        createPolicy({{     {"Color Image", "image"}, 
+        createPolicy({    {"Color Image", "image"}, 
                             {"Depth Image", "image"}, 
                             {"Point Cloud", "cloud"}, 
-                            {"Keyframe", "dataframe" }}});
+                            {"Keyframe", "dataframe" }});
 
         createPipe("Estimated Dataframe" , "dataframe");
 
