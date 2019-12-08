@@ -19,15 +19,12 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#include <flow/visual/FlowVisualInterface.h>
-#include <flow/visual/blocks/FlowVisualBlock.h>
+#include <flow/flow.h>
 // #include <gperftools/profiler.h>
 
 #include <mico/flow/mico_flow.h>
 #include <csignal>
 #include <iostream>
-
-#include <X11/Xlib.h>   
 
 using namespace flow;
 using namespace mico;
@@ -101,7 +98,6 @@ void signalHandler( int signum ) {
 }
 
 int main(int _argc, char *_argv[]) {    
-	XInitThreads();	
     signal(SIGINT, signalHandler);  
 
     #ifdef MICO_USE_ROS

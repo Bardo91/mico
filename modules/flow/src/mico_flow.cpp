@@ -19,42 +19,20 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-// Streamers
-#undef Q_FOREACH
-#include <mico/flow/blocks/streamers/StreamRealSense.h>
-#include <mico/flow/blocks/streamers/StreamDataset.h>
-#include <mico/flow/blocks/streamers/StreamPixhawk.h>
+#include <mico/flow/mico_flow.h>
 
+#include <flow/DataFlow.h>
+#include <mico/base/map3d/Dataframe.h>
 
-// Processors
-#include <mico/flow/blocks/processors/BlockOdometryRGBD.h>
-#include <mico/flow/blocks/processors/BlockOdometryPhotogrammetry.h>
-#include <mico/flow/blocks/processors/BlockDatabaseMarkI.h>
-#include <mico/flow/blocks/processors/BlockLoopClosure.h>
-#include <mico/flow/blocks/processors/BlockOptimizerCF.h>
-#include <mico/flow/blocks/processors/BlockEKFIMU.h>
-// #include <mico/flow/blocks/processors/BlockParticleFilterKinematic.h>
+// Type registration
+FLOW_TYPE_REGISTER("dataframe", std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>>)
+FLOW_TYPE_REGISTER("v-dataframe", std::vector<std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>>>)
 
-
-// Visualizers
-#include <mico/flow/blocks/visualizers/BlockImageVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockTrayectoryVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockDatabaseVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockSceneVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockPointCloudVisualizer.h>
-
-// Casters
-#include <mico/flow/blocks/CastBlocks.h>
-
-// Queuers
-#include <mico/flow/blocks/BlockQueuer.h>
-
-// Savers
-#include <mico/flow/blocks/savers/SaverImage.h>
-#include <mico/flow/blocks/savers/SaverTrajectory.h>
-#include <mico/flow/blocks/savers/SaverEntity.h>
+FLOW_TYPE_REGISTER("image", cv::Mat)
+FLOW_TYPE_REGISTER("v-image", std::vector<cv::Mat>)
 
 // DNN
 #ifdef HAS_DARKNET
-    #include <mico/flow/blocks/processors/BlockDarknet.h> // 666 HAS DARKNET
+    FLOW_TYPE_REGISTER("entity", std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>)
+    FLOW_TYPE_REGISTER("v-entity", std::vector<std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>>)
 #endif

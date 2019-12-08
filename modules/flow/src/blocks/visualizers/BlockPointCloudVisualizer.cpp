@@ -23,7 +23,7 @@
 
 #include <mico/flow/blocks/visualizers/BlockPointCloudVisualizer.h>
 #include <flow/Policy.h>
-#include <flow/OutPipe.h>
+#include <flow/Outpipe.h>
 
 
 #include <mico/base/map3d/Dataframe.h>
@@ -84,25 +84,26 @@ namespace mico{
             }
         });
 
-        iPolicy_ = new flow::Policy({"cloud", "dataframe"});
+        createPolicy({{ "Point Cloud", "cloud"}, 
+                                        {"Dataframe", "dataframe"}});
 
-        iPolicy_->registerCallback({"cloud" }, 
-                                [&](std::unordered_map<std::string,std::any> _data){
+        registerCallback({"Point Cloud" }, 
+                                [&](flow::DataFlow  _data){
                                     if(idle_){
                                         idle_ = false;
-                                        pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud = std::any_cast<pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr>(_data["cloud"]); 
+                                        auto cloud = _data.get<pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr>("Point Cloud"); 
                                         updateRender(cloud);
                                         idle_ = true;
                                     }
                                 }
                             );
         
-        iPolicy_->registerCallback({"dataframe" }, 
-                                [&](std::unordered_map<std::string,std::any> _data){
+        registerCallback({"Dataframe" }, 
+                                [&](flow::DataFlow  _data){
                                     if(idle_){
                                         idle_ = false;
-                                        pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud = pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr(new pcl::PointCloud<pcl::PointXYZRGBNormal>());
-                                        std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> df = std::any_cast<std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>>>(_data["dataframe"]);
+                                        auto cloud = pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr(new pcl::PointCloud<pcl::PointXYZRGBNormal>());
+                                        auto df = _data.get<std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>>>("Dataframe");
                                         pcl::transformPointCloud(*df->cloud(), *cloud, df->pose());
                                         updateRender(cloud);
                                         idle_ = true;

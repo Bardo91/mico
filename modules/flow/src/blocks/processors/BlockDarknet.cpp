@@ -21,21 +21,23 @@
 
 #include <mico/flow/blocks/processors/BlockDarknet.h>
 #include <flow/Policy.h>
-#include <flow/OutPipe.h>
+#include <flow/Outpipe.h>
+#include <flow/DataFlow.h>
 #include <boost/math/special_functions/fpclassify.hpp>
 #include <chrono>
 #include <iostream>
 namespace mico{
 
     BlockDarknet::BlockDarknet(){
-        
-        iPolicy_ = new flow::Policy({"color","dataframe"});
 
-        opipes_["color"] = new flow::OutPipe("color");
-        opipes_["v_entity"] = new flow::OutPipe("v_entity");
+        createPipe("Color Image", "image");
+        createPipe("Entities", "v-entity");
 
-        iPolicy_->registerCallback({"color"}, 
-                                [&](std::unordered_map<std::string,std::any> _data){
+        createPolicy({ {"Color Image", "image"}, 
+                        {"Dataframe", "dataframe"}});
+
+        registerCallback({"Color Image"}, 
+                                [&](flow::DataFlow _data){
                                     if(idle_){
                                         idle_ = false;
                                         #ifdef HAS_DARKNET
@@ -43,7 +45,7 @@ namespace mico{
                                             cv::Mat image;
                                             // check data received
                                             try{
-                                                image = std::any_cast<cv::Mat>(_data["color"]).clone();
+                                                image = _data.get<cv::Mat>("color").clone();
                                             }catch(std::exception& e){
                                                 std::cout << "Failure Darknet. " <<  e.what() << std::endl;
                                                 idle_ = true;
@@ -70,11 +72,11 @@ namespace mico{
                                             }
 
                                             // send image with detections
-                                            if(opipes_["color"]->registrations() !=0 )
-                                                opipes_["color"]->flush(image);
+                                            if(getPipe("Color Image")->registrations() !=0 )
+                                                getPipe("Color Image")->flush(image);
                                             // send entities
-                                            if(opipes_["v_entity"]->registrations() !=0 )
-                                                opipes_["v_entity"]->flush(entities);
+                                            if(getPipe("Entities")->registrations() !=0 )
+                                                getPipe("Entities")->flush(entities);
                                             
                                         }else{
                                             std::cout << "No weights and cfg provided to Darknet\n";
@@ -84,8 +86,8 @@ namespace mico{
                                     }
                                 });
 
-        iPolicy_->registerCallback({"dataframe"}, 
-                                [&](std::unordered_map<std::string,std::any> _data){
+        registerCallback({"Dataframe"}, 
+                                [&](flow::DataFlow _data){
                                     if(idle_){
                                         idle_ = false;
                                         #ifdef HAS_DARKNET
@@ -95,7 +97,7 @@ namespace mico{
 
                                             // check data received
                                             try{
-                                                df = std::any_cast<std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>>>(_data["dataframe"]);
+                                                df = _data->get<std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>>>("Dataframe");
                                                 image = df->leftImage().clone();
                                                 
                                             }catch(std::exception& e){
@@ -170,11 +172,11 @@ namespace mico{
                                                 }
                                             }
                                             // send entities
-                                            if(opipes_["v_entity"]->registrations() !=0 )
-                                                opipes_["v_entity"]->flush(entities);
+                                            if(getPipe("Entities")->registrations() !=0 )
+                                                getPipe("Entities")->flush(entities);
                                             // send image with detections
-                                            if(opipes_["color"]->registrations() !=0 )
-                                                opipes_["color"]->flush(image);
+                                            if(getPipe("Color Image")->registrations() !=0 )
+                                                getPipe("Color Image")->flush(image);
                                             //auto end = std::chrono::steady_clock::now();
                                             //printf("Detector: Elapsed time in milliseconds : %i", std::chrono::duration_cast<std::chrono::milliseconds>(end - strt).count());
                                         }else{

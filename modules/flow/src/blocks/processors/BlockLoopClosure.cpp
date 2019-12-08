@@ -21,22 +21,22 @@
 
 #include <mico/flow/blocks/processors/BlockLoopClosure.h>
 #include <flow/Policy.h>
-#include <flow/OutPipe.h>
+#include <flow/Outpipe.h>
 
 #include <sstream>
 
 namespace mico{
 
     BlockLoopClosure::BlockLoopClosure(){
-        iPolicy_ = new flow::Policy({"dataframe"});
+        createPolicy({{"Next Keyframe", "dataframe"}});
 
-        opipes_["v-dataframe"] = new flow::OutPipe("v-dataframe");
-        
-        iPolicy_->registerCallback({"dataframe"}, 
-                                [&](std::unordered_map<std::string,std::any> _data){
+        createPipe("Loop","v-dataframe");
+
+        registerCallback({"Next Keyframe"}, 
+                                [&](flow::DataFlow _data){
                                     if(idle_){
                                         idle_ = false;
-                                        Dataframe<pcl::PointXYZRGBNormal>::Ptr df = std::any_cast<Dataframe<pcl::PointXYZRGBNormal>::Ptr>(_data["dataframe"]); 
+                                        Dataframe<pcl::PointXYZRGBNormal>::Ptr df = _data.get<Dataframe<pcl::PointXYZRGBNormal>::Ptr>("dataframe"); 
                                         
                                         cv::Mat image = df->leftImage();
                                         LoopResult res = loopDetector_.appendCluster(image, df->id());
@@ -54,7 +54,7 @@ namespace mico{
 
                                             // mDatabase.dfComparison(loopClosureSubset, false);  666 do it or not? @Ric92
                                             
-                                            opipes_["v-dataframe"]->flush(loopPath);
+                                            getPipe("loop")->flush(loopPath);
 
                                         }
                                         idle_ = true;

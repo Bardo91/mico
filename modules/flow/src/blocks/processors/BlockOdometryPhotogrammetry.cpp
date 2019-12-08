@@ -21,24 +21,25 @@
 
 #include <mico/flow/blocks/processors/BlockOdometryPhotogrammetry.h>
 #include <flow/Policy.h>
-#include <flow/OutPipe.h>
+#include <flow/Outpipe.h>
 
 namespace mico{
 
     BlockOdometryPhotogrammetry::BlockOdometryPhotogrammetry(){
-        
-        iPolicy_ = new flow::Policy({"color", "altitude", "dataframe"});
+        createPolicy({     {"Color Image", "image"},
+                            {"Altitude", "float"},
+                            {"Next Dataframe", "dataframe"}});
 
-        opipes_["dataframe"] = new flow::OutPipe("dataframe");
+        createPipe("Dataframe Positioned", "dataframe");
 
         featureDetector_ = cv::ORB::create(2000);
         
-        iPolicy_->registerCallback({"color", "altitude"}, 
-                                [&](std::unordered_map<std::string,std::any> _data){
+        registerCallback({"Color Image", "Altitude"}, 
+                                [&](flow::DataFlow _data){
                                     if(idle_){
                                         idle_ = false;
 
-                                        altitude_ = std::any_cast<float>(_data["altitude"]);
+                                        altitude_ = _data.get<float>("Altitude");
                                         if (!savedFirstAltitude_){
                                             firstAltitude_ = altitude_;
                                             savedFirstAltitude_ = true;
@@ -46,7 +47,7 @@ namespace mico{
                                         if(hasCalibration){
                                             Dataframe<pcl::PointXYZRGBNormal>::Ptr df(new Dataframe<pcl::PointXYZRGBNormal>((int) nextDfId_));
                                             try{
-                                                df->leftImage(std::any_cast<cv::Mat>(_data["color"])); 
+                                                df->leftImage(_data.get<cv::Mat>("Color Image")); 
                                             }catch(std::exception& e){
                                                 std::cout << "Failure Odometry Photogrammetry " <<  e.what() << std::endl;
                                                 idle_ = true;
@@ -63,13 +64,13 @@ namespace mico{
                                             if(lastDataframe_ != nullptr){
                                                 if(odom_.computeOdometry(lastDataframe_, df)){
                                                     nextDfId_++;
-                                                    opipes_["dataframe"]->flush(df);  
+                                                    getPipe("Dataframe Positioned")->flush(df);  
                                                 }
                                             }else{
                                                 if(prevDf_!=nullptr){
                                                     if(odom_.computeOdometry(prevDf_, df)){
                                                         nextDfId_++;
-                                                        opipes_["dataframe"]->flush(df);  
+                                                        getPipe("Dataframe Positioned")->flush(df);  
                                                         prevDf_ = df;
                                                     }
                                                 }else{
@@ -82,9 +83,11 @@ namespace mico{
                                     idle_ = true;
                                     }
                                 });
-        iPolicy_->registerCallback({"dataframe"}, 
-                                [&](std::unordered_map<std::string,std::any> _data){
-                                        lastDataframe_ = std::any_cast<std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>>>(_data["dataframe"]);
+        
+        
+        registerCallback({"Next Dataframe"}, 
+                                [&](flow::DataFlow _data){
+                                        lastDataframe_ = _data.get<typename mico::Dataframe<pcl::PointXYZRGBNormal>::Ptr>("dataframe");
                                     }
                                 );
 

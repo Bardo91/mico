@@ -1,3 +1,4 @@
+
 //---------------------------------------------------------------------------------------------------------------------
 //  mico
 //---------------------------------------------------------------------------------------------------------------------
@@ -19,42 +20,44 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-// Streamers
-#undef Q_FOREACH
-#include <mico/flow/blocks/streamers/StreamRealSense.h>
-#include <mico/flow/blocks/streamers/StreamDataset.h>
-#include <mico/flow/blocks/streamers/StreamPixhawk.h>
 
-
-// Processors
-#include <mico/flow/blocks/processors/BlockOdometryRGBD.h>
-#include <mico/flow/blocks/processors/BlockOdometryPhotogrammetry.h>
-#include <mico/flow/blocks/processors/BlockDatabaseMarkI.h>
-#include <mico/flow/blocks/processors/BlockLoopClosure.h>
-#include <mico/flow/blocks/processors/BlockOptimizerCF.h>
-#include <mico/flow/blocks/processors/BlockEKFIMU.h>
-// #include <mico/flow/blocks/processors/BlockParticleFilterKinematic.h>
-
-
-// Visualizers
-#include <mico/flow/blocks/visualizers/BlockImageVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockTrayectoryVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockDatabaseVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockSceneVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockPointCloudVisualizer.h>
-
-// Casters
 #include <mico/flow/blocks/CastBlocks.h>
+#include <flow/Outpipe.h>
 
-// Queuers
-#include <mico/flow/blocks/BlockQueuer.h>
+namespace mico{
+    
+    BlockDataframeToSomething::BlockDataframeToSomething(){
+        createPolicy({{{"Dataframe", "dataframe"}}});
 
-// Savers
-#include <mico/flow/blocks/savers/SaverImage.h>
-#include <mico/flow/blocks/savers/SaverTrajectory.h>
-#include <mico/flow/blocks/savers/SaverEntity.h>
+        registerCallback({"Dataframe"}, 
+                                [&](flow::DataFlow _data){
+                                        if(idle_){
+                                            idle_ = false;
+                                                auto df = _data.get<mico::Dataframe<pcl::PointXYZRGBNormal>::Ptr>("Dataframe");  
+                                                getPipe(tagToGet())->flush(dataToget(df));
+                                            idle_ = true;
+                                        }
+                                    }
+                                );
+    }
 
-// DNN
-#ifdef HAS_DARKNET
-    #include <mico/flow/blocks/processors/BlockDarknet.h> // 666 HAS DARKNET
-#endif
+
+    std::string BlockDataframeToPose::name() {
+        return "Dataframe -> Pose";
+    }
+    
+    BlockDataframeToPose::BlockDataframeToPose(){ 
+        createPipe("Pose","mat44"); 
+    }
+    
+    std::any BlockDataframeToPose::dataToget(mico::Dataframe<pcl::PointXYZRGBNormal>::Ptr &_df){
+        return _df->pose();
+    };
+    
+    std::string BlockDataframeToPose::tagToGet() {
+        return "Pose";
+    };
+
+
+}
+

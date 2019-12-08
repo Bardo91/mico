@@ -25,6 +25,9 @@
 
 #include <flow/Block.h>
 
+#include <mutex>
+#include <functional>
+
 #include <vtkDoubleArray.h>
 #include <vtkNamedColors.h>
 #include <vtkProperty.h>
@@ -61,6 +64,12 @@ namespace mico{
         VtkVisualizer3D(std::string _winName);
         ~VtkVisualizer3D();
 
+        void runOnUiThread(std::function<void()> _fn){
+            runLock_.lock();
+            runOnUiThreadCalls_.push_back(_fn);
+            runLock_.unlock();
+        }
+
     protected:
         // Setup render window, renderer, and interactor
         vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
@@ -70,6 +79,9 @@ namespace mico{
         
         vtkSmartPointer<SpinOnceCallback> spinOnceCallback_;
         
+        std::vector<std::function<void()>> runOnUiThreadCalls_;
+        std::mutex runLock_;
+
         bool runInteractor_ = false; 
         std::thread interactorThread_;
     };

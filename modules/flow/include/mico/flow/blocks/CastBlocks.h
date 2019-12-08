@@ -24,8 +24,10 @@
 #define MICO_KIDS_BLOCKS_CASTBLOCKS_H_
 
 #include <flow/Policy.h>
-#include <flow/OutPipe.h>
+#include <flow/Outpipe.h>
 #include <flow/Block.h>
+
+#include <mico/base/map3d/Dataframe.h>
 
 #include <iostream>
 
@@ -34,21 +36,7 @@ namespace mico{
     // DATAFRAME CASTERS
     class BlockDataframeToSomething: public flow::Block{
     public:
-        BlockDataframeToSomething(){
-
-            iPolicy_ = new flow::Policy({"dataframe"});
-
-            iPolicy_->registerCallback({"dataframe"}, 
-                                    [&](std::unordered_map<std::string,std::any> _data){
-                                            if(idle_){
-                                                idle_ = false;
-                                                    auto df = std::any_cast<std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>>>(_data["dataframe"]);  
-                                                    opipes_[tagToGet()]->flush(dataToget(df));
-                                                idle_ = true;
-                                            }
-                                        }
-                                    );
-        }
+        BlockDataframeToSomething();
 
         // ~BlockDataframeToSomething(){};
     protected:
@@ -61,64 +49,15 @@ namespace mico{
     //-----------------------------------------------------------------------------------------------------------------
     class BlockDataframeToPose: public BlockDataframeToSomething{
     public:
-        static std::string name() {return "Dataframe -> Pose";}
-        BlockDataframeToPose(){ opipes_["pose"] = new flow::OutPipe("pose"); }
+        static std::string name();
+        BlockDataframeToPose();
         // ~BlockDataframeToPose(){};
 
     protected:
-        virtual std::any dataToget(std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> &_df)override{
-            return _df->pose();
-        };
+        virtual std::any dataToget(mico::Dataframe<pcl::PointXYZRGBNormal>::Ptr &_df)override;
         
-        virtual std::string tagToGet() override {return "pose";};
+        virtual std::string tagToGet() override;
     };
-
-//     //-----------------------------------------------------------------------------------------------------------------
-//     class BlockDataframeToCloud: public BlockDataframeToSomething{
-//     public:
-//         static std::string name() {return "Dataframe -> Cloud";}
-//         BlockDataframeToCloud(){ ostreams_["cloud"] = new StreamCloud(); }
-//     protected:
-//         virtual std::unordered_map<std::string, std::any> dataToget(std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> &_df)override{
-//             std::unordered_map<std::string, std::any> data;
-//             data["cloud"] = _df->cloud;
-//             return data;
-//         };
-        
-//         virtual std::string tagToGet() override {return "cloud";};
-//     };
-
-//     //-----------------------------------------------------------------------------------------------------------------
-//     // Pose Demux
-//     class PoseDemux: public flow::Block{
-//     public:
-//         static std::string name() {return "Pose Demux";}
-//         PoseDemux(){
-//             callback_ = [&](std::unordered_map<std::string,std::any> _data, std::unordered_map<std::string,bool> _valid){
-//             if(idle_){
-//                 idle_ = false;
-//                     auto pose = std::any_cast<Eigen::Matrix4f>(_data["pose"]);  
-//                     std::unordered_map<std::string, std::any> data;
-//                     data["position"] = (Eigen::Vector3f)  pose.block<3,1>(0,3);
-//                     ostreams_["position"]->manualUpdate(data);
-//                     Eigen::Quaternionf q;
-//                     q.matrix() =  pose.block<3,3>(0,0);
-//                     data["orientation"] = q;
-//                     ostreams_["orientation"]->manualUpdate(data);
-//                 idle_ = true;
-//             }
-//         };
-//         ostreams_["position"] = new StreamPosition();
-//         ostreams_["orientation"] = new StreamOrientation();
-
-//         setPolicy(new flow::PolicyAllRequired());
-//         iPolicy_->setupStream("pose");
-//     }
-
-//     protected:
-//         bool idle_ = true;
-
-//     };
 }
 
 #endif
