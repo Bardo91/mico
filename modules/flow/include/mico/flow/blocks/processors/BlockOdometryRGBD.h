@@ -39,6 +39,8 @@ namespace mico{
         std::vector<std::string> parameters() override;
 
     private:
+        void callbackOdometry(flow::DataFlow _data);
+
         void computeFeatures(std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> &_df);
         bool colorPixelToPoint(const cv::Mat &_depth, const cv::Point2f &_pixel, cv::Point3f &_point);
     private:

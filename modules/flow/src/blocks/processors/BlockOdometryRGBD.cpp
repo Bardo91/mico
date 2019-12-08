@@ -36,46 +36,11 @@ namespace mico{
 
         featureDetector_ = cv::ORB::create(1000);
         
-        registerCallback({"Color Image", "Depth Image", "Point Cloud"}, 
-                                [&](flow::DataFlow _data){
-                                    if(idle_){
-                                        idle_ = false;
-                                        if(hasCalibration){
-                                            // Create dataframe from input data
-                                            std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> df(new Dataframe<pcl::PointXYZRGBNormal>(nextDfId_));
-                                            try{
-                                                df->leftImage(_data.get<cv::Mat>("Color Image"));
-                                                df->depthImage(_data.get<cv::Mat>("Depth Image"));
-                                                df->cloud(_data.get<pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr>("Point Cloud")); 
-                                                df->intrinsics(matrixLeft_);
-                                                df->distCoeff(distCoefLeft_);
-                                            }catch(std::exception& e){
-                                                std::cout << "Failure OdometryRGBD. " <<  e.what() << std::endl;
-                                                idle_ = true;
-                                                return;
-                                            }
-                                            computeFeatures(df);
-
-                                            if(df->featureDescriptors().rows == 0)
-                                                return;
-
-                                            Dataframe<pcl::PointXYZRGBNormal>::Ptr referenceFrame;
-                                            if(currentKeyframe_ != nullptr) // If there is a keyframe, kf based odometry
-                                                referenceFrame = currentKeyframe_;
-                                            else  // Just sequential odometry
-                                                referenceFrame = prevDf_;
-                                            
-                                            if(odom_.computeOdometry(referenceFrame, df)){
-                                                nextDfId_++;
-                                                getPipe("Estimated Dataframe")->flush(df);  
-                                            }
-                                            prevDf_ = df;
-
-                                        }else{
-                                            std::cout << "Please, configure Odometry RGBD with the path to the calibration file {\"Calibration\":\"/path/to/file\"}" << std::endl;
-                                        }
-                                        idle_ = true;
-                                    }
+        registerCallback({  "Color Image", 
+                            "Depth Image", 
+                            "Point Cloud" }, 
+                                [this](flow::DataFlow _data){
+                                    this->callbackOdometry(_data);
                                 });
                                 
         registerCallback({"Keyframe"}, 
@@ -110,6 +75,48 @@ namespace mico{
     
     std::vector<std::string> BlockOdometryRGBD::parameters(){
         return {"calibration"};
+    }
+
+
+    void BlockOdometryRGBD::callbackOdometry(flow::DataFlow _data){
+        if(idle_){
+            idle_ = false;
+            if(hasCalibration){
+                // Create dataframe from input data
+                std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> df(new Dataframe<pcl::PointXYZRGBNormal>(nextDfId_));
+                try{
+                    df->leftImage(_data.get<cv::Mat>("Color Image"));
+                    df->depthImage(_data.get<cv::Mat>("Depth Image"));
+                    df->cloud(_data.get<pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr>("Point Cloud")); 
+                    df->intrinsics(matrixLeft_);
+                    df->distCoeff(distCoefLeft_);
+                }catch(std::exception& e){
+                    std::cout << "Failure OdometryRGBD. " <<  e.what() << std::endl;
+                    idle_ = true;
+                    return;
+                }
+                computeFeatures(df);
+
+                if(df->featureDescriptors().rows == 0)
+                    return;
+
+                Dataframe<pcl::PointXYZRGBNormal>::Ptr referenceFrame;
+                if(currentKeyframe_ != nullptr) // If there is a keyframe, kf based odometry
+                    referenceFrame = currentKeyframe_;
+                else  // Just sequential odometry
+                    referenceFrame = prevDf_;
+                
+                if(odom_.computeOdometry(referenceFrame, df)){
+                    nextDfId_++;
+                    getPipe("Estimated Dataframe")->flush(df);  
+                }
+                prevDf_ = df;
+
+            }else{
+                std::cout << "Please, configure Odometry RGBD with the path to the calibration file {\"Calibration\":\"/path/to/file\"}" << std::endl;
+            }
+            idle_ = true;
+        }
     }
 
     void BlockOdometryRGBD::computeFeatures(std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> &_df){
