@@ -46,69 +46,14 @@
 
 namespace mico{
 
-    BlockDatabaseVisualizer::BlockDatabaseVisualizer(){
-        // Setup render window, renderer, and interactor
-        renderWindow->SetWindowName("Pointcloud Visualization");
-        renderWindow->AddRenderer(renderer);
-        renderWindowInteractor->SetRenderWindow(renderWindow);
-        renderWindowInteractor->SetDesiredUpdateRate (30.0);
-        spinOnceCallback_ = vtkSmartPointer<SpinOnceCallback>::New();
-        spinOnceCallback_->interactor_ = renderWindowInteractor;
-        renderWindowInteractor->AddObserver(SpinOnceCallback::TimerEvent, spinOnceCallback_);
-    
-        renderer->SetBackground(colors->GetColor3d("Gray").GetData());
-
-        vtkSmartPointer<vtkAxesActor> axes = vtkSmartPointer<vtkAxesActor>::New();
-        widgetCoordinates_ = vtkSmartPointer<vtkOrientationMarkerWidget>::New();
-        widgetCoordinates_->SetOutlineColor( 0.9300, 0.5700, 0.1300 );
-        widgetCoordinates_->SetOrientationMarker( axes );
-        widgetCoordinates_->SetInteractor( renderWindowInteractor );
-        widgetCoordinates_->SetViewport( 0.0, 0.0, 0.4, 0.4 );
-        widgetCoordinates_->SetEnabled( 1 );
-
-        // Visualize
-        interactorThread_ = std::thread([&](){
-            renderWindowInteractor->Initialize();
-            vtkSmartPointer<vtkActor> prevActorCs = nullptr;
-            while(running_){    //666 better condition for proper finalization.
-                actorsGuard_.lock();
-                // Update CF Pointclouds
-                if(actorsToDelete_.size()>0){
-                    for(auto &actor: actorsToDelete_)
-                        renderer->RemoveActor(actor);
-                }
-                actorsToDelete_.clear();
-
-                if(idsToDraw_.size() > 0){
-                    for(auto id: idsToDraw_){
-                        renderer->AddActor(actors_[id]);
-                    }
-                }
-
-                // Update Pose
-                if(actorCs_ && actorCs_ != prevActorCs){
-                    if(prevActorCs){
-                        renderer->RemoveActor(prevActorCs);
-                    }
-                    prevActorCs = actorCs_;
-                    renderer->AddActor(actorCs_);
-                }
-                actorsGuard_.unlock();
-
-                renderWindowInteractor->Render();
-                auto timerId = renderWindowInteractor->CreateRepeatingTimer (10);
-                
-                renderWindowInteractor->Start();
-                renderWindowInteractor->DestroyTimer(timerId);
-            }
-        });
+    BlockDatabaseVisualizer::BlockDatabaseVisualizer(): VtkVisualizer3D("Database Visualizer") {
         #ifdef HAS_DARKNET
-        createPolicy({{  {"Last Dataframe","dataframe"}, 
-                                        {"Camera Pose","pose"}, 
-                                        {"Objects","v-entity"}}});
+        createPolicy({{     {"Last Dataframe","dataframe"}, 
+                            {"Camera Pose","mat44"}, 
+                            {"Objects","v-entity"}}});
         #else
-        createPolicy({{{"Last Dataframe","dataframe"}, 
-                                        {"Camera Pose","pose"}}});
+        createPolicy({{     {"Last Dataframe","dataframe"}, 
+                            {"Camera Pose","mat44"}}});
         #endif
 
         registerCallback({"Last Dataframe"}, 
@@ -182,16 +127,11 @@ namespace mico{
     BlockDatabaseVisualizer::~BlockDatabaseVisualizer(){
         running_ = false;
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        if(interactorThread_.joinable())
-            interactorThread_.join();
-        
+
         if(redrawerThread_.joinable())
             redrawerThread_.join();
 
 
-        renderWindowInteractor->GetRenderWindow()->Finalize();
-        renderWindowInteractor->ExitCallback();
-        renderWindowInteractor->TerminateApp();
     }
 
     void BlockDatabaseVisualizer::updateRender(int _id, const  pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr _cloud, const Eigen::Matrix4f &_pose){

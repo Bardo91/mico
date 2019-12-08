@@ -57,7 +57,7 @@
 #include <map>
 
 namespace mico{
-    class BlockDatabaseVisualizer: public flow::Block{
+    class BlockDatabaseVisualizer: public flow::Block, VtkVisualizer3D{
     public:
         static std::string name() {return "Database Visualizer";}
 
@@ -78,17 +78,7 @@ namespace mico{
         void convertToVtkMatrix( const Eigen::Matrix4f &_eigMat, vtkSmartPointer<vtkMatrix4x4> &vtk_matrix);
 
     private:
-        vtkSmartPointer<vtkNamedColors> colors = vtkSmartPointer<vtkNamedColors>::New();
-        
-        // Setup render window, renderer, and interactor
-        vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
-        vtkSmartPointer<vtkRenderWindow> renderWindow = vtkSmartPointer<vtkRenderWindow>::New();
-        vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
-        vtkSmartPointer<vtkOrientationMarkerWidget> widgetCoordinates_ = vtkSmartPointer<vtkOrientationMarkerWidget>::New();
-
-        vtkSmartPointer<SpinOnceCallback> spinOnceCallback_;
-
-
+    
         std::unordered_map<int, std::shared_ptr<Dataframe<pcl::PointXYZRGBNormal>>> dataframes_;
     #ifdef HAS_DARKNET
         std::unordered_map<int, std::shared_ptr<Entity<pcl::PointXYZRGBNormal>>> entities_;
@@ -105,7 +95,6 @@ namespace mico{
         bool idle_ = true;
         
         bool running_ = true;
-        std::thread interactorThread_;
         std::thread redrawerThread_;
         
     };
