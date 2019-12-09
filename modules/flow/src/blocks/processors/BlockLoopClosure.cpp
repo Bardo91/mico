@@ -54,7 +54,7 @@ namespace mico{
 
                                             // mDatabase.dfComparison(loopClosureSubset, false);  666 do it or not? @Ric92
                                             
-                                            getPipe("loop")->flush(loopPath);
+                                            getPipe("Loop")->flush(loopPath);
 
                                         }
                                         idle_ = true;
