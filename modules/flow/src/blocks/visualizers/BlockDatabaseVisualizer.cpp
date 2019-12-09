@@ -23,7 +23,7 @@
 
 #include <mico/flow/blocks/visualizers/BlockDatabaseVisualizer.h>
 #include <flow/Policy.h>
-#include <flow/OutPipe.h>
+#include <flow/Outpipe.h>
 
 
 #include <mico/base/map3d/Dataframe.h>
@@ -46,94 +46,63 @@
 
 namespace mico{
 
-    BlockDatabaseVisualizer::BlockDatabaseVisualizer(){
-        // Setup render window, renderer, and interactor
-        renderWindow->SetWindowName("Pointcloud Visualization");
-        renderWindow->AddRenderer(renderer);
-        renderWindowInteractor->SetRenderWindow(renderWindow);
-        renderWindowInteractor->SetDesiredUpdateRate (30.0);
-        spinOnceCallback_ = vtkSmartPointer<SpinOnceCallback>::New();
-        spinOnceCallback_->interactor_ = renderWindowInteractor;
-        renderWindowInteractor->AddObserver(SpinOnceCallback::TimerEvent, spinOnceCallback_);
-    
-        renderer->SetBackground(colors->GetColor3d("Gray").GetData());
-
-        vtkSmartPointer<vtkAxesActor> axes = vtkSmartPointer<vtkAxesActor>::New();
-        widgetCoordinates_ = vtkSmartPointer<vtkOrientationMarkerWidget>::New();
-        widgetCoordinates_->SetOutlineColor( 0.9300, 0.5700, 0.1300 );
-        widgetCoordinates_->SetOrientationMarker( axes );
-        widgetCoordinates_->SetInteractor( renderWindowInteractor );
-        widgetCoordinates_->SetViewport( 0.0, 0.0, 0.4, 0.4 );
-        widgetCoordinates_->SetEnabled( 1 );
-
-        // Visualize
-        interactorThread_ = std::thread([&](){
-            renderWindowInteractor->Initialize();
-            vtkSmartPointer<vtkActor> prevActorCs = nullptr;
-            while(running_){    //666 better condition for proper finalization.
-                actorsGuard_.lock();
-                // Update CF Pointclouds
-                if(actorsToDelete_.size()>0){
-                    for(auto &actor: actorsToDelete_)
-                        renderer->RemoveActor(actor);
-                }
-                actorsToDelete_.clear();
-
-                if(idsToDraw_.size() > 0){
-                    for(auto id: idsToDraw_){
-                        renderer->AddActor(actors_[id]);
-                    }
-                }
-
-                // Update Pose
-                if(actorCs_ && actorCs_ != prevActorCs){
-                    if(prevActorCs){
-                        renderer->RemoveActor(prevActorCs);
-                    }
-                    prevActorCs = actorCs_;
-                    renderer->AddActor(actorCs_);
-                }
-                actorsGuard_.unlock();
-
-                renderWindowInteractor->Render();
-                auto timerId = renderWindowInteractor->CreateRepeatingTimer (10);
-                
-                renderWindowInteractor->Start();
-                renderWindowInteractor->DestroyTimer(timerId);
-            }
-        });
+    BlockDatabaseVisualizer::BlockDatabaseVisualizer(): VtkVisualizer3D("Database Visualizer") {
         #ifdef HAS_DARKNET
-        iPolicy_ = new flow::Policy({"dataframe", "pose", "v_entity"});
+        createPolicy({     {"Last Dataframe","dataframe"}, 
+                            {"Camera Pose","mat44"}, 
+                            {"Objects","v-entity"}});
         #else
-        iPolicy_ = new flow::Policy({"dataframe", "pose"});
+        createPolicy({     {"Last Dataframe","dataframe"}, 
+                            {"Camera Pose","mat44"}});
         #endif
 
-        iPolicy_->registerCallback({"dataframe"}, 
-                                [&](std::unordered_map<std::string,std::any> _data){
-                                        Dataframe<pcl::PointXYZRGBNormal>::Ptr df = std::any_cast<Dataframe<pcl::PointXYZRGBNormal>::Ptr>(_data["dataframe"]); 
+        registerCallback({"Last Dataframe"}, 
+                                [&](flow::DataFlow _data){
+                                        auto df = _data.get<Dataframe<pcl::PointXYZRGBNormal>::Ptr>("Last Dataframe"); 
                                         pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud = pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr(new pcl::PointCloud<pcl::PointXYZRGBNormal>());
                                         updateRender(df->id(), df->cloud(), df->pose());
                                         dataframes_[df->id()] = df;
+                                        runOnUiThread([&](){
+                                            if(idsToDraw_.size() > 0){
+                                                for(auto id: idsToDraw_){
+                                                    renderer->AddActor(actors_[id]);
+                                                }
+                                            }
+                                            actorsGuard_.lock();
+                                            idsToDraw_.clear();
+                                            actorsGuard_.unlock();
+                                        });
                                 }
                             );
         
-        iPolicy_->registerCallback({"pose"}, 
-                                [&](std::unordered_map<std::string,std::any> _data){
+        registerCallback({"Camera Pose"}, 
+                                [&](flow::DataFlow _data){
                                     if(idle_){
                                         idle_ = false;
-                                        Eigen::Matrix4f pose = std::any_cast<Eigen::Matrix4f>(_data["pose"]);
+                                        Eigen::Matrix4f pose = _data.get<Eigen::Matrix4f>("Camera Pose");
                                         updateCoordinates(pose);
+                                        runOnUiThread([&](){
+                                            actorsGuard_.lock();
+                                            if(actorCs_ && actorCs_ != prevActorCs_){
+                                                if(prevActorCs_){
+                                                    renderer->RemoveActor(prevActorCs_);
+                                                }
+                                                prevActorCs_ = actorCs_;
+                                                renderer->AddActor(actorCs_);
+                                            }
+                                            actorsGuard_.unlock();
+                                        });
                                         idle_ = true;
                                     }
                                 }
                             );
 
         #ifdef HAS_DARKNET
-        iPolicy_->registerCallback({"v_entity"}, 
-                                [&](std::unordered_map<std::string,std::any> _data){
+        registerCallback({"Objects"}, 
+                                [&](flow::DataFlow _data){
                                     if(idle_){
                                         printf("New v_entity");
-                                        std::vector<std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>> entities = std::any_cast<std::vector<std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>>>(_data["v_entity"]); 
+                                        auto entities = _data.get<std::vector<std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>>>("Objects"); 
                                         for(auto &e: entities){
                                             auto dfs = e->dfs();
                                             updateRender(e->id(), e->cloud(dfs[0]), e->pose(dfs[0]));
@@ -144,54 +113,49 @@ namespace mico{
                             );
         #endif
 
-        redrawerThread_ = std::thread([&](){
-            while(running_){    //666 better condition for proper finalization.
-                for(auto &df: dataframes_){
-                    if(df.second != nullptr && df.second->isOptimized()){
+        // redrawerThread_ = std::thread([&](){
+        //     while(running_){    //666 better condition for proper finalization.
+        //         for(auto &df: dataframes_){
+        //             if(df.second != nullptr && df.second->isOptimized()){
                         
-                        actorsGuard_.lock();
-                        actorsToDelete_.push_back(actors_[df.first]);
-                        actorsGuard_.unlock();
-                        updateRender(df.first, df.second->cloud(), df.second->pose());
+        //                 actorsGuard_.lock();
+        //                 actorsToDelete_.push_back(actors_[df.first]);
+        //                 actorsGuard_.unlock();
+        //                 updateRender(df.first, df.second->cloud(), df.second->pose());
 
-                        df.second->isOptimized(false);
-                    }
-                }
+        //                 df.second->isOptimized(false);
+        //             }
+        //         }
 
-                #ifdef HAS_DARKNET
-                for(auto &e: entities_){
-                    if(e.second != nullptr){
-                        actorsGuard_.lock();
-                        actorsToDelete_.push_back(actors_[e.first]);
-                        actorsGuard_.unlock();
-                        auto dfs = e.second->dfs();
-                        updateRender(e.first, e.second->cloud(dfs[0]), e.second->pose(dfs[0]));
-                    }
-                }
-                #endif
+        //         #ifdef HAS_DARKNET
+        //         for(auto &e: entities_){
+        //             if(e.second != nullptr){
+        //                 actorsGuard_.lock();
+        //                 actorsToDelete_.push_back(actors_[e.first]);
+        //                 actorsGuard_.unlock();
+        //                 auto dfs = e.second->dfs();
+        //                 updateRender(e.first, e.second->cloud(dfs[0]), e.second->pose(dfs[0]));
+        //             }
+        //         }
+        //         #endif
 
-                std::this_thread::sleep_for(std::chrono::milliseconds(500));    // low frame rate.
-            }
+        //         std::this_thread::sleep_for(std::chrono::milliseconds(500));    // low frame rate.
+        //     }
 
-        });
+        // });
     }
 
     BlockDatabaseVisualizer::~BlockDatabaseVisualizer(){
         running_ = false;
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        if(interactorThread_.joinable())
-            interactorThread_.join();
-        
+
         if(redrawerThread_.joinable())
             redrawerThread_.join();
 
 
-        renderWindowInteractor->GetRenderWindow()->Finalize();
-        renderWindowInteractor->ExitCallback();
-        renderWindowInteractor->TerminateApp();
     }
 
-    void BlockDatabaseVisualizer::updateRender(int _id, const  pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr _cloud, const Eigen::Matrix4f &_pose){
+    int BlockDatabaseVisualizer::updateRender(int _id, const  pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr _cloud, const Eigen::Matrix4f &_pose){
         vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
         vtkSmartPointer<vtkUnsignedCharArray> colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
         colors->SetNumberOfComponents(3);
@@ -237,6 +201,7 @@ namespace mico{
         actors_[_id] = actor;
         idsToDraw_.push_back(_id);
         actorsGuard_.unlock();
+        return _id;
     }
 
     // Code from pclvisualizer

@@ -20,44 +20,44 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#ifndef MICO_KIDS_BLOCKS_CASTBLOCKS_H_
-#define MICO_KIDS_BLOCKS_CASTBLOCKS_H_
 
-#include <flow/Policy.h>
+#include <mico/flow/blocks/CastBlocks.h>
 #include <flow/Outpipe.h>
-#include <flow/Block.h>
-
-#include <mico/base/map3d/Dataframe.h>
-
-#include <iostream>
 
 namespace mico{
-    //-----------------------------------------------------------------------------------------------------------------
-    // DATAFRAME CASTERS
-    class BlockDataframeToSomething: public flow::Block{
-    public:
-        BlockDataframeToSomething();
+    
+    BlockDataframeToSomething::BlockDataframeToSomething(){
+        createPolicy({{{"Dataframe", "dataframe"}}});
 
-        // ~BlockDataframeToSomething(){};
-    protected:
-        bool idle_ = true;
-        virtual std::any dataToget(std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> &_df) = 0;
-        virtual std::string tagToGet() = 0;
+        registerCallback({"Dataframe"}, 
+                                [&](flow::DataFlow _data){
+                                        if(idle_){
+                                            idle_ = false;
+                                                auto df = _data.get<mico::Dataframe<pcl::PointXYZRGBNormal>::Ptr>("Dataframe");  
+                                                getPipe(tagToGet())->flush(dataToget(df));
+                                            idle_ = true;
+                                        }
+                                    }
+                                );
+    }
 
+
+    std::string BlockDataframeToPose::name() {
+        return "Dataframe -> Pose";
+    }
+    
+    BlockDataframeToPose::BlockDataframeToPose(){ 
+        createPipe("Pose","mat44"); 
+    }
+    
+    std::any BlockDataframeToPose::dataToget(mico::Dataframe<pcl::PointXYZRGBNormal>::Ptr &_df){
+        return _df->pose();
+    };
+    
+    std::string BlockDataframeToPose::tagToGet() {
+        return "Pose";
     };
 
-    //-----------------------------------------------------------------------------------------------------------------
-    class BlockDataframeToPose: public BlockDataframeToSomething{
-    public:
-        static std::string name();
-        BlockDataframeToPose();
-        // ~BlockDataframeToPose(){};
 
-    protected:
-        virtual std::any dataToget(mico::Dataframe<pcl::PointXYZRGBNormal>::Ptr &_df)override;
-        
-        virtual std::string tagToGet() override;
-    };
 }
 
-#endif

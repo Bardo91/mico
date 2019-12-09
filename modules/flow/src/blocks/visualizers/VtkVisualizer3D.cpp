@@ -49,14 +49,20 @@ namespace mico{
         // Visualize
         runInteractor_ = true;
         interactorThread_ = std::thread([&](){
-            //renderWindowInteractor->Initialize();
-            // while(runInteractor_){
+            renderWindowInteractor->Initialize();
+            while(runInteractor_){
+                runLock_.lock();
+                for(auto &fn: runOnUiThreadCalls_){
+                    fn();
+                }
+                runLock_.unlock();
+
                 renderWindowInteractor->Render();
-                // renderWindowInteractor->AddObserver(SpinOnceCallback::TimerEvent, spinOnceCallback_);
-                // auto timerId = renderWindowInteractor->CreateRepeatingTimer (10);    
+                renderWindowInteractor->AddObserver(SpinOnceCallback::TimerEvent, spinOnceCallback_);
+                auto timerId = renderWindowInteractor->CreateRepeatingTimer (10);    
                 renderWindowInteractor->Start();
-                // renderWindowInteractor->DestroyTimer(timerId);
-            // }
+                renderWindowInteractor->DestroyTimer(timerId);
+            }
             
         });
     }

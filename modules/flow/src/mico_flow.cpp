@@ -1,4 +1,3 @@
-
 //---------------------------------------------------------------------------------------------------------------------
 //  mico
 //---------------------------------------------------------------------------------------------------------------------
@@ -20,44 +19,20 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#ifndef MICO_KIDS_BLOCKS_CASTBLOCKS_H_
-#define MICO_KIDS_BLOCKS_CASTBLOCKS_H_
+#include <mico/flow/mico_flow.h>
 
-#include <flow/Policy.h>
-#include <flow/Outpipe.h>
-#include <flow/Block.h>
-
+#include <flow/DataFlow.h>
 #include <mico/base/map3d/Dataframe.h>
 
-#include <iostream>
+// Type registration
+FLOW_TYPE_REGISTER("dataframe", std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>>)
+FLOW_TYPE_REGISTER("v-dataframe", std::vector<std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>>>)
 
-namespace mico{
-    //-----------------------------------------------------------------------------------------------------------------
-    // DATAFRAME CASTERS
-    class BlockDataframeToSomething: public flow::Block{
-    public:
-        BlockDataframeToSomething();
+FLOW_TYPE_REGISTER("image", cv::Mat)
+FLOW_TYPE_REGISTER("v-image", std::vector<cv::Mat>)
 
-        // ~BlockDataframeToSomething(){};
-    protected:
-        bool idle_ = true;
-        virtual std::any dataToget(std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> &_df) = 0;
-        virtual std::string tagToGet() = 0;
-
-    };
-
-    //-----------------------------------------------------------------------------------------------------------------
-    class BlockDataframeToPose: public BlockDataframeToSomething{
-    public:
-        static std::string name();
-        BlockDataframeToPose();
-        // ~BlockDataframeToPose(){};
-
-    protected:
-        virtual std::any dataToget(mico::Dataframe<pcl::PointXYZRGBNormal>::Ptr &_df)override;
-        
-        virtual std::string tagToGet() override;
-    };
-}
-
+// DNN
+#ifdef HAS_DARKNET
+    FLOW_TYPE_REGISTER("entity", std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>)
+    FLOW_TYPE_REGISTER("v-entity", std::vector<std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>>)
 #endif

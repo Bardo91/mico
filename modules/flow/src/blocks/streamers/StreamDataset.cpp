@@ -21,17 +21,17 @@
 
 
 #include <mico/flow/blocks/streamers/StreamDataset.h>
-#include <flow/OutPipe.h>
+#include <flow/Outpipe.h>
 
 namespace mico{
         StreamDataset::StreamDataset(){
-            opipes_["color"] = new flow::OutPipe("color");
-            opipes_["depth"] = new flow::OutPipe("depth");
-            opipes_["cloud"] = new flow::OutPipe("cloud");
+            createPipe("Color", "image");
+            createPipe("Depth", "image");
+            createPipe("Cloud", "cloud");
         }
 
         bool StreamDataset::configure(std::unordered_map<std::string, std::string> _params) {
-            if(runLoop_) // Cant configure if already running.
+            if(isRunningLoop()) // Cant configure if already running.
                 return false;            
 
             cjson::Json jParams;
@@ -65,21 +65,21 @@ namespace mico{
         }
 
         void StreamDataset::loopCallback() {
-            while(runLoop_){
+            while(isRunningLoop()){
                 cv::Mat left, right, depth;
                 pcl::PointCloud<pcl::PointXYZRGBNormal> colorNormalCloud;
                 camera_.grab();
-                if(opipes_["color"]->registrations() !=0 ){
+                if(auto pipe = getPipe("Color"); pipe->registrations() !=0 ){
                     if(camera_.rgb(left, right) && left.rows != 0)
-                        opipes_["color"]->flush(left);     
+                        pipe->flush(left);     
                 }
-                if(opipes_["depth"]->registrations() !=0 ){
+                if(auto pipe = getPipe("Depth"); pipe->registrations() !=0 ){
                     if(camera_.depth(depth) && depth.rows != 0)
-                        opipes_["depth"]->flush(depth);
+                        pipe->flush(depth);
                 }
-                if(opipes_["cloud"]->registrations() !=0 ){
+                if(auto pipe = getPipe("Cloud"); pipe->registrations() !=0 ){
                     if(camera_.cloud(colorNormalCloud))
-                        opipes_["cloud"]->flush(colorNormalCloud.makeShared());
+                        pipe->flush(colorNormalCloud.makeShared());
                 }
             }         
         }

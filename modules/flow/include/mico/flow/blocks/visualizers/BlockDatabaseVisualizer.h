@@ -57,7 +57,7 @@
 #include <map>
 
 namespace mico{
-    class BlockDatabaseVisualizer: public flow::Block{
+    class BlockDatabaseVisualizer: public flow::Block, VtkVisualizer3D{
     public:
         static std::string name() {return "Database Visualizer";}
 
@@ -72,23 +72,13 @@ namespace mico{
         std::vector<std::string> parameters() override { return {"cs_scale"}; }
 
     private:
-        void updateRender(int _id, const  pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr _cloud, const  Eigen::Matrix4f &_pose);
+        int updateRender(int _id, const  pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr _cloud, const  Eigen::Matrix4f &_pose);
         void updateCoordinates(Eigen::Matrix4f &_pose);
 
         void convertToVtkMatrix( const Eigen::Matrix4f &_eigMat, vtkSmartPointer<vtkMatrix4x4> &vtk_matrix);
 
     private:
-        vtkSmartPointer<vtkNamedColors> colors = vtkSmartPointer<vtkNamedColors>::New();
-        
-        // Setup render window, renderer, and interactor
-        vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
-        vtkSmartPointer<vtkRenderWindow> renderWindow = vtkSmartPointer<vtkRenderWindow>::New();
-        vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
-        vtkSmartPointer<vtkOrientationMarkerWidget> widgetCoordinates_ = vtkSmartPointer<vtkOrientationMarkerWidget>::New();
-
-        vtkSmartPointer<SpinOnceCallback> spinOnceCallback_;
-
-
+    
         std::unordered_map<int, std::shared_ptr<Dataframe<pcl::PointXYZRGBNormal>>> dataframes_;
     #ifdef HAS_DARKNET
         std::unordered_map<int, std::shared_ptr<Entity<pcl::PointXYZRGBNormal>>> entities_;
@@ -99,13 +89,13 @@ namespace mico{
         std::vector<int> idsToDraw_;
 
         vtkSmartPointer<vtkActor> actorCs_;
+        vtkSmartPointer<vtkActor> prevActorCs_ = nullptr;
 
         std::mutex actorsGuard_;
         float scaleCs_ = 1.0;
         bool idle_ = true;
         
         bool running_ = true;
-        std::thread interactorThread_;
         std::thread redrawerThread_;
         
     };

@@ -21,21 +21,21 @@
 
 #include <mico/flow/blocks/processors/BlockOptimizerCF.h>
 #include <flow/Policy.h>
-#include <flow/OutPipe.h>
+#include <flow/Outpipe.h>
 
 #include <sstream>
 
 namespace mico{
 
     BlockOptimizerCF::BlockOptimizerCF(){
-        iPolicy_ = new flow::Policy({"v-dataframe"});
+        createPolicy({{"Subset Dataframes","v-dataframe"}});
         
-        iPolicy_->registerCallback({"v-dataframe"}, 
-                                [&](std::unordered_map<std::string,std::any> _data){
+        registerCallback({"Subset Dataframes"}, 
+                                [&](flow::DataFlow _data){
                                     if(idle_){
                                         idle_ = false;
                                         // std::cout << "Optimization start" << std::endl;
-                                        auto vDataframes = std::any_cast<std::vector<Dataframe<pcl::PointXYZRGBNormal>::Ptr>>(_data["v-dataframe"]);
+                                        auto vDataframes = _data.get<std::vector<Dataframe<pcl::PointXYZRGBNormal>::Ptr>>("Subset Dataframes");
                                         std::map<int, Dataframe<pcl::PointXYZRGBNormal>::Ptr> dfMap;
                                         for(auto &df: vDataframes){
                                             for(auto &visDf: df->covisibility()){
