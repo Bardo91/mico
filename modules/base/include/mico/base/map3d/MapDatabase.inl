@@ -19,8 +19,7 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-namespace mico 
-{   
+namespace mico{   
 
     template<typename PointType_>
     inline MapDatabase<PointType_>::MapDatabase(){
@@ -37,10 +36,10 @@ namespace mico
 
         #ifdef USE_MONGO
             dbName_ = _databaseName;
-            uri_ = mongocxx::uri("mongodb://localhost:27017");
+            uri_ = mongocxx::uri{}; //default connect to a server localhost:27017
             
             if (_mode == "save"){
-                pathDbFolder_= "/home/marrcogrova/.mico/tmp";
+                pathDbFolder_= "/home/grvc/.mico/tmp";
                 int stat = mkdir(pathDbFolder_.c_str() , S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
                 if (stat == -1){
                     std::cout << "Error creating tmp folder \n";
@@ -57,13 +56,14 @@ namespace mico
 
             return true;
         #else
+            std::cout << "Must set USE_MONGO to ON \n";
             return false;
         #endif
     }
 
 
     template<typename PointType_>
-    inline bool MapDatabase<PointType_>::restoreDatabase(std::string _pathDatabase){
+    inline bool MapDatabase<PointType_>::restoreDatabaseFile(std::string _pathDatabase){
         #ifdef USE_MONGO
             std::ifstream file;
             file.open(_pathDatabase); 
@@ -78,7 +78,7 @@ namespace mico
             file.close();
 
             std::vector<bsoncxx::document::value> vecDocs;
-            for (unsigned int i=0 ; i<lines.size() - 1 ; i++){ 
+            for (unsigned int i=0 ; i<lines.size() ; i++){ // 666
                 bsoncxx::document::value aux = bsoncxx::from_json(lines[i]);
                 vecDocs.push_back(aux);
             }
@@ -90,6 +90,34 @@ namespace mico
         #endif
     }
 
+    template<typename PointType_>
+    inline bool MapDatabase<PointType_>::restoreDataframes(std::map<int , std::shared_ptr<Dataframe<PointType_>>> &_dfs){
+        
+        // iterate over all collection
+        mongocxx::cursor cursor = dbCollection().find({});
+        for(auto doc : cursor) {
+            Dataframe<pcl::PointXYZRGBNormal>::Ptr dataf = createDataframe(doc);
+            _dfs[dataf->id()] = dataf;
+        }
+        
+        // iterate over all dfs to fill covisibility
+        for (auto dfIt=_dfs.begin(); dfIt!=_dfs.end(); ++dfIt){
+
+            auto sucess = covisibilityDb_.find(dfIt->first);
+            if (sucess != covisibilityDb_.end()){
+                // std::cout << sucess->first << " - ";
+                for (auto visibleId : sucess->second){
+                    dfIt->second->appendCovisibility(_dfs[visibleId]); 
+                    // std::cout << " " << visibleId;
+                }
+                // std::cout << std::endl;
+            }else{
+                return false;
+            }
+        }
+
+        return true;
+    }
 
     template<typename PointType_>
     inline bool MapDatabase<PointType_>::update(std::shared_ptr<mico::Dataframe<PointType_>> &_df){
@@ -163,68 +191,69 @@ namespace mico
     }
 
     #ifdef USE_MONGO
-        std::vector<float> arrayView2Vector(bsoncxx::array::view _view){
-            std::vector<float> viewVector;
-            for (bsoncxx::array::element elem : _view) {
-                float data = static_cast<float>(elem.get_double());
-                viewVector.push_back(data);
-            }
-            return viewVector;
+    template<typename PointType_>
+    inline std::vector<float> MapDatabase<PointType_>::arrayView2Vectorf(bsoncxx::array::view _view){
+        std::vector<float> viewVector;
+        for (bsoncxx::array::element elem : _view) {
+            float data = static_cast<float>(elem.get_double());
+            viewVector.push_back(data);
         }
+        return viewVector;
+    }
     #endif
     
     #ifdef USE_MONGO
     template<typename PointType_>
-    inline Dataframe<PointType_> MapDatabase<PointType_>::createDataframe(bsoncxx::document::view _doc ){
+    inline std::shared_ptr<Dataframe<PointType_>> MapDatabase<PointType_>::createDataframe(bsoncxx::document::view _doc ){
         int id = _doc["id"].get_value().get_int32().value ;
 
-        Dataframe<PointType_> df(id);
+        std::shared_ptr<Dataframe<PointType_>> df (new Dataframe<PointType_>(id));
 
         bsoncxx::array::view intrinsics = _doc["intrinsics"].get_value().get_array().value;
-        std::vector<float> intrinsicsVector = arrayView2Vector(intrinsics);
+        std::vector<float> intrinsicsVector = arrayView2Vectorf(intrinsics);
         cv::Mat intrinsicsMat(intrinsicsVector);
-        df.intrinsics(intrinsicsMat);
+        df->intrinsics(intrinsicsMat);
 
         bsoncxx::array::view coefficients = _doc["coefficients"].get_value().get_array().value;
-        std::vector<float> coefficientsVector = arrayView2Vector(coefficients);
+        std::vector<float> coefficientsVector = arrayView2Vectorf(coefficients);
         cv::Mat coefficientsMat(coefficientsVector);
-        df.distCoeff(coefficientsMat);
+        df->distCoeff(coefficientsMat);
 
         auto pathLeft_doc = _doc["left_path"].get_value().get_utf8().value;
         std::string pathLeft = static_cast<std::string>(pathLeft_doc);
         cv::Mat left = cv::imread(pathLeft);
-        df.leftImage(left);
+        df->leftImage(left);
 
         auto pathDepth_doc = _doc["depth_path"].get_value().get_utf8().value;
         std::string pathDepth = static_cast<std::string>(pathDepth_doc);
         cv::Mat depth = cv::imread(pathDepth);
-        df.depthImage(depth);
+        df->depthImage(depth);
 
         bsoncxx::array::view pose = _doc["pose"].get_value().get_array().value;
-        std::vector<float> poseVector = arrayView2Vector(pose);
+        std::vector<float> poseVector = arrayView2Vectorf(pose);
         Eigen::Matrix4f poseEigen = Eigen::Map<Eigen::Matrix<float, 4, 4> >(poseVector.data());
-        df.pose( poseEigen );
+        df->pose( poseEigen );
 
         auto pathCloud_doc = _doc["cloud_path"].get_value().get_utf8().value;
         std::string pathCloud = static_cast<std::string>(pathCloud_doc);
         pcl::PointCloud<PointType_> cloud;
         pcl::io::loadPCDFile<PointType_>(pathCloud, cloud);
-        df.cloud(cloud.makeShared());
+        df->cloud(cloud.makeShared());
         
         auto pathFeatureCloud_doc = _doc["featureCloud_path"].get_value().get_utf8().value;
         std::string pathFeatureCloud = static_cast<std::string>(pathFeatureCloud_doc);
         pcl::PointCloud<PointType_> featureCloud;
         pcl::io::loadPCDFile<PointType_>(pathFeatureCloud, featureCloud);
-        df.featureCloud(featureCloud.makeShared());
+        df->featureCloud(featureCloud.makeShared());
 
         bsoncxx::array::view covisibility = _doc["covisibility_ids"].get_value().get_array().value;
-        std::vector<float> covisibilityVector = arrayView2Vector(covisibility);
-        std::vector<std::shared_ptr<Dataframe<PointType_>>> cov;
-        for (auto idVisibleDf : covisibilityVector){
-            // cov.push_back(); // hacer push back de los dataframes con los id que haya en el vector
+        std::vector<int> covVector;
+        for (bsoncxx::array::element elem : covisibility) {
+            int visibleId = static_cast<int>(elem.get_int32());
+            covVector.push_back(visibleId);
         }
 
-        
+        covisibilityDb_.insert( std::pair<int,std::vector<int>>(df->id() ,covVector) );
 
         return df;
     }

@@ -202,10 +202,13 @@ sudo apt-get install -y libqt5opengl5 libqt5opengl5-dev
 read -r -p "Do you want to install mongo database cxx [y/N] " response
 if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]
 then
- if [ -d "mongo-cxx-driver" ] 
+ if [ -d "mongo-driver" ] 
 	then
 		echo "Library $1 already installed" 
 	else
+		sudo apt-get install -y mongodb
+		mkdir mongo-driver ; cd mongo-driver
+		
 		# libbson and mongoc prequisites
 		git clone -b "r1.15" https://github.com/mongodb/mongo-c-driver.git
 
@@ -225,5 +228,7 @@ then
 		make -j$(nproc)
 		sudo make install
 		cd ../..
+
+		cd ..
 	fi
 fi;

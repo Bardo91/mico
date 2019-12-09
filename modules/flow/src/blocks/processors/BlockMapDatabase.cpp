@@ -25,13 +25,13 @@
 namespace mico{
 
     BlockMapDatabase::BlockMapDatabase(){
-        iPolicy_ = new flow::Policy({"dataframe"});
+        createPolicy({{"Saved Keyframe", "dataframe"}});
 
-        iPolicy_->registerCallback({"dataframe"}, 
-            [&](std::unordered_map<std::string,std::any> _data){
+       registerCallback({"Saved Keyframe"}, 
+            [&](flow::DataFlow _data){
                 if(idle_){
                     idle_ = false;
-                    std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> df = std::any_cast<std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>>>(_data["dataframe"]);
+                    Dataframe<pcl::PointXYZRGBNormal>::Ptr df = _data.get<Dataframe<pcl::PointXYZRGBNormal>::Ptr>("Saved Keyframe"); 
                     database_.update(df);
 
                     idle_ = true;

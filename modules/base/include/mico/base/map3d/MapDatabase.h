@@ -71,16 +71,16 @@ namespace mico {
 
             bool init(std::string _databaseName , std::string _mode);
 
-            bool update(std::shared_ptr<mico::Dataframe<PointType_>> &_df); // using template only for it
+            bool update(std::shared_ptr<Dataframe<PointType_>> &_df); // using template only for it
 
             bool printDatabase();
             bool saveAllDatabase();
 
-            bool restoreDatabase(std::string _pathDatabase);
+            bool restoreDatabaseFile(std::string _pathDatabase);
+            bool restoreDataframes(std::map<int,std::shared_ptr<Dataframe<PointType_>>> &_dfs); 
             #ifdef USE_MONGO
-                Dataframe<PointType_> createDataframe(bsoncxx::document::view _doc ); //666 Solve this specialization
-
-            mongocxx::collection dbCollection();
+                std::shared_ptr<Dataframe<PointType_>> createDataframe(bsoncxx::document::view _doc ); //666 Solve this specialization
+                mongocxx::collection dbCollection();
             #endif
 
         private:
@@ -88,11 +88,13 @@ namespace mico {
 
             std::string pathDbFolder_;
             std::ofstream fileDatabase_;
+            std::map <int , std::vector<int>> covisibilityDb_;
 
             #ifdef USE_MONGO
                 mongocxx::uri uri_;
                 mongocxx::client connClient_;
                 mongocxx::database db_;
+                std::vector<float> arrayView2Vectorf(bsoncxx::array::view _view);
             #endif 
             
     };

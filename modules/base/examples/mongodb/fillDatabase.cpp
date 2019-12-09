@@ -16,14 +16,15 @@ int main(int _argc, char** _argv) {
         return 0;
     }
     // fill db with dummy dataframes
-    for (int i = 1 ; i < 100 ; i++){
+    std::map<int, Dataframe<pcl::PointXYZRGBNormal>::Ptr> database;
+    for (int i = 1 ; i < 5 ; i++){
         std::shared_ptr<Dataframe<pcl::PointXYZRGBNormal>> dataf(new Dataframe<pcl::PointXYZRGBNormal>(i));
         Eigen::Matrix4f pose = Eigen::Matrix4f::Identity();
         dataf->pose(pose);
 
-        cv::Mat imgL = cv::imread("/home/marrcogrova/Documents/datasets/rgbd_dataset_freiburg1_room/rgb/left_"+ std::to_string(i) +".png", 0);
+        cv::Mat imgL = cv::imread("/home/grvc/Documents/datasets/rgbd_dataset_freiburg1_room/rgb/left_"+ std::to_string(i) +".png", 0);
         dataf->leftImage(imgL);
-        cv::Mat imgD = cv::imread("/home/marrcogrova/Documents/datasets/rgbd_dataset_freiburg1_room/depth/depth_"+ std::to_string(i) +".png", 0);
+        cv::Mat imgD = cv::imread("/home/grvc/Documents/datasets/rgbd_dataset_freiburg1_room/depth/depth_"+ std::to_string(i) +".png", 0);
         dataf->depthImage(imgD);
         cv::Mat intrinsics = (cv::Mat_<float>(3,3) << 696.262741 , 0.0 , 664.58279 , 0.0 , 696.715205 , 331.19961 , 0.0 , 0.0 , 1.0);
         dataf->intrinsics(intrinsics);
@@ -47,9 +48,27 @@ int main(int _argc, char** _argv) {
             ftrsCloud.push_back(p);
         }
         dataf->featureCloud(ftrsCloud.makeShared());
-        
-        mongoDatabase->update(dataf);
+        database[i] = dataf;
     }
+
+    database[1]->appendCovisibility(database[3]); 
+
+    database[2]->appendCovisibility(database[1]);
+    database[2]->appendCovisibility(database[3]); 
+    database[2]->appendCovisibility(database[4]); 
+
+    database[3]->appendCovisibility(database[1]);
+    database[3]->appendCovisibility(database[2]);
+    database[3]->appendCovisibility(database[4]); 
+
+    database[4]->appendCovisibility(database[2]);
+    database[4]->appendCovisibility(database[3]);
+
+    // update all database
+    for (auto df : database){
+        mongoDatabase->update(df.second);
+    }
+
     mongoDatabase->saveAllDatabase();
     // mongoDatabase->printDatabase();
 

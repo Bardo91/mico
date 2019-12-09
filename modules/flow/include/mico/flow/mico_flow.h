@@ -33,6 +33,7 @@
 #include <mico/flow/blocks/processors/BlockLoopClosure.h>
 #include <mico/flow/blocks/processors/BlockOptimizerCF.h>
 #include <mico/flow/blocks/processors/BlockEKFIMU.h>
+#include <mico/flow/blocks/processors/BlockMapDatabase.h>
 // #include <mico/flow/blocks/processors/BlockParticleFilterKinematic.h>
 
 #ifdef HAS_DARKNET
