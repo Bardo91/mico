@@ -50,7 +50,7 @@
 #include <pcl/point_types.h>
 
 namespace mico{
-    class BlockPointCloudVisualizer: public flow::Block{
+    class BlockPointCloudVisualizer: public flow::Block, VtkVisualizer3D{
     public:
         static std::string name() {return "Point cloud Visualizer";}
 
@@ -61,20 +61,11 @@ namespace mico{
         void updateRender(pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr _cloud);
     private:
         vtkSmartPointer<vtkNamedColors> colors = vtkSmartPointer<vtkNamedColors>::New();
-        
-        // Setup render window, renderer, and interactor
-        vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
-        vtkSmartPointer<vtkRenderWindow> renderWindow = vtkSmartPointer<vtkRenderWindow>::New();
-        vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
-        vtkSmartPointer<vtkOrientationMarkerWidget> widgetCoordinates_ = vtkSmartPointer<vtkOrientationMarkerWidget>::New();
         vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
-
-        vtkSmartPointer<SpinOnceCallback> spinOnceCallback_;
-
+        vtkSmartPointer<vtkActor> prevActor = nullptr;
+        
         std::mutex actorGuard_;
         bool idle_ = true;
-        bool running_ = true;
-        std::thread interactorThread_;
         int currentIdx_ = 0;
 
     };
