@@ -36,6 +36,8 @@
 
 #include <map>
 
+#include <mutex>
+
 namespace mico {
     template<typename PointType_>
     class Word;
@@ -50,7 +52,7 @@ namespace mico {
 
         /// Dataframes can only be created with ID which uniquely define it.
         Dataframe(size_t _id);
-        ~Dataframe(){}
+        ~Dataframe();
 
         int id() const;
 
@@ -191,6 +193,8 @@ namespace mico {
 
         // Util flags
         bool optimized_ = false;
+
+        mutable std::mutex dataLock_; 
 
         // Signature of dataframe  666 Possible optimization with trait? so can use different implementations
         #ifdef USE_DBOW2
