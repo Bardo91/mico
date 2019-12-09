@@ -82,7 +82,7 @@ namespace mico{
     //-----------------------------------------------------------------------------------------------------------------
     struct QueuerTraitClusterframes{
         constexpr static const char * Name_ = "Queuer Dataframes";
-        constexpr static const char * OutputType_ = "v-dataframes";
+        constexpr static const char * OutputType_ = "v-dataframe";
         constexpr static const char * OutputName_ = "Vec dataframes";
         constexpr static const char * InputType_ = "dataframe";
         constexpr static const char * InputName_ = "dataframe";
@@ -92,7 +92,7 @@ namespace mico{
     //-----------------------------------------------------------------------------------------------------------------
     struct QueuerTraitColor{
         constexpr static const char * Name_ = "Queuer Color Images";
-        constexpr static const char * OutputType_ = "v-images";
+        constexpr static const char * OutputType_ = "v-image";
         constexpr static const char * OutputName_ = "Vec images";
         constexpr static const char * InputType_ = "image";
         constexpr static const char * InputName_ = "image";
