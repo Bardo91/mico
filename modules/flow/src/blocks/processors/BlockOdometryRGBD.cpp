@@ -84,6 +84,7 @@ namespace mico{
             if(hasCalibration){
                 // Create dataframe from input data
                 std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> df(new Dataframe<pcl::PointXYZRGBNormal>(nextDfId_));
+                nextDfId_++;
                 try{
                     df->leftImage(_data.get<cv::Mat>("Color Image"));
                     df->depthImage(_data.get<cv::Mat>("Depth Image"));
@@ -107,7 +108,7 @@ namespace mico{
                     referenceFrame = prevDf_;
                 
                 if(odom_.computeOdometry(referenceFrame, df)){
-                    nextDfId_++;
+                    memoryDf_[df->id()] = df;   // 666 safety reasons, but memory consumption.
                     getPipe("Estimated Dataframe")->flush(df);  
                 }
                 prevDf_ = df;

@@ -56,6 +56,9 @@ namespace mico{
         bool idle_ = true;
         cv::Mat matrixLeft_, distCoefLeft_, matrixRight_, distCoefRight_;
         float dispToDepth_;
+
+        // for safety reasons, because it seems that sometimes the dataframes are deleted before being catched after the flush and the any is destroying them.
+        std::map<int,std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>>> memoryDf_; 
     };
 
 }
