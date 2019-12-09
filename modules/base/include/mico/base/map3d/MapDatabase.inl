@@ -137,21 +137,21 @@ namespace mico{
                 Eigen::Matrix4f dfPose = _df->pose();
                 for(unsigned i = 0; i < _df->pose().rows() ; i++)
                     for(unsigned j = 0; j < _df->pose().cols() ; j++)
-                        _child.append(dfPose(i,j));
+                        _child.append(std::to_string(dfPose(i,j)));
             }));
 
             doc.append(kvp("intrinsics", [&](sub_array _child) {
                 cv::Mat dfIntrinsics = _df->intrinsics();
                 for(int i = 0; i < dfIntrinsics.rows ; i++)
-                    for(int j = 0; j < dfIntrinsics.cols ; j++)
-                        _child.append(dfIntrinsics.at<float>(i,j));
+                    for(int j = 0; j < dfIntrinsics.cols ; j++) 
+                        _child.append(std::to_string(dfIntrinsics.at<float>(i,j)));
             }));
 
             doc.append(kvp("coefficients", [&](sub_array _child) {
                 cv::Mat dfCoeff = _df->distCoeff();
                 for(int i = 0; i < dfCoeff.rows ; i++)
                     for(int j = 0; j < dfCoeff.cols ; j++)
-                        _child.append(dfCoeff.at<float>(i,j));
+                        _child.append(std::to_string(dfCoeff.at<float>(i,j)));
             }));
 
             cv::imwrite(dfFolder + "/left.png", _df->leftImage()); //666 image is gray
@@ -175,12 +175,18 @@ namespace mico{
 
 
             auto res = db_[dbName_].insert_one(doc.view());
+
         
             fileDatabase_.open(pathDbFolder_ + "/database.json" , std::ofstream::app); //append mode
             if (!fileDatabase_.is_open()){
                 std::cout << "Error opening database json\n";
                 return false;
             }
+            // bsoncxx::stdx::optional<bsoncxx::document::value> addedSuccess =
+            //     db_[dbName_].find_one(document{} << "id" << _df->id() << finalize);
+            // if(addedSuccess)
+            //     fileDatabase_ << bsoncxx::to_json(*addedSuccess) << "\n";
+            
             fileDatabase_ << bsoncxx::to_json(doc) << "\n";
             fileDatabase_.close();
 
@@ -195,7 +201,15 @@ namespace mico{
     inline std::vector<float> MapDatabase<PointType_>::arrayView2Vectorf(bsoncxx::array::view _view){
         std::vector<float> viewVector;
         for (bsoncxx::array::element elem : _view) {
-            float data = static_cast<float>(elem.get_double());
+            // Save numbers as string to avoid comma separated because breaks json
+            auto data_cod = elem.get_utf8().value;
+            std::string data_str = static_cast<std::string>(data_cod);
+            std::size_t pos=0;
+            while (pos < data_str.size())
+                if ((pos = data_str.find_first_of (',',pos)) != std::string::npos)
+                    data_str[pos] = '.';
+
+            float data = std::stof(data_str);
             viewVector.push_back(data);
         }
         return viewVector;
@@ -205,18 +219,20 @@ namespace mico{
     #ifdef USE_MONGO
     template<typename PointType_>
     inline std::shared_ptr<Dataframe<PointType_>> MapDatabase<PointType_>::createDataframe(bsoncxx::document::view _doc ){
-        int id = _doc["id"].get_value().get_int32().value ;
+        int id = _doc["id"].get_value().get_int32().value;
 
         std::shared_ptr<Dataframe<PointType_>> df (new Dataframe<PointType_>(id));
 
         bsoncxx::array::view intrinsics = _doc["intrinsics"].get_value().get_array().value;
         std::vector<float> intrinsicsVector = arrayView2Vectorf(intrinsics);
-        cv::Mat intrinsicsMat(intrinsicsVector);
+        cv::Mat intrinsicsMat(1,intrinsicsVector.size(), CV_32FC1);
+        memcpy(intrinsicsMat.data,intrinsicsVector.data(),intrinsicsVector.size()*sizeof(float));
         df->intrinsics(intrinsicsMat);
 
         bsoncxx::array::view coefficients = _doc["coefficients"].get_value().get_array().value;
         std::vector<float> coefficientsVector = arrayView2Vectorf(coefficients);
-        cv::Mat coefficientsMat(coefficientsVector);
+        cv::Mat coefficientsMat(1,coefficientsVector.size(), CV_32FC1);
+        memcpy(coefficientsMat.data,coefficientsVector.data(),coefficientsVector.size()*sizeof(float));
         df->distCoeff(coefficientsMat);
 
         auto pathLeft_doc = _doc["left_path"].get_value().get_utf8().value;
