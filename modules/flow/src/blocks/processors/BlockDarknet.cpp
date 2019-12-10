@@ -45,7 +45,7 @@ namespace mico{
                                             cv::Mat image;
                                             // check data received
                                             try{
-                                                image = _data.get<cv::Mat>("color").clone();
+                                                image = _data.get<cv::Mat>("Color Image").clone();
                                             }catch(std::exception& e){
                                                 std::cout << "Failure Darknet. " <<  e.what() << std::endl;
                                                 idle_ = true;
