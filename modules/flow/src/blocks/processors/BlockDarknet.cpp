@@ -45,7 +45,7 @@ namespace mico{
                                             cv::Mat image;
                                             // check data received
                                             try{
-                                                image = _data.get<cv::Mat>("color").clone();
+                                                image = _data.get<cv::Mat>("Color Image").clone();
                                             }catch(std::exception& e){
                                                 std::cout << "Failure Darknet. " <<  e.what() << std::endl;
                                                 idle_ = true;
@@ -97,7 +97,7 @@ namespace mico{
 
                                             // check data received
                                             try{
-                                                df = _data->get<std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>>>("Dataframe");
+                                                df = _data.get<std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>>>("Dataframe");
                                                 image = df->leftImage().clone();
                                                 
                                             }catch(std::exception& e){

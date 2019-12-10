@@ -36,7 +36,7 @@ namespace mico{
                                 [&](flow::DataFlow _data){
                                     if(idle_){
                                         idle_ = false;
-                                        Dataframe<pcl::PointXYZRGBNormal>::Ptr df = _data.get<Dataframe<pcl::PointXYZRGBNormal>::Ptr>("dataframe"); 
+                                        auto df = _data.get<Dataframe<pcl::PointXYZRGBNormal>::Ptr>("Next Keyframe"); 
                                         
                                         cv::Mat image = df->leftImage();
                                         LoopResult res = loopDetector_.appendCluster(image, df->id());
@@ -54,7 +54,7 @@ namespace mico{
 
                                             // mDatabase.dfComparison(loopClosureSubset, false);  666 do it or not? @Ric92
                                             
-                                            getPipe("loop")->flush(loopPath);
+                                            getPipe("Loop")->flush(loopPath);
 
                                         }
                                         idle_ = true;

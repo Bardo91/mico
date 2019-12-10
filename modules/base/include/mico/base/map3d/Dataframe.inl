@@ -28,12 +28,18 @@ namespace mico {
     }
 
     template<typename PointType_>
+    inline Dataframe<PointType_>::~Dataframe(){
+    }
+
+    template<typename PointType_>
     inline int Dataframe<PointType_>::id() const{
+        std::lock_guard<std::mutex> lock(dataLock_);
         return id_;
     }
 
     template<typename PointType_>
     inline void Dataframe<PointType_>::appendCovisibility(Dataframe<PointType_>::Ptr &_other){
+        std::lock_guard<std::mutex> lock(dataLock_);
         if(std::find(covisibility_.begin(), covisibility_.end(), _other) == covisibility_.end()){
             // std::cout << "Adding covisivility : " <<_id  << " to " << id_ << std::endl;
             covisibility_.push_back(_other);
@@ -42,34 +48,40 @@ namespace mico {
 
     template<typename PointType_>
     inline void Dataframe<PointType_>::updateMMI(int _dfId, int _cfId){
+        std::lock_guard<std::mutex> lock(dataLock_);
         // crossReferencedInliers()[_cfId] = crossReferencedInliers()[_dfId];
         assert(false); //  666 DONT KNOW WHAT THE HELL IS THIS 999
     }
 
     template<typename PointType_>
     inline void Dataframe<PointType_>::addWord(const std::shared_ptr<Word<PointType_>> &_word){
+        std::lock_guard<std::mutex> lock(dataLock_);
         wordsReference_[_word->id] = _word;
     }
  
     template<typename PointType_>
     inline void Dataframe<PointType_>::eraseWord(std::shared_ptr<Word<PointType_>> &_word){
+        std::lock_guard<std::mutex> lock(dataLock_);
         wordsReference_.erase(_word->id);
     }
 
 
     template<typename PointType_>
     inline std::map<int, std::shared_ptr<Word<PointType_>>> Dataframe<PointType_>::words(){
+        std::lock_guard<std::mutex> lock(dataLock_);
         return wordsReference_;
     }
 
     template<typename PointType_>
     inline std::shared_ptr<Word<PointType_>> Dataframe<PointType_>::word(int _id){
+        std::lock_guard<std::mutex> lock(dataLock_);
         return wordsReference_[_id];
     }
 
 
     template<typename PointType_>
     inline void Dataframe<PointType_>::pose(const Eigen::Matrix4f &_pose){
+        std::lock_guard<std::mutex> lock(dataLock_);
         pose_          = _pose;
         position_      = _pose.block<3,1>(0,3);
         orientation_   = Eigen::Quaternionf(_pose.block<3,3>(0,0));
@@ -77,6 +89,7 @@ namespace mico {
 
     template<typename PointType_>
     inline Eigen::Matrix4f Dataframe<PointType_>::pose() const{
+        std::lock_guard<std::mutex> lock(dataLock_);
         return pose_;
     }
 
@@ -92,135 +105,161 @@ namespace mico {
 
     template<typename PointType_>
     inline void Dataframe<PointType_>::cloud(const typename pcl::PointCloud<PointType_>::Ptr &_cloud){
+        std::lock_guard<std::mutex> lock(dataLock_);
         cloud_ = _cloud;
     }
 
     template<typename PointType_>
     inline typename pcl::PointCloud<PointType_>::Ptr Dataframe<PointType_>::cloud() const{
+        std::lock_guard<std::mutex> lock(dataLock_);
         return cloud_;
     }
 
     template<typename PointType_>
     inline void Dataframe<PointType_>::featureCloud(const typename pcl::PointCloud<PointType_>::Ptr &_cloud){
+        std::lock_guard<std::mutex> lock(dataLock_);
         featureCloud_ = _cloud;
     }
 
     template<typename PointType_>
     inline typename pcl::PointCloud<PointType_>::Ptr Dataframe<PointType_>::featureCloud() const{
+        std::lock_guard<std::mutex> lock(dataLock_);
         return featureCloud_;
     }
 
     template<typename PointType_>
     inline void Dataframe<PointType_>::featureDescriptors(const cv::Mat &_descriptors){
+        std::lock_guard<std::mutex> lock(dataLock_);
         featureDescriptors_ = _descriptors;
     }
 
     template<typename PointType_>
     inline cv::Mat Dataframe<PointType_>::featureDescriptors() const{
+        std::lock_guard<std::mutex> lock(dataLock_);
         return featureDescriptors_;
     }
 
     template<typename PointType_>
     inline void Dataframe<PointType_>::featureProjections(const std::vector<cv::Point2f> &_projs){
+        std::lock_guard<std::mutex> lock(dataLock_);
         featureProjections_ = _projs;
     }
 
     template<typename PointType_>
     inline std::vector<cv::Point2f> Dataframe<PointType_>::featureProjections() const{
+        std::lock_guard<std::mutex> lock(dataLock_);
         return featureProjections_;
     }
 
     template<typename PointType_>
     inline bool Dataframe<PointType_>::isOptimized() const{
+        std::lock_guard<std::mutex> lock(dataLock_);
         return optimized_;
     }
 
     template<typename PointType_>
     inline void Dataframe<PointType_>::isOptimized(bool _opt){
+        std::lock_guard<std::mutex> lock(dataLock_);
         optimized_ = _opt;
     }
 
 
     template<typename PointType_>
     inline cv::Mat Dataframe<PointType_>::leftImage() const{
+        std::lock_guard<std::mutex> lock(dataLock_);
         return left_;
     }
 
     template<typename PointType_>
     inline void Dataframe<PointType_>::leftImage(const cv::Mat &_image){
+        std::lock_guard<std::mutex> lock(dataLock_);
         left_ = _image;
     }
 
     template<typename PointType_>
     inline cv::Mat Dataframe<PointType_>::rightImage() const{
+        std::lock_guard<std::mutex> lock(dataLock_);
         return right_;
     }
 
     template<typename PointType_>
     inline void Dataframe<PointType_>::rightImage(const cv::Mat &_image){
+        std::lock_guard<std::mutex> lock(dataLock_);
         right_ = _image;
     }
 
     template<typename PointType_>
     inline cv::Mat Dataframe<PointType_>::depthImage() const{
+        std::lock_guard<std::mutex> lock(dataLock_);
         return depth_;
     }
 
     template<typename PointType_>
     inline void Dataframe<PointType_>::depthImage(const cv::Mat &_image){
+        std::lock_guard<std::mutex> lock(dataLock_);
         depth_ = _image;
     }
 
     template<typename PointType_>
     inline cv::Mat Dataframe<PointType_>::intrinsics() const{
+        std::lock_guard<std::mutex> lock(dataLock_);
         return intrinsics_;
     }
 
     template<typename PointType_>
     inline void Dataframe<PointType_>::intrinsics(const cv::Mat &_intrinsics){
+        std::lock_guard<std::mutex> lock(dataLock_);
         intrinsics_ = _intrinsics;
     }
 
     template<typename PointType_>
     inline cv::Mat Dataframe<PointType_>::distCoeff() const{
+        std::lock_guard<std::mutex> lock(dataLock_);
         return coefficients_;
     }
 
     template<typename PointType_>
     inline void Dataframe<PointType_>::distCoeff(const cv::Mat &_coeff){
+        std::lock_guard<std::mutex> lock(dataLock_);
         coefficients_ = _coeff;
     }
 
 
     template<typename PointType_>
     inline std::map<int, std::vector<cv::DMatch>> &Dataframe<PointType_>::crossReferencedInliers(){
+        std::lock_guard<std::mutex> lock(dataLock_);
         return multimatchesInliersDfs_;
     }
 
 
     template<typename PointType_>
     inline std::vector<typename  Dataframe<PointType_>::Ptr> Dataframe<PointType_>::covisibility(){
+        std::lock_guard<std::mutex> lock(dataLock_);
         return covisibility_;
     }
 
     #ifdef USE_DBOW2
     template<typename PointType_>
     inline void Dataframe<PointType_>::signature(DBoW2::BowVector &_signature){
+        std::lock_guard<std::mutex> lock(dataLock_);
         signature_ = _signature;
     }
 
     template<typename PointType_>
     inline DBoW2::BowVector Dataframe<PointType_>::signature() const{
+        std::lock_guard<std::mutex> lock(dataLock_);
         return signature_;
     }
 
     template<typename PointType_>
     inline void Dataframe<PointType_>::featureVector(DBoW2::FeatureVector &_vector){
+        std::lock_guard<std::mutex> lock(dataLock_);
         featVec_ = _vector;
     }
 
     template<typename PointType_>
     inline DBoW2::FeatureVector Dataframe<PointType_>::featureVector() const{
+        std::lock_guard<std::mutex> lock(dataLock_);
         return featVec_;
     }
     #endif

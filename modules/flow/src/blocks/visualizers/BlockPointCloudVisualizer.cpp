@@ -39,53 +39,9 @@
 
 namespace mico{
 
-    BlockPointCloudVisualizer::BlockPointCloudVisualizer(){
-
-        
-        // Setup render window, renderer, and interactor
-        renderWindow->SetWindowName("Pointcloud Visualization");
-        renderWindow->AddRenderer(renderer);
-        renderWindowInteractor->SetRenderWindow(renderWindow);
-        renderWindowInteractor->SetDesiredUpdateRate (30.0);
-        spinOnceCallback_ = vtkSmartPointer<SpinOnceCallback>::New();
-        spinOnceCallback_->interactor_ = renderWindowInteractor;
-        renderWindowInteractor->AddObserver(SpinOnceCallback::TimerEvent, spinOnceCallback_);
-    
-        renderer->SetBackground(colors->GetColor3d("Gray").GetData());
-
-        vtkSmartPointer<vtkAxesActor> axes = vtkSmartPointer<vtkAxesActor>::New();
-        widgetCoordinates_ = vtkSmartPointer<vtkOrientationMarkerWidget>::New();
-        widgetCoordinates_->SetOutlineColor( 0.9300, 0.5700, 0.1300 );
-        widgetCoordinates_->SetOrientationMarker( axes );
-        widgetCoordinates_->SetInteractor( renderWindowInteractor );
-        widgetCoordinates_->SetViewport( 0.0, 0.0, 0.4, 0.4 );
-        widgetCoordinates_->SetEnabled( 1 );
-
-        // Visualize
-        interactorThread_ = std::thread([&](){
-            renderWindowInteractor->Initialize();
-            auto prevActor = actor;
-            while(running_){
-                if(actor && actor != prevActor){
-                    actorGuard_.lock();
-                    if(prevActor){
-                        renderer->RemoveActor(prevActor);
-                    }
-                    prevActor = actor;
-                    actorGuard_.unlock();
-                    renderer->AddActor(actor);
-                }
-
-                renderWindowInteractor->Render();
-                auto timerId = renderWindowInteractor->CreateRepeatingTimer (10);
-                
-                renderWindowInteractor->Start();
-                renderWindowInteractor->DestroyTimer(timerId);
-            }
-        });
-
-        createPolicy({{ "Point Cloud", "cloud"}, 
-                                        {"Dataframe", "dataframe"}});
+    BlockPointCloudVisualizer::BlockPointCloudVisualizer(): VtkVisualizer3D("Database Visualizer"){
+        createPolicy({  { "Point Cloud", "cloud"}, 
+                        {"Dataframe", "dataframe"} });
 
         registerCallback({"Point Cloud" }, 
                                 [&](flow::DataFlow  _data){
@@ -93,6 +49,17 @@ namespace mico{
                                         idle_ = false;
                                         auto cloud = _data.get<pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr>("Point Cloud"); 
                                         updateRender(cloud);
+                                        runOnUiThread([&](){
+                                            if(actor && actor != prevActor){
+                                                actorGuard_.lock();
+                                                if(prevActor){
+                                                    renderer->RemoveActor(prevActor);
+                                                }
+                                                prevActor = actor;
+                                                actorGuard_.unlock();
+                                                renderer->AddActor(actor);
+                                            }
+                                        });
                                         idle_ = true;
                                     }
                                 }
@@ -106,6 +73,17 @@ namespace mico{
                                         auto df = _data.get<std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>>>("Dataframe");
                                         pcl::transformPointCloud(*df->cloud(), *cloud, df->pose());
                                         updateRender(cloud);
+                                        runOnUiThread([&](){
+                                            if(actor && actor != prevActor){
+                                                actorGuard_.lock();
+                                                if(prevActor){
+                                                    renderer->RemoveActor(prevActor);
+                                                }
+                                                prevActor = actor;
+                                                actorGuard_.unlock();
+                                                renderer->AddActor(actor);
+                                            }
+                                        });
                                         idle_ = true;
                                     }
                                 }
@@ -114,14 +92,7 @@ namespace mico{
 
 
     BlockPointCloudVisualizer::~BlockPointCloudVisualizer(){
-        running_ = false;
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        if(interactorThread_.joinable())
-            interactorThread_.join();
         
-        renderWindowInteractor->GetRenderWindow()->Finalize();
-        renderWindowInteractor->ExitCallback();
-        renderWindowInteractor->TerminateApp();
     }
 
 

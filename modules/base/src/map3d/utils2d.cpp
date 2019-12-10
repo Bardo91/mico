@@ -28,6 +28,10 @@
 namespace mico {
 
     bool matchDescriptorsBF(const cv::Mat &_des1, const cv::Mat &_des2, std::vector<cv::DMatch> &_inliers,double _mk_nearest_neighbors,double _mFactorDescriptorDistance){
+        if(_des1.rows == 0 || _des2.rows == 0){
+            return false;
+        }
+        
         std::vector<std::vector<cv::DMatch>> matches12, matches21;
         cv::BFMatcher featureMatcher(cv::NORM_HAMMING,true);
         featureMatcher.knnMatch(_des1, _des2, matches12,_mk_nearest_neighbors);
