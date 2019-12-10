@@ -43,6 +43,7 @@ void registerDataModels(FlowVisualInterface::RegistryType_ &_register) {
     _register->registerModel<FlowVisualBlock<StreamDataset, true>>          ("Streamers");
     _register->registerModel<FlowVisualBlock<StreamRealSense, true>>        ("Streamers");
     _register->registerModel<FlowVisualBlock<StreamPixhawk, true>>          ("Streamers");
+    _register->registerModel<FlowVisualBlock<StreamMapDatabase, true>>      ("Streamers");
 
     #ifdef MICO_USE_ROS
     #ifdef FLOW_USE_ROS
@@ -70,7 +71,6 @@ void registerDataModels(FlowVisualInterface::RegistryType_ &_register) {
     _register->registerModel<FlowVisualBlock<BlockLoopClosure>>             ("SLAM");
     _register->registerModel<FlowVisualBlock<BlockOptimizerCF>>             ("SLAM");
     
-    _register->registerModel<FlowVisualBlock<BlockMapDatabase>>             ("SLAM");
     
     // Visualizers
     _register->registerModel<FlowVisualBlock<BlockImageVisualizer>>         ("Visualizers");
@@ -83,6 +83,7 @@ void registerDataModels(FlowVisualInterface::RegistryType_ &_register) {
     _register->registerModel<FlowVisualBlock<SaverImage>>                   ("Savers");
     _register->registerModel<FlowVisualBlock<SaverTrajectory>>              ("Savers");
     _register->registerModel<FlowVisualBlock<SaverEntity>>                  ("Savers");
+    _register->registerModel<FlowVisualBlock<SaverMapDatabase>>             ("Savers");
 
     // Queuers
     _register->registerModel<FlowVisualBlock<BlockQueuer<QueuerTraitClusterframes>>> ("Queuer");

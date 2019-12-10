@@ -19,29 +19,58 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#ifndef MICO_FLOW_BLOCKS_BLOCKMAPDATABASE_H_
-#define MICO_FLOW_BLOCKS_BLOCKMAPDATABASE_H_
 
-#include <flow/Block.h>
-#include <mico/base/map3d/MapDatabase.h>
+#include <mico/flow/blocks/streamers/StreamMapDatabase.h>
 
 namespace mico{
 
-    class BlockMapDatabase:public flow::Block{
-    public:
-        static std::string name() {return "Map Database";}
-        
-        BlockMapDatabase();
-        ~BlockMapDatabase();
-        
-        virtual bool configure(std::unordered_map<std::string, std::string> _params) override;
-        std::vector<std::string> parameters() override;
+    StreamMapDatabase::StreamMapDatabase(){
+        createPipe("Dataframe", "dataframe");
+    }
+    
+    bool StreamMapDatabase::configure(std::unordered_map<std::string, std::string> _params){
+        if(isRunningLoop()) // Cant configure if already running.
+            return false;
 
-    private:
-        MapDatabase<pcl::PointXYZRGBNormal> database_;
-        bool idle_ = true;
-    };
+        std::string name,db_path;
+        for(auto &param:_params){
+            if(param.first == "database_name"){
+                name = param.second;
+            }
+            else if(param.first == "database_path"){
+                db_path = param.second;
+            }
+        }
+        if (!database_.init(name , "load"))
+            return false;
+        
+        if (database_.restoreDatabaseFile(db_path)){
+            database_.restoreDataframes(dataframesDb_);
+            return true;
+        }else{
+            return false;
+        }
+    }
+    
+    std::vector<std::string> StreamMapDatabase::parameters(){
+        return {"database_name" , "database_path"};
+    }
 
+    void StreamMapDatabase::loopCallback() {
+        while(isRunningLoop()){
+            std::this_thread::sleep_for(std::chrono::milliseconds(1000)); // db freq
+
+            if (idDb_ < dataframesDb_.size() - 1 ){
+                if(getPipe("Dataframe")->registrations() !=0 ){
+                    Dataframe<pcl::PointXYZRGBNormal>::Ptr dfToFlush = dataframesDb_[idDb_];
+                    std::cout << dfToFlush->id() <<std::endl;
+                    getPipe("Dataframe")->flush(dfToFlush);
+                    idDb_++;
+                }
+            }else{
+                std::cout << "Database empty \n";
+            }
+            
+        }
+    }      
 }
-
-#endif

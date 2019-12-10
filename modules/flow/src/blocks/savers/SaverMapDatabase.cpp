@@ -20,11 +20,11 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-#include <mico/flow/blocks/processors/BlockMapDatabase.h>
+#include <mico/flow/blocks/savers/SaverMapDatabase.h>
 
 namespace mico{
 
-    BlockMapDatabase::BlockMapDatabase(){
+    SaverMapDatabase::SaverMapDatabase(){
         createPolicy({{"Saved Keyframe", "dataframe"}});
 
        registerCallback({"Saved Keyframe"}, 
@@ -40,25 +40,23 @@ namespace mico{
         );
     }
     
-    BlockMapDatabase::~BlockMapDatabase(){
+    SaverMapDatabase::~SaverMapDatabase(){
         // database_.saveAllDatabase();
     }
 
-    bool BlockMapDatabase::configure(std::unordered_map<std::string, std::string> _params){
-        std::string name , mode;
+    bool SaverMapDatabase::configure(std::unordered_map<std::string, std::string> _params){
+        std::string name;
         
         for(auto &param:_params){
             if(param.first == "database_name"){
                 name = param.second;
-            }else if(param.first == "mode"){
-                mode = param.second;
             }
         }
-        return database_.init(name , mode);
+        return database_.init(name , "save");
     }
     
-    std::vector<std::string> BlockMapDatabase::parameters(){
-        return {"database_name" , "mode"}; //666 add uri?
+    std::vector<std::string> SaverMapDatabase::parameters(){
+        return {"database_name"}; //666 add uri?
     }
 
     

@@ -1,7 +1,7 @@
 //---------------------------------------------------------------------------------------------------------------------
 //  mico
 //---------------------------------------------------------------------------------------------------------------------
-//  Copyright 2018 Pablo Ramon Soria (a.k.a. Bardo91) pabramsor@gmail.com
+//  Copyright 2019 Pablo Ramon Soria (a.k.a. Bardo91) pabramsor@gmail.com & Marco Montes Grova (a.k.a marrcogrova)
 //---------------------------------------------------------------------------------------------------------------------
 //  Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 //  and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -19,42 +19,29 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-// Streamers
-#undef Q_FOREACH
-#include <mico/flow/blocks/streamers/StreamRealSense.h>
-#include <mico/flow/blocks/streamers/StreamDataset.h>
-#include <mico/flow/blocks/streamers/StreamPixhawk.h>
-#include <mico/flow/blocks/streamers/StreamMapDatabase.h>
+#ifndef MICO_FLOW_BLOCKS_SAVERMAPDATABASE_H_
+#define MICO_FLOW_BLOCKS_SAVERMAPDATABASE_H_
 
+#include <flow/Block.h>
+#include <mico/base/map3d/MapDatabase.h>
 
-// Processors
-#include <mico/flow/blocks/processors/BlockOdometryRGBD.h>
-#include <mico/flow/blocks/processors/BlockOdometryPhotogrammetry.h>
-#include <mico/flow/blocks/processors/BlockDatabaseMarkI.h>
-#include <mico/flow/blocks/processors/BlockLoopClosure.h>
-#include <mico/flow/blocks/processors/BlockOptimizerCF.h>
-#include <mico/flow/blocks/processors/BlockEKFIMU.h>
-// #include <mico/flow/blocks/processors/BlockParticleFilterKinematic.h>
+namespace mico{
 
-#ifdef HAS_DARKNET
-#   include <mico/flow/blocks/processors/BlockDarknet.h> // 666 HAS DARKNET
+    class SaverMapDatabase:public flow::Block{
+    public:
+        static std::string name() {return "Map Database Saver";}
+        
+        SaverMapDatabase();
+        ~SaverMapDatabase();
+        
+        virtual bool configure(std::unordered_map<std::string, std::string> _params) override;
+        std::vector<std::string> parameters() override;
+
+    private:
+        MapDatabase<pcl::PointXYZRGBNormal> database_;
+        bool idle_ = true;
+    };
+
+}
+
 #endif
-
-// Visualizers
-#include <mico/flow/blocks/visualizers/BlockImageVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockTrayectoryVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockDatabaseVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockSceneVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockPointCloudVisualizer.h>
-
-// Casters
-#include <mico/flow/blocks/CastBlocks.h>
-
-// Queuers
-#include <mico/flow/blocks/BlockQueuer.h>
-
-// Savers
-#include <mico/flow/blocks/savers/SaverImage.h>
-#include <mico/flow/blocks/savers/SaverTrajectory.h>
-#include <mico/flow/blocks/savers/SaverEntity.h>
-#include <mico/flow/blocks/savers/SaverMapDatabase.h>
