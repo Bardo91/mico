@@ -97,7 +97,7 @@ namespace mico{
 
                                             // check data received
                                             try{
-                                                df = _data->get<std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>>>("Dataframe");
+                                                df = _data.get<std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>>>("Dataframe");
                                                 image = df->leftImage().clone();
                                                 
                                             }catch(std::exception& e){

@@ -24,7 +24,7 @@ project(mico VERSION 1.0 LANGUAGES C CXX)
 set(COMPONENT_NAME ${PROJECT_NAME}-dnn)
 
 
-set(USE_DARKNET OFF)
+set(USE_DARKNET ON)
 set(USE_DARKNET_CL OFF) # Not compatible yet
 
 ##################################################
