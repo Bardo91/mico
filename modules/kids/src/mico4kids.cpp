@@ -51,6 +51,7 @@ void registerDataModels(FlowVisualInterface::RegistryType_ &_register) {
         _register->registerModel<FlowVisualBlock<BlockROSSubscriberCloud>>           ("ROS Streamers");
         _register->registerModel<FlowVisualBlock<BlockROSSubscriberImage>>           ("ROS Streamers");
         _register->registerModel<FlowVisualBlock<BlockROSSubscriberPoseStamped>>     ("ROS Streamers");
+        _register->registerModel<FlowVisualBlock<BlockROSSubscriberEventArray>>      ("ROS Streamers");
 
         // ROS Publishers
         _register->registerModel<FlowVisualBlock<BlockROSPublisherPoseStamped>>      ("ROS Publishers");
