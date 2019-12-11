@@ -46,15 +46,15 @@ void registerDataModels(FlowVisualInterface::RegistryType_ &_register) {
 
     #ifdef MICO_USE_ROS
         // ROS Streamers
-        _register->registerModel<FlowVisualBlock<BlockROSSuscriberImu>>              ("ROS");
-        _register->registerModel<FlowVisualBlock<BlockROSSuscriberGPS>>              ("ROS");
-        _register->registerModel<FlowVisualBlock<BlockROSSuscriberCloud>>            ("ROS");
-        _register->registerModel<FlowVisualBlock<BlockROSSuscriberImage>>            ("ROS");
-        _register->registerModel<FlowVisualBlock<BlockROSSuscriberPoseStamped>>      ("ROS");
+        _register->registerModel<FlowVisualBlock<BlockROSSubscriberImu>>             ("ROS Streamers");
+        _register->registerModel<FlowVisualBlock<BlockROSSubscriberGPS>>             ("ROS Streamers");
+        _register->registerModel<FlowVisualBlock<BlockROSSubscriberCloud>>           ("ROS Streamers");
+        _register->registerModel<FlowVisualBlock<BlockROSSubscriberImage>>           ("ROS Streamers");
+        _register->registerModel<FlowVisualBlock<BlockROSSubscriberPoseStamped>>     ("ROS Streamers");
 
         // ROS Publishers
-        _register->registerModel<FlowVisualBlock<BlockROSPublisherPoseStamped>>      ("ROS");
-        _register->registerModel<FlowVisualBlock<BlockROSPublisherPointCloud>>       ("ROS");
+        _register->registerModel<FlowVisualBlock<BlockROSPublisherPoseStamped>>      ("ROS Publishers");
+        _register->registerModel<FlowVisualBlock<BlockROSPublisherPointCloud>>       ("ROS Publishers");
     #endif
 
     // DNN
