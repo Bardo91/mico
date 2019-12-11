@@ -77,7 +77,7 @@ namespace mico{
     #ifdef HAS_DARKNET
         registerCallback({"Objects" }, 
                                 [&](flow::DataFlow  _data){
-                                    std::vector<std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>> entities = std::any_cast<std::vector<std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>>>(_data["v_entity"]); 
+                                    auto entities = _data.get<std::vector<std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>>>("Objects"); 
                                     queueEntitiesGuard_.lock();
                                     queueEntities_.push_back(entities);
                                     queueEntitiesGuard_.unlock();
