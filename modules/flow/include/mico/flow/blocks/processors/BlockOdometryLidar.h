@@ -19,43 +19,35 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-// Streamers
-#undef Q_FOREACH
-#include <mico/flow/blocks/streamers/StreamRealSense.h>
-#include <mico/flow/blocks/streamers/StreamDataset.h>
-#include <mico/flow/blocks/streamers/StreamPixhawk.h>
 
+#ifndef MICO_FLOW_STREAMERS_BLOCKS_PROCESSORS_BLOCKODOMETRYLIDAR_H_
+#define MICO_FLOW_STREAMERS_BLOCKS_PROCESSORS_BLOCKODOMETRYLIDAR_H_
 
-// Processors
-#include <mico/flow/blocks/processors/BlockOdometryRGBD.h>
-#include <mico/flow/blocks/processors/BlockOdometryPhotogrammetry.h>
-#include <mico/flow/blocks/processors/BlockOdometryLidar.h>
-#include <mico/flow/blocks/processors/BlockDatabaseMarkI.h>
-#include <mico/flow/blocks/processors/BlockLoopClosure.h>
-#include <mico/flow/blocks/processors/BlockOptimizerCF.h>
-#include <mico/flow/blocks/processors/BlockEKFIMU.h>
-// #include <mico/flow/blocks/processors/BlockParticleFilterKinematic.h>
+#include <flow/Block.h>
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
+// #include <mico/base/map3d/OdometryLidar.h>
 
+namespace mico{
 
-// Visualizers
-#include <mico/flow/blocks/visualizers/BlockImageVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockTrayectoryVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockDatabaseVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockSceneVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockPointCloudVisualizer.h>
+    class BlockOdometryLidar: public flow::Block{
+    public:
+        static std::string name() {return "Odometry Lidar";}
 
-// Casters
-#include <mico/flow/blocks/CastBlocks.h>
+        BlockOdometryLidar();
+        // ~BlockOdometryLidar(){};
 
-// Queuers
-#include <mico/flow/blocks/BlockQueuer.h>
+        bool configure(std::unordered_map<std::string, std::string> _params) override;
+        std::vector<std::string> parameters() override;
 
-// Savers
-#include <mico/flow/blocks/savers/SaverImage.h>
-#include <mico/flow/blocks/savers/SaverTrajectory.h>
-#include <mico/flow/blocks/savers/SaverEntity.h>
+    private:
+        void callbackOdometry(flow::DataFlow _data);
 
-// DNN
-#ifdef HAS_DARKNET
-    #include <mico/flow/blocks/processors/BlockDarknet.h> // 666 HAS DARKNET
+    private:
+
+        bool idle_ = true;
+    };
+
+}
+
 #endif

@@ -19,43 +19,40 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-// Streamers
-#undef Q_FOREACH
-#include <mico/flow/blocks/streamers/StreamRealSense.h>
-#include <mico/flow/blocks/streamers/StreamDataset.h>
-#include <mico/flow/blocks/streamers/StreamPixhawk.h>
-
-
-// Processors
-#include <mico/flow/blocks/processors/BlockOdometryRGBD.h>
-#include <mico/flow/blocks/processors/BlockOdometryPhotogrammetry.h>
 #include <mico/flow/blocks/processors/BlockOdometryLidar.h>
-#include <mico/flow/blocks/processors/BlockDatabaseMarkI.h>
-#include <mico/flow/blocks/processors/BlockLoopClosure.h>
-#include <mico/flow/blocks/processors/BlockOptimizerCF.h>
-#include <mico/flow/blocks/processors/BlockEKFIMU.h>
-// #include <mico/flow/blocks/processors/BlockParticleFilterKinematic.h>
+#include <flow/Policy.h>
+#include <flow/Outpipe.h>
+
+namespace mico{
+
+    BlockOdometryLidar::BlockOdometryLidar(){
+        
+        createPolicy({{"Lidar PointCloud","cloud"}});
+
+        
+        registerCallback({"Lidar PointCloud"}, 
+                            [&](flow::DataFlow _data){
+                                auto cloud = _data.get<pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr>("Lidar PointCloud");
+
+                                // odometry lidar
+                            });
+
+    }
 
 
-// Visualizers
-#include <mico/flow/blocks/visualizers/BlockImageVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockTrayectoryVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockDatabaseVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockSceneVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockPointCloudVisualizer.h>
+    bool BlockOdometryLidar::configure(std::unordered_map<std::string, std::string> _params){
+        for(auto &param: _params){
+            if(param.first == "something" && param.second != ""){
 
-// Casters
-#include <mico/flow/blocks/CastBlocks.h>
+            }
+        }
 
-// Queuers
-#include <mico/flow/blocks/BlockQueuer.h>
+        return false;
 
-// Savers
-#include <mico/flow/blocks/savers/SaverImage.h>
-#include <mico/flow/blocks/savers/SaverTrajectory.h>
-#include <mico/flow/blocks/savers/SaverEntity.h>
+    }
+    
+    std::vector<std::string> BlockOdometryLidar::parameters(){
+        return {"something"};
+    }
 
-// DNN
-#ifdef HAS_DARKNET
-    #include <mico/flow/blocks/processors/BlockDarknet.h> // 666 HAS DARKNET
-#endif
+}
