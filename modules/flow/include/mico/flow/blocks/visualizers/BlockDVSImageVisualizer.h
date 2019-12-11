@@ -19,43 +19,49 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-// Streamers
-#undef Q_FOREACH
-#include <mico/flow/blocks/streamers/StreamRealSense.h>
-#include <mico/flow/blocks/streamers/StreamDataset.h>
-#include <mico/flow/blocks/streamers/StreamPixhawk.h>
 
+#ifndef MICO_FLOW_STREAMERS_BLOCKS_BLOCKDVSIMAGEVISUALIZER_H_
+#define MICO_FLOW_STREAMERS_BLOCKS_BLOCKDVSIMAGEVISUALIZER_H_
 
-// Processors
-#include <mico/flow/blocks/processors/BlockOdometryRGBD.h>
-#include <mico/flow/blocks/processors/BlockOdometryPhotogrammetry.h>
-#include <mico/flow/blocks/processors/BlockDatabaseMarkI.h>
-#include <mico/flow/blocks/processors/BlockLoopClosure.h>
-#include <mico/flow/blocks/processors/BlockOptimizerCF.h>
-#include <mico/flow/blocks/processors/BlockEKFIMU.h>
-// #include <mico/flow/blocks/processors/BlockParticleFilterKinematic.h>
+#include <flow/Block.h>
 
+#include <vtkJPEGReader.h>
+#include <vtkImageData.h>
+#include <vtkImageMapper.h> // Note: this is a 2D mapper (cf. vtkImageActor which is 3D)
+#include <vtkActor2D.h>
+#include <vtkRenderer.h>
+#include <vtkRenderWindow.h>
+#include <vtkRenderWindowInteractor.h>
+#include <vtkSmartPointer.h>
 
-// Visualizers
-#include <mico/flow/blocks/visualizers/BlockImageVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockDVSImageVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockTrayectoryVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockDatabaseVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockSceneVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockPointCloudVisualizer.h>
+#include <opencv2/opencv.hpp>
 
-// Casters
-#include <mico/flow/blocks/CastBlocks.h>
+#ifdef FLOW_USE_ROS
+    #include <dvs_msgs/EventArray.h>
+#endif
 
-// Queuers
-#include <mico/flow/blocks/BlockQueuer.h>
+namespace mico{
 
-// Savers
-#include <mico/flow/blocks/savers/SaverImage.h>
-#include <mico/flow/blocks/savers/SaverTrajectory.h>
-#include <mico/flow/blocks/savers/SaverEntity.h>
+    class BlockDVSImageVisualizer: public flow::Block{
+    public:
+        static std::string name() {return "Image DVS Visualizer";}
 
-// DNN
-#ifdef HAS_DARKNET
-    #include <mico/flow/blocks/processors/BlockDarknet.h> // 666 HAS DARKNET
+        BlockDVSImageVisualizer();
+        // ~BlockImageVisualizer(){};
+
+    private:
+        cv::Mat convertEventsToCVMat(const dvs_msgs::EventArray &_sourceEvents , int _batchSize);
+        vtkSmartPointer<vtkImageData> convertCVMatToVtkImageData(const cv::Mat &_sourceCVImage, bool _flipOverXAxis);
+
+    private:
+        vtkSmartPointer<vtkImageMapper> mapper_;
+        vtkSmartPointer<vtkActor2D> image_;
+        vtkSmartPointer<vtkRenderer> renderer_;
+        vtkSmartPointer<vtkRenderWindow> window_;
+
+        bool idle_ = true;
+    };
+
+}
+
 #endif
