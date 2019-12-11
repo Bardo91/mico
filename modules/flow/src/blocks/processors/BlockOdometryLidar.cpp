@@ -20,6 +20,7 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 #include <mico/flow/blocks/processors/BlockOdometryLidar.h>
+
 #include <flow/Policy.h>
 #include <flow/Outpipe.h>
 
@@ -28,12 +29,41 @@ namespace mico{
     BlockOdometryLidar::BlockOdometryLidar(){
         
         createPolicy({{"Lidar PointCloud","cloud"}});
+        createPipe("Estimated Dataframe" , "dataframe");
 
         
         registerCallback({"Lidar PointCloud"}, 
                             [&](flow::DataFlow _data){
-                                auto cloud = _data.get<pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr>("Lidar PointCloud");
+                                std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> df(new Dataframe<pcl::PointXYZRGBNormal>(nextDfId_));
+                                nextDfId_++;
+                                df->cloud(_data.get<pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr>("Lidar PointCloud")); 
+                                if(!prevDf_){
+                                    prevDf_ = df;
+                                    return;
+                                }
 
+                                Eigen::Matrix4f initPose = prevDf_->pose();
+                                if(!icpAlignment<pcl::PointXYZRGBNormal>(df->cloud(),
+                                                    prevDf_->cloud(),
+                                                    initPose,
+                                                    30,     // random
+                                                    2.0,    // m
+                                                    0.707,
+                                                    0.3,
+                                                    1.0,
+                                                    1.0,
+                                                    1000,   // RANDOM, too high
+                                                    0.01))  // RANDOM, too high
+                                {
+                                    // ERROR
+                                    std::cout << "ICP failed" << std::endl;
+                                }
+                                else{
+                                    df->pose(initPose);
+                                    memoryDf_[df->id()] = df;   // 666 safety reasons, but memory consumption.
+                                    prevDf_ = df;
+                                    getPipe("Estimated Dataframe")->flush(df);  
+                                }
                                 // odometry lidar
                             });
 
@@ -41,18 +71,18 @@ namespace mico{
 
 
     bool BlockOdometryLidar::configure(std::unordered_map<std::string, std::string> _params){
-        for(auto &param: _params){
-            if(param.first == "something" && param.second != ""){
+        // for(auto &param: _params){
+        //     if(param.first == "something" && param.second != ""){
 
-            }
-        }
+        //     }
+        // }
 
-        return false;
+        return true;
 
     }
     
     std::vector<std::string> BlockOdometryLidar::parameters(){
-        return {"something"};
+        return {};
     }
 
 }

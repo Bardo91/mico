@@ -64,6 +64,7 @@ void registerDataModels(FlowVisualInterface::RegistryType_ &_register) {
     #endif    
     // SLAM
     _register->registerModel<FlowVisualBlock<BlockOdometryRGBD>>            ("SLAM");
+    _register->registerModel<FlowVisualBlock<BlockOdometryLidar>>           ("SLAM");
     _register->registerModel<FlowVisualBlock<BlockOdometryPhotogrammetry>>  ("SLAM");
     _register->registerModel<FlowVisualBlock<BlockDatabaseMarkI>>           ("SLAM");
     _register->registerModel<FlowVisualBlock<BlockLoopClosure>>             ("SLAM");

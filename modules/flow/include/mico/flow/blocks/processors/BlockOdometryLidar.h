@@ -26,7 +26,11 @@
 #include <flow/Block.h>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
-// #include <mico/base/map3d/OdometryLidar.h>
+
+#include <mico/base/map3d/Dataframe.h>
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
+// #include <mico/base/map3d/OdometryLidar.h>   666 FUTURE
 
 namespace mico{
 
@@ -46,6 +50,10 @@ namespace mico{
     private:
 
         bool idle_ = true;
+        int nextDfId_ = 0;
+        std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> prevDf_ = nullptr;
+        // for safety reasons, because it seems that sometimes the dataframes are deleted before being catched after the flush and the any is destroying them.
+        std::map<int,std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>>> memoryDf_; 
     };
 
 }
