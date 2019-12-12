@@ -34,37 +34,38 @@ namespace mico{
         
         registerCallback({"Lidar PointCloud"}, 
                             [&](flow::DataFlow _data){
-                                std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> df(new Dataframe<pcl::PointXYZRGBNormal>(nextDfId_));
-                                nextDfId_++;
-                                df->cloud(_data.get<pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr>("Lidar PointCloud")); 
-                                if(!prevDf_){
-                                    prevDf_ = df;
-                                    return;
-                                }
+                                if(idle_){
+                                    idle_ = false;
+                                    std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> df(new Dataframe<pcl::PointXYZRGBNormal>(nextDfId_));
+                                    nextDfId_++;
+                                    df->cloud(_data.get<pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr>("Lidar PointCloud")); 
+                                    if(prevDf_){
+                                        Eigen::Matrix4f initPose = prevDf_->pose();
+                                        if(!icpAlignment<pcl::PointXYZRGBNormal, DebugLevels::Debug, OutInterfaces::Cout>(df->cloud(),
+                                                            prevDf_->cloud(),
+                                                            initPose,
+                                                            5,     // random
+                                                            2.0,    // m
+                                                            -1,
+                                                            -1.0,
+                                                            100.0,
+                                                            100.0,
+                                                            1000,   // RANDOM, too high
+                                                            0.3))  // RANDOM, too high
+                                        {
+                                            // ERROR
+                                            std::cout << "ICP failed" << std::endl;
+                                        }
+                                        else{
+                                            df->pose(initPose);
+                                            memoryDf_[df->id()] = df;   // 666 safety reasons, but memory consumption.
+                                            getPipe("Estimated Dataframe")->flush(df);  
+                                        }
+                                    }
 
-                                Eigen::Matrix4f initPose = prevDf_->pose();
-                                if(!icpAlignment<pcl::PointXYZRGBNormal>(df->cloud(),
-                                                    prevDf_->cloud(),
-                                                    initPose,
-                                                    30,     // random
-                                                    2.0,    // m
-                                                    0.707,
-                                                    0.3,
-                                                    1.0,
-                                                    1.0,
-                                                    1000,   // RANDOM, too high
-                                                    0.01))  // RANDOM, too high
-                                {
-                                    // ERROR
-                                    std::cout << "ICP failed" << std::endl;
-                                }
-                                else{
-                                    df->pose(initPose);
-                                    memoryDf_[df->id()] = df;   // 666 safety reasons, but memory consumption.
                                     prevDf_ = df;
-                                    getPipe("Estimated Dataframe")->flush(df);  
+                                    idle_ = true;
                                 }
-                                // odometry lidar
                             });
 
     }

@@ -189,7 +189,7 @@ namespace mico {
         while (/*!converged &&*/ iters < _iterations && timeSpent < _timeout) {   
             iters++;
             pcl::PointCloud<PointType_> cloudToAlign;
-            //std::cout << _transformation << std::endl;
+            std::cout << _transformation << std::endl;
             pcl::transformPointCloudWithNormals(srcCloud, cloudToAlign, _transformation);
             
             // COMPUTE CORRESPONDENCES
@@ -201,32 +201,34 @@ namespace mico {
             corresp_kdtree.setInputTarget(tgtCloud.makeShared());
             corresp_kdtree.determineCorrespondences(*ptrCorr, corrDistance);
 
-            //std::cout << "Found " << ptrCorr->size() << " correspondences by distance" << std::endl;
+            std::cout << "Found " << ptrCorr->size() << " correspondences by distance" << std::endl;
 
             if (ptrCorr->size() == 0) {
                 logDealer.error("ICP_ALIGNEMENT", "Can't find any correspondence");
-                //std::cout << "Can't find any correspondences!" << std::endl;
+                std::cout << "Can't find any correspondences!" << std::endl;
                 break;
             }
             else {
-                pcl::registration::CorrespondenceRejectorSurfaceNormal::Ptr rejectorNormal(new pcl::registration::CorrespondenceRejectorSurfaceNormal);
-                rejectorNormal->setThreshold(_maxAngleDistance);
-                rejectorNormal->initializeDataContainer<PointType_, PointType_>();
-                rejectorNormal->setInputSource<PointType_>(cloudToAlign.makeShared());
-                rejectorNormal->setInputNormals<PointType_, PointType_>(cloudToAlign.makeShared());
-                rejectorNormal->setInputTarget<PointType_>(tgtCloud.makeShared());
-                rejectorNormal->setTargetNormals<PointType_, PointType_>(tgtCloud.makeShared());
-                rejectorNormal->setInputCorrespondences(ptrCorr);
-                rejectorNormal->getCorrespondences(*ptrCorr);
-                //std::cout << "Found " << ptrCorr->size() << " correspondences after normal rejection" << std::endl;
+                if(_maxAngleDistance > 0){
+                    pcl::registration::CorrespondenceRejectorSurfaceNormal::Ptr rejectorNormal(new pcl::registration::CorrespondenceRejectorSurfaceNormal);
+                    rejectorNormal->setThreshold(_maxAngleDistance);
+                    rejectorNormal->initializeDataContainer<PointType_, PointType_>();
+                    rejectorNormal->setInputSource<PointType_>(cloudToAlign.makeShared());
+                    rejectorNormal->setInputNormals<PointType_, PointType_>(cloudToAlign.makeShared());
+                    rejectorNormal->setInputTarget<PointType_>(tgtCloud.makeShared());
+                    rejectorNormal->setTargetNormals<PointType_, PointType_>(tgtCloud.makeShared());
+                    rejectorNormal->setInputCorrespondences(ptrCorr);
+                    rejectorNormal->getCorrespondences(*ptrCorr);
+                    std::cout << "Found " << ptrCorr->size() << " correspondences after normal rejection" << std::endl;
+                }
 
                 pcl::registration::CorrespondenceRejectorOneToOne::Ptr rejector(new pcl::registration::CorrespondenceRejectorOneToOne);
                 rejector->setInputCorrespondences(ptrCorr);
                 rejector->getCorrespondences(*ptrCorr);
-                //std::cout << "Found " << ptrCorr->size() << " correspondences after one to one rejection" << std::endl;
+                std::cout << "Found " << ptrCorr->size() << " correspondences after one to one rejection" << std::endl;
 
                 //pcl::CorrespondencesPtr ptrCorr2(new pcl::Correspondences);
-                if(fabs(_maxColorDistance - 1)  < 0.01){    // 666 Just in case
+                if(_maxColorDistance > 0 && fabs(_maxColorDistance - 1)  > 0.01){    // 666 Just in case
                     // Reject by color
                     for (auto corr : *ptrCorr) {
                         // Measure distance
@@ -244,17 +246,25 @@ namespace mico {
                     correspondences = *ptrCorr;
                 }
 
-                //std::cout << "Found " << correspondences.size() << " correspondences after color rejection" << std::endl;
+                std::cout << "Found " << correspondences.size() << " correspondences after color rejection" << std::endl;
             }
 
-            // Estimate transform
-            pcl::registration::TransformationEstimationPointToPlaneLLS<PointType_, PointType_, float> estimator;
-            //std::cout << _transformation << std::endl;
             Eigen::Matrix4f incTransform;
-            estimator.estimateRigidTransformation(cloudToAlign, tgtCloud, correspondences,  incTransform);
-            if (incTransform.hasNaN()) {
-                logDealer.error("ICP_ALIGNEMENT", "Transformation of the cloud contains NaN");
-                continue;
+            if(_maxAngleDistance > 0 ){
+                // Estimate transform
+                pcl::registration::TransformationEstimationPointToPlaneLLS<PointType_, PointType_, float> estimator;
+                estimator.estimateRigidTransformation(cloudToAlign, tgtCloud, correspondences,  incTransform);
+                if (incTransform.hasNaN()) {
+                    logDealer.error("ICP_ALIGNEMENT", "Transformation of the cloud contains NaN");
+                    continue;
+                }
+            }else{
+                pcl::registration::TransformationEstimationLM<PointType_, PointType_, float> estimator;
+                estimator.estimateRigidTransformation(cloudToAlign, tgtCloud, correspondences,  incTransform);
+                if (incTransform.hasNaN()) {
+                    logDealer.error("ICP_ALIGNEMENT", "Transformation of the cloud contains NaN");
+                    continue;
+                }
             }
 
             // COMPUTE SCORE
@@ -271,14 +281,21 @@ namespace mico {
             double transRes = fabs(incTransform.block<3, 1>(0, 3).sum());
             converged = (rotRes < _maxRotation &&  transRes < _maxTranslation) ? 1 : 0;
 
-            //std::cout << "incT: " << transRes << ". incR: " << rotRes << ". Score: " << score << std::endl;
+            std::cout << "incT: " << transRes << ". incR: " << rotRes << ". Score: " << score << std::endl;
             converged = converged && (score < _maxFitnessScore);
+
+            std::cout << _transformation << std::endl;
             _transformation = incTransform*_transformation;
+            std::cout << _transformation << std::endl;
             corrDistance *= 0.9;     
+
+            std::cout << "-.-.-.-.-.-.-.-." << std::endl;
 
             auto t1 = std::chrono::high_resolution_clock::now();
             timeSpent = std::chrono::duration_cast<std::chrono::milliseconds>(t1-t0).count();
         }
+        std::cout << "----------------------------------" << std::endl;
+        std::cout << "----------------------------------" << std::endl;
 
         return converged;
     }
