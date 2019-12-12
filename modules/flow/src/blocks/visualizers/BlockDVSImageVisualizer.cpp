@@ -41,16 +41,19 @@ namespace mico{
         window_ = vtkSmartPointer<vtkRenderWindow>::New();
         window_->AddRenderer(renderer_);
 
-        createPolicy({{"DVS Events","event"}});
+        createPolicy({{"DVS Events","v-event"}});
 
         registerCallback({"DVS Events"}, 
                                 [&](flow::DataFlow _data){
                                     if(idle_){
                                         idle_ = false;  
                                         
-                                        cv::Mat image = _data.get<cv::Mat>("DVS Events");
+                                        dvs_msgs::EventArray events = _data.get<dvs_msgs::EventArray>("DVS Events");
+                                        cv::Mat fakeImage = convertEventsToCVMat(events);
+                                        cv::imshow("ff",fakeImage);
+                                        cv::waitKey(0);
                                         
-                                        auto vtkImage = convertCVMatToVtkImageData(image, true);
+                                        auto vtkImage = convertCVMatToVtkImageData(fakeImage, false );
                                         mapper_->SetInputData(vtkImage);
                                         mapper_->SetColorWindow(255); // width of the color range to map to
                                         mapper_->SetColorLevel(127.5); // center of the color range to map to
@@ -76,7 +79,7 @@ namespace mico{
         outputVtkImage->SetSpacing(spacing);
         outputVtkImage->SetOrigin(origin);
         outputVtkImage->SetExtent(extent);
-        outputVtkImage->SetDimensions(_sourceCVImage.cols, _sourceCVImage.rows, 1);
+        // outputVtkImage->SetDimensions(_sourceCVImage.cols, _sourceCVImage.rows, 1);
         outputVtkImage->AllocateScalars(VTK_UNSIGNED_CHAR, numOfChannels);
 
         cv::Mat tempCVImage;
@@ -86,7 +89,6 @@ namespace mico{
         else {
             tempCVImage = _sourceCVImage;
         }
-        cv::cvtColor(tempCVImage, tempCVImage, cv::ColorConversionCodes::COLOR_BGR2RGB);
         
         unsigned char* dptr = reinterpret_cast<unsigned char*>(outputVtkImage->GetScalarPointer());
         mempcpy(dptr, tempCVImage.data, _sourceCVImage.cols*_sourceCVImage.rows*3);
@@ -94,5 +96,16 @@ namespace mico{
         outputVtkImage->Modified();
 
         return outputVtkImage;
+    }
+
+    cv::Mat BlockDVSImageVisualizer::convertEventsToCVMat(const dvs_msgs::EventArray &_sourceEvents){
+        cv::Mat image(_sourceEvents.width, _sourceEvents.height, CV_8UC3, cv::Scalar(0,0,0));
+        
+        for (auto event:_sourceEvents.events){
+            image.at<cv::Vec3b>(cv::Point(event.x, event.y)) = (
+                event.polarity == true ? cv::Vec3b(255, 0, 0) : cv::Vec3b(0, 0, 255));
+        }
+
+        return image;
     }
 }

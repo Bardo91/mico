@@ -44,13 +44,13 @@ namespace mico{
 
     class BlockDVSImageVisualizer: public flow::Block{
     public:
-        static std::string name() {return "Image DVS Visualizer";}
+        static std::string name() {return "DVS Image Visualizer";}
 
         BlockDVSImageVisualizer();
         // ~BlockImageVisualizer(){};
 
     private:
-        cv::Mat convertEventsToCVMat(const dvs_msgs::EventArray &_sourceEvents , int _batchSize);
+        cv::Mat convertEventsToCVMat(const dvs_msgs::EventArray &_sourceEvents);
         vtkSmartPointer<vtkImageData> convertCVMatToVtkImageData(const cv::Mat &_sourceCVImage, bool _flipOverXAxis);
 
     private:
