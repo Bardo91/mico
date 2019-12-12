@@ -63,6 +63,11 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/" ${CMAKE_MODUL
 target_compile_options(${COMPONENT_NAME} PUBLIC "-Wall")
 
 target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC mico::mico-base)
+
+if(BUILD_DVS)
+target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC mico::mico-dvs)
+endif(BUILD_DVS)
+
 if(BUILD_DNN)
   target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC mico::mico-dnn)
 endif(BUILD_DNN)

@@ -31,8 +31,7 @@ file(GLOB_RECURSE MICO_DVS_SOURCE_FILES "src/*.cpp" "src/*.c")
 file(GLOB_RECURSE MICO_DVS_HEADER_FILES "include/*.h" "include/*.inl" "include/*.hpp")
  
 
-add_executable(${COMPONENT_NAME} ${MICO_DVS_HEADER_FILES} ${MICO_DVS_SOURCE_FILES})
-target_link_libraries(${COMPONENT_NAME} LINK_PRIVATE mico::mico-base mico::mico-flow)
+add_library(${COMPONENT_NAME} SHARED ${MICO_DVS_HEADER_FILES} ${MICO_DVS_SOURCE_FILES})
 target_compile_features(${COMPONENT_NAME} PUBLIC cxx_std_17)
 target_include_directories(${COMPONENT_NAME}
   PUBLIC
@@ -41,6 +40,8 @@ target_include_directories(${COMPONENT_NAME}
 )
 
 target_link_libraries(${COMPONENT_NAME} PUBLIC pthread)
+
+add_library(${PROJECT_NAME}::${COMPONENT_NAME} ALIAS ${COMPONENT_NAME})
 
 ##########################################
 ######		Configure project		######
@@ -60,6 +61,8 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/" ${CMAKE_MODUL
 target_compile_options(${COMPONENT_NAME} PUBLIC "-Wall")
 target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC mico::mico-base)
 
+find_package(flow REQUIRED)
+target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC flow::flow)
 
 #########################################
 ######			INSTALL 		   ######

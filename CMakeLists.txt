@@ -63,14 +63,14 @@ if(BUILD_DNN)
   list(APPEND MICO_MODULES_BUILD "dnn")
 endif()
 
-if(BUILD_DVS)
-  add_subdirectory(modules/dvs)
-  list(APPEND MICO_MODULES_BUILD "dvs")
-endif()
-
 if(BUILD_FLOW)
   add_subdirectory(modules/flow)
   list(APPEND MICO_MODULES_BUILD "flow")
+endif()
+
+if(BUILD_DVS)
+  add_subdirectory(modules/dvs)
+  list(APPEND MICO_MODULES_BUILD "dvs")
 endif()
 
 if(BUILD_KIDS)

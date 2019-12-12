@@ -3,10 +3,6 @@ include(CMakeFindDependencyMacro)
 
 find_dependency(PCL QUIET REQUIRED)
 
-if(@USE_MODULE_SLAM@)
-    find_dependency(g2o REQUIRED HINTS "/usr/local/lib/cmake/g2o")
-endif(@USE_MODULE_SLAM@)
-
 if(@realsense2_FOUND@)
     find_dependency(realsense2 HINTS "/usr/local/lib/cmake/realsense2")
 endif(@realsense2_FOUND@)

@@ -63,7 +63,8 @@ void registerDataModels(FlowVisualInterface::RegistryType_ &_register) {
         _register->registerModel<FlowVisualBlock<BlockDarknet>>             ("Detector");
     #endif
 
-    _register->registerModel<FlowVisualBlock<BlockDVSImageVisualizer>>      ("DVS");
+    _register->registerModel<FlowVisualBlock<BlockDVSImageVisualizer>>     ("DVS");
+    _register->registerModel<FlowVisualBlock<BlockDVSCornerDetector>>      ("DVS");
 
     // SLAM
     _register->registerModel<FlowVisualBlock<BlockOdometryRGBD>>            ("SLAM");

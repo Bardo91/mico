@@ -19,46 +19,36 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-// Streamers
-#undef Q_FOREACH
-#include <mico/flow/blocks/streamers/StreamRealSense.h>
-#include <mico/flow/blocks/streamers/StreamDataset.h>
-#include <mico/flow/blocks/streamers/StreamPixhawk.h>
 
+#ifndef MICO_FLOW_STREAMERS_BLOCKS_BLOCKDVSCORNERDETECTOR_H_
+#define MICO_FLOW_STREAMERS_BLOCKS_BLOCKDVSCORNERDETECTOR_H_
 
-// Processors
-#include <mico/flow/blocks/processors/BlockOdometryRGBD.h>
-#include <mico/flow/blocks/processors/BlockOdometryPhotogrammetry.h>
-#include <mico/flow/blocks/processors/BlockDatabaseMarkI.h>
-#include <mico/flow/blocks/processors/BlockLoopClosure.h>
-#include <mico/flow/blocks/processors/BlockOptimizerCF.h>
-#include <mico/flow/blocks/processors/BlockEKFIMU.h>
-// #include <mico/flow/blocks/processors/BlockParticleFilterKinematic.h>
+#include <flow/Block.h>
 
+#include <mico/dvs/corner_detectors/detector.h>
+#include <mico/dvs/corner_detectors/harris_detector.h>
+#include <mico/dvs/corner_detectors/fast_detector.h>
 
-// Visualizers
-#include <mico/flow/blocks/visualizers/BlockImageVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockTrayectoryVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockDatabaseVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockSceneVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockPointCloudVisualizer.h>
+namespace mico{
 
-// Casters
-#include <mico/flow/blocks/CastBlocks.h>
+    class BlockDVSCornerDetector: public flow::Block{
+    public:
+        static std::string name() {return "DVS Corner Detector";}
 
-// Queuers
-#include <mico/flow/blocks/BlockQueuer.h>
+        BlockDVSCornerDetector();
+        ~BlockDVSCornerDetector();
+    
+        bool configure(std::unordered_map<std::string, std::string> _params) override;
+        std::vector<std::string> parameters() override;
+        
+    private:
+        
 
-// Savers
-#include <mico/flow/blocks/savers/SaverImage.h>
-#include <mico/flow/blocks/savers/SaverTrajectory.h>
-#include <mico/flow/blocks/savers/SaverEntity.h>
+    private:
+        mico::Detector* detector_ = nullptr;
+        bool idle_ = true;
+    };
 
-// DNN
-#ifdef HAS_DARKNET
-    #include <mico/flow/blocks/processors/BlockDarknet.h> // 666 HAS DARKNET
+}
+
 #endif
-
-// DVS
-#include <mico/flow/blocks/visualizers/BlockDVSImageVisualizer.h>
-#include <mico/flow/blocks/processors/BlockDVSCornerDetector.h>

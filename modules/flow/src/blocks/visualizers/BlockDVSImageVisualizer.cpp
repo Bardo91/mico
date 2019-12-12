@@ -50,10 +50,8 @@ namespace mico{
                                         
                                         dvs_msgs::EventArray events = _data.get<dvs_msgs::EventArray>("DVS Events");
                                         cv::Mat fakeImage = convertEventsToCVMat(events);
-                                        cv::imshow("ff",fakeImage);
-                                        cv::waitKey(0);
-                                        
-                                        auto vtkImage = convertCVMatToVtkImageData(fakeImage, false );
+ 
+                                        auto vtkImage = convertCVMatToVtkImageData(fakeImage,true);
                                         mapper_->SetInputData(vtkImage);
                                         mapper_->SetColorWindow(255); // width of the color range to map to
                                         mapper_->SetColorLevel(127.5); // center of the color range to map to
@@ -99,7 +97,7 @@ namespace mico{
     }
 
     cv::Mat BlockDVSImageVisualizer::convertEventsToCVMat(const dvs_msgs::EventArray &_sourceEvents){
-        cv::Mat image(_sourceEvents.width, _sourceEvents.height, CV_8UC3, cv::Scalar(0,0,0));
+        cv::Mat image(_sourceEvents.height, _sourceEvents.width, CV_8UC3, cv::Scalar(0,0,0));
         
         for (auto event:_sourceEvents.events){
             image.at<cv::Vec3b>(cv::Point(event.x, event.y)) = (
