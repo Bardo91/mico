@@ -75,7 +75,9 @@ void registerDataModels(FlowVisualInterface::RegistryType_ &_register) {
     _register->registerModel<FlowVisualBlock<BlockPointCloudVisualizer>>    ("Visualizers");
     _register->registerModel<FlowVisualBlock<BlockDatabaseVisualizer>>      ("Visualizers");
     _register->registerModel<FlowVisualBlock<BlockSceneVisualizer>>         ("Visualizers");
-
+    #ifdef MICO_HAS_PANGOLIN
+        _register->registerModel<FlowVisualBlock<BlockVisualizerPangolin>>      ("Visualizers");
+    #endif
     //Savers
     _register->registerModel<FlowVisualBlock<SaverImage>>                   ("Savers");
     _register->registerModel<FlowVisualBlock<SaverTrajectory>>              ("Savers");

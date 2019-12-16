@@ -58,6 +58,13 @@ endif()
 find_package(flow REQUIRED)
 target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC flow::flow)
 
+find_package(Pangolin)
+if(${Pangolin_FOUND})
+  target_include_directories(${COMPONENT_NAME} PUBLIC ${Pangolin_INCLUDE_DIRS})
+  target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC ${Pangolin_LIBRARIES})
+  target_compile_definitions(${COMPONENT_NAME} PUBLIC "MICO_HAS_PANGOLIN")	
+endif()
+
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/" ${CMAKE_MODULE_PATH})
 
 target_compile_options(${COMPONENT_NAME} PUBLIC "-Wall")

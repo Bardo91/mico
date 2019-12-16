@@ -156,4 +156,7 @@ fi
 ###################################################################
 # install_git_repo "MAVSDK" "https://github.com/mavlink/MAVSDK"
 
+
 install_git_repo "flow" "https://github.com/Bardo91/flow"
+
+install_git_repo "Pangolin" "https://github.com/stevenlovegrove/Pangolin"
