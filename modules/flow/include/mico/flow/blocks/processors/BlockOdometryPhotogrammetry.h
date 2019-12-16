@@ -39,8 +39,10 @@ namespace mico{
         std::vector<std::string> parameters() override;
 
     private:
+        void callbackOdometry(flow::DataFlow _data);
+
         bool computePointCloud(std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> &_df);
-        bool pinHoleModel(float cam_height , std::vector<cv::KeyPoint> keypoints, pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr OutputPointCloud);
+        bool pinHoleModel(float cam_height , std::vector<cv::KeyPoint> keypoints, pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr &OutputPointCloud);
     private:
 
         bool hasCalibration = false;
@@ -48,7 +50,7 @@ namespace mico{
         bool hasPrev_ = false;
         int nextDfId_ = 0;
         cv::Ptr<cv::ORB> featureDetector_ ;
-        std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> lastDataframe_ = nullptr;
+        std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> currentKeyframe_ = nullptr;
         std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> prevDf_ = nullptr;
         
         OdometryPhotogrammetry<pcl::PointXYZRGBNormal, mico::DebugLevels::Debug , OutInterfaces::Cout> odom_;
@@ -59,6 +61,8 @@ namespace mico{
         float initSLAMAltitude_ = 5.0;
         float firstAltitude_;
         float altitude_;
+
+        std::map<int,std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>>> memoryDf_; 
     };
 
 }
