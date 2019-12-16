@@ -51,7 +51,7 @@ namespace mico{
         std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> lastDataframe_ = nullptr;
         std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> prevDf_ = nullptr;
         
-        OdometryPhotogrammetry<pcl::PointXYZRGBNormal/*, mico::DebugLevels::Debug , OutInterfaces::Cout*/> odom_;
+        OdometryPhotogrammetry<pcl::PointXYZRGBNormal, mico::DebugLevels::Debug , OutInterfaces::Cout> odom_;
         bool idle_ = true;
         
         cv::Mat matrixLeft_, distCoefLeft_;

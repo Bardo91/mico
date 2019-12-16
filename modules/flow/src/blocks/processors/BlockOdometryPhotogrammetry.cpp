@@ -106,6 +106,21 @@ namespace mico{
                 
                 hasCalibration = true;
                 return true;
+            }else if(param.first == "params_json"){
+                std::ifstream file(param.second);
+                if (!file.is_open()) {
+                    std::cout << "Cannot open file." << std::endl;
+                    return false;
+                }
+                cjson::Json configFile;
+                if (!configFile.parse(file)) {
+                    std::cout << "Cannot parse config file." << std::endl;
+                    return false;
+                }
+                if (!odom_.init(configFile["registrator_params"])) {
+                    std::cout << "Error initializing odometry parameters" << std::endl;
+                    return false;
+                }
             }
         }
 
@@ -114,7 +129,7 @@ namespace mico{
     }
     
     std::vector<std::string> BlockOdometryPhotogrammetry::parameters(){
-        return {"calibration"};
+        return {"calibration", "params_json"};
     }
 
     bool BlockOdometryPhotogrammetry::computePointCloud(std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> &_df){
