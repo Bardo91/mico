@@ -24,19 +24,37 @@
 #include <pangolin/pangolin.h>
 #include <pangolin/scene/axis.h>
 #include <pangolin/scene/scenehandler.h>
-
+#include <unistd.h>
 
 namespace mico{
     #ifdef MICO_HAS_PANGOLIN
         int BlockVisualizerPangolin::sWinId = 0;
 
         BlockVisualizerPangolin::BlockVisualizerPangolin(){
-
             windowName_ = "pangolin_"+std::to_string(sWinId);
             sWinId++;
-
         
             renderThread_ = std::thread(&BlockVisualizerPangolin::renderCallback, this);    
+        
+            createPolicy({{"Camera Pose", "mat44"}});
+            registerCallback({"Camera Pose"}, 
+                                    [&](flow::DataFlow  _data){
+                                        if(idle_){
+                                            idle_ = false;
+                                            Eigen::Matrix4f pose = _data.get<Eigen::Matrix4f>("Camera Pose");
+                                            if(isFirst_){
+                                                lastPosition_ = pose.block<3,1>(0,3);
+                                                isFirst_ = false;
+                                            }else{
+                                                Eigen::Vector3f currPosition = pose.block<3,1>(0,3);
+                                                addLine(lastPosition_, currPosition);
+                                                lastPosition_ = currPosition;
+                                            }
+                                            idle_ = true;
+                                        }
+
+                                    }
+                                );
 
         }
         
@@ -44,11 +62,20 @@ namespace mico{
 
         }
 
-
-        void BlockVisualizerPangolin::drawOnRenderThread(std::function<void()> &_fn){
+        void BlockVisualizerPangolin::addLine(const Eigen::Vector3f &_p0, const Eigen::Vector3f &_p1){
             renderGuard_.lock();
-            pendingDrawing_.push_back(_fn);
+            linesToDraw_.push_back({_p0, _p1});
             renderGuard_.unlock();
+        }
+
+        void BlockVisualizerPangolin::addLines(const std::vector<Eigen::Vector3f> &_pts){
+            renderGuard_.lock();
+            linesToDraw_.push_back(_pts);
+            renderGuard_.unlock();
+        }
+
+        void BlockVisualizerPangolin::drawOnRenderThread(std::function<void()> _fn){
+
         }
 
         void BlockVisualizerPangolin::renderCallback(){
@@ -57,7 +84,7 @@ namespace mico{
         
             pangolin::OpenGlRenderState s_cam(
                 pangolin::ProjectionMatrix(640,480,420,420,320,240,0.2,100),
-                pangolin::ModelViewLookAt(-2,2,-2, 0,0,0, pangolin::AxisY)
+                pangolin::ModelViewLookAt(-2,0,-2, 0,0,0, pangolin::AxisY)
             );
 
             pangolin::Renderable tree;
@@ -75,17 +102,31 @@ namespace mico{
             });
 
             while( !pangolin::ShouldQuit() ) {
-                renderGuard_.lock();
-                for(auto &fn:pendingDrawing_){
-                    fn();
-                }
-                renderGuard_.unlock();
 
                 // Clear screen and activate view to render into
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+                drawLines();
+                
                 // Swap frames and Process Events
                 pangolin::FinishFrame();
+                usleep(1000);
+            }
+        }
+
+        void BlockVisualizerPangolin::drawLines(){
+            renderGuard_.lock();
+            auto linesToDraw = linesToDraw_;
+            renderGuard_.unlock();
+            for(auto &line:linesToDraw){
+                glLineWidth(2);
+                glColor4f(0.0f,1.0f,0.0f,0.6f);
+                glBegin(GL_LINES);
+                for(unsigned i = 1; i < line.size(); i++){
+                    glVertex3f(line[i-1][0], line[i-1][1], line[i-1][2]);
+                    glVertex3f(line[i][0], line[i][1], line[i][2]);
+                }
+                glEnd();
             }
         }
 #endif

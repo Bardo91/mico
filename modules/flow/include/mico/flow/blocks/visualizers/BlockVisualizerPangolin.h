@@ -31,6 +31,8 @@
 #include <functional>
 #include <vector>
 
+#include <Eigen/Eigen>
+
 namespace mico{
 
     #ifdef MICO_HAS_PANGOLIN
@@ -41,19 +43,25 @@ namespace mico{
             BlockVisualizerPangolin();
             ~BlockVisualizerPangolin();
 
-            void drawOnRenderThread(std::function<void()> &_fn);
+            void drawOnRenderThread(std::function<void()> _fn);
+
+            void addLine(const Eigen::Vector3f &_p0, const Eigen::Vector3f &_p1);
+            void addLines(const std::vector<Eigen::Vector3f> &_pts);
 
         private:
             void renderCallback();
-
+            void drawLines();
         private:
             bool idle_ = true;
-
+            bool isFirst_ = true;
+            Eigen::Vector3f lastPosition_;
             std::string windowName_ = "";
 
             std::thread renderThread_;
             std::mutex renderGuard_;
             std::vector<std::function<void()>> pendingDrawing_;
+            
+            std::vector<std::vector<Eigen::Vector3f>> linesToDraw_;
 
             static int sWinId;
         };
