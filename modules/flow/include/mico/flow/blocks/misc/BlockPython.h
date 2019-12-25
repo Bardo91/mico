@@ -26,24 +26,34 @@
 #include <flow/Block.h>
 
 #include <QTextEdit>
+#include <QGroupBox>
+#include <QVBoxLayout>
+#include <QPushButton>
 #include <mico/flow/blocks/misc/PythonSyntaxHighlighter.h>
 
 namespace mico{
     class BlockPython: public flow::Block{
+        Q_OBJECT
     public:
         static std::string name() {return "Python";}
 
         BlockPython();
 
         virtual QWidget * customWidget(){
-            return pythonEditor_;
+            return blockInterpreter_;
         }
+
+    private:
+        void runPythonCode();
 
     private:
         bool idle_ = true;
         bool isReady_ = false;
         
+        QGroupBox *blockInterpreter_;
+        QVBoxLayout *blockInterpreterLayout_;
         QTextEdit * pythonEditor_;
+        QPushButton * runButton_;
         PythonSyntaxHighlighter *highlighter_;
     };
 

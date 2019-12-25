@@ -26,10 +26,34 @@
 #include <chrono>
 #include <iostream>
 
+#include <Python.h>
+
 namespace mico{
     BlockPython::BlockPython(){
         
+        blockInterpreter_ = new QGroupBox("");
+        blockInterpreterLayout_ = new QVBoxLayout();
+        blockInterpreter_->setLayout(blockInterpreterLayout_);
+        
         pythonEditor_ = new QTextEdit;
         highlighter_ = new PythonSyntaxHighlighter(pythonEditor_->document());
+        blockInterpreterLayout_->addWidget(pythonEditor_);
+        runButton_ = new QPushButton("play");
+        blockInterpreterLayout_->addWidget(runButton_);
+        
+        // connect(runButton_, &QPushButton::clicked, this, [this]() {
+        //         this->runPythonCode();
+        //     });
+    }
+
+
+
+    void BlockPython::runPythonCode(){
+
+        std::string pythonCode = pythonEditor_->toPlainText().toStdString();
+
+        Py_Initialize();
+        PyRun_SimpleString(pythonCode.c_str());
+    
     }
 }
