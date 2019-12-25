@@ -90,6 +90,9 @@ void registerDataModels(FlowVisualInterface::RegistryType_ &_register) {
     // State filtering
     _register->registerModel<FlowVisualBlock<BlockEKFIMU>>                  ("State Filtering");
 
+    // Misc
+    _register->registerModel<FlowVisualBlock<BlockPython>>                  ("Misc");
+
 }
 
 
