@@ -41,9 +41,9 @@ namespace mico{
         runButton_ = new QPushButton("play");
         blockInterpreterLayout_->addWidget(runButton_);
         
-        // connect(runButton_, &QPushButton::clicked, this, [this]() {
-        //         this->runPythonCode();
-        //     });
+        QWidget::connect(runButton_, &QPushButton::clicked, [this]() {
+                this->runPythonCode();
+            });
     }
 
 

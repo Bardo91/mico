@@ -32,8 +32,7 @@
 #include <mico/flow/blocks/misc/PythonSyntaxHighlighter.h>
 
 namespace mico{
-    class BlockPython: public flow::Block{
-        Q_OBJECT
+    class BlockPython: public flow::Block {
     public:
         static std::string name() {return "Python";}
 
