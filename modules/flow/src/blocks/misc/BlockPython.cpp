@@ -47,9 +47,12 @@ namespace mico{
         selectorInputs.exec();
 
         auto inputs = selectorInputs.getInterfaces();
-        createPolicy(inputs, [&](flow::DataFlow _data){
+        if(inputs.size() > 0){
+            createPolicy(inputs);
 
-        });
+            // registerCallback(, [&](flow::DataFlow _data){
+            // });
+        }
 
 
         blockInterpreter_ = new QGroupBox("");

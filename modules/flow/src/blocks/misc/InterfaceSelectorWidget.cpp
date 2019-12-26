@@ -24,17 +24,22 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 
+#include <flow/DataFlow.h>
+
 namespace mico{
 
     InterfaceElement::InterfaceElement(){
         QHBoxLayout * layout = new QHBoxLayout;
         setLayout(layout);
 
-        QLineEdit *label_ =new QLineEdit("label");
-        QComboBox *typeList_ = new QComboBox;
+        label_ =new QLineEdit("label");
+        typeList_ = new QComboBox;
         
-        filll here default options
-
+        auto flowTypes = flow::TypeLog::registeredTypes();
+        for(auto type:flowTypes){
+            typeList_->addItem(type.c_str());
+        }
+        
         layout->addWidget(label_);
         layout->addWidget(typeList_);
     }
@@ -59,7 +64,7 @@ namespace mico{
         setModal(true);
         setFocusPolicy(Qt::StrongFocus);
         setFocus();
-        setWindowTitle(_title);
+        setWindowTitle(_title.c_str());
     }
 
     std::map<std::string, std::string> InterfaceSelectorWidget::getInterfaces() const{
