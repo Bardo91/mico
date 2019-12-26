@@ -29,7 +29,7 @@
 #include <QGroupBox>
 #include <QVBoxLayout>
 #include <QPushButton>
-#include <mico/flow/blocks/misc/PythonSyntaxHighlighter.h>
+#include <mico/flow/blocks/misc/python/PythonSyntaxHighlighter.h>
 
 namespace mico{
     class BlockPython: public flow::Block {

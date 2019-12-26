@@ -33,7 +33,7 @@
  *  -----------Modified By Bhathiya Perera-------------
 */
 
-#include <mico/flow/blocks/misc/PythonSyntaxHighlighter.h>
+#include <mico/flow/blocks/misc/python/PythonSyntaxHighlighter.h>
 
 
 PythonSyntaxHighlighter::PythonSyntaxHighlighter(QTextDocument *parent)

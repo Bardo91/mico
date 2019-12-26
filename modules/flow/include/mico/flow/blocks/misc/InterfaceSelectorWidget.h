@@ -19,62 +19,51 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#include <mico/flow/blocks/misc/BlockPython.h>
-#include <flow/Policy.h>
-#include <flow/Outpipe.h>
-#include <flow/DataFlow.h>
-#include <chrono>
-#include <iostream>
-#include <Python.h>
 
-#include <QtWidgets>
-#include <QPushButton>
-#include <mico/flow/blocks/misc/InterfaceSelectorWidget.h>
+#ifndef MICO_FLOW_STREAMERS_BLOCKS_MISC_INTERFACESELECTORWIDGET_H_
+#define MICO_FLOW_STREAMERS_BLOCKS_MISC_INTERFACESELECTORWIDGET_H_
+
+#include <QDialog>
+#include <QLineEdit>
+#include <QComboBox>
+#include <QSpinBox>
 
 namespace mico{
-    BlockPython::BlockPython(){
-        // Instantiate outputs
-        InterfaceSelectorWidget selectorOutputs("Outputs");
-        selectorOutputs.exec();
+    class InterfaceElement: public QGroupBox{
+    public:
+        InterfaceElement();
 
-        auto outputs = selectorOutputs.getInterfaces();
-        for(auto &output: outputs){
-            createPipe(output.first, output.second);
+        std::string label() const{
+            return label_->text().toStdString();
+        }
+        std::string type() const{
+            return typeList_->currentText().toStdString();
         }
 
-        // Instantiate Inputs
-        InterfaceSelectorWidget selectorInputs("Inputs");
-        selectorInputs.exec();
+    private:
+        QComboBox *typeList_;
+        QLineEdit *label_;
+    };
 
-        auto inputs = selectorInputs.getInterfaces();
-        createPolicy(inputs, [&](flow::DataFlow _data){
+    class InterfaceSelectorWidget : public QDialog{
+    public:
+        InterfaceSelectorWidget(std::string _title, QWidget *parent = nullptr);
 
-        });
+        std::map<std::string, std::string> getInterfaces() const;
 
+    private:
+        void updateInterfaces(int _nInterfaces);
 
-        blockInterpreter_ = new QGroupBox("");
-        blockInterpreterLayout_ = new QVBoxLayout();
-        blockInterpreter_->setLayout(blockInterpreterLayout_);
-        
-        pythonEditor_ = new QTextEdit;
-        highlighter_ = new PythonSyntaxHighlighter(pythonEditor_->document());
-        blockInterpreterLayout_->addWidget(pythonEditor_);
-        runButton_ = new QPushButton("play");
-        blockInterpreterLayout_->addWidget(runButton_);
-        
-        QWidget::connect(runButton_, &QPushButton::clicked, [this]() {
-                this->runPythonCode();
-            });
-    }
+    private:
+        QSpinBox *countSelector_;
+        QVBoxLayout *interfacesLayout_;
+        QVBoxLayout *mainLayout_;
+        std::vector<InterfaceElement*> interfaces_;
+
+    };
 
 
 
-    void BlockPython::runPythonCode(){
-
-        std::string pythonCode = pythonEditor_->toPlainText().toStdString();
-
-        Py_Initialize();
-        PyRun_SimpleString(pythonCode.c_str());
-    
-    }
 }
+
+#endif
