@@ -43,13 +43,16 @@ namespace mico{
         }
 
     private:
-        void runPythonCode(flow::DataFlow _data);
+        void runPythonCode(flow::DataFlow _data, bool _useData);
+
+        void encodeInput(void *_input /*Yei...*/, flow::DataFlow _data, std::string _tag, std::string _typeTag);
+        void flushPipe(void *_locals /*Yei...*/, std::string _tag, std::string _typeTag);
 
     private:
         bool idle_ = true;
         bool isReady_ = false;
 
-        std::map<std::string, string> inputInfo_, outputInfo_;
+        std::map<std::string, std::string> inputInfo_, outputInfo_;
         
         QGroupBox *blockInterpreter_;
         QVBoxLayout *blockInterpreterLayout_;

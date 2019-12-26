@@ -19,17 +19,28 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
+
 #include <mico/flow/blocks/misc/BlockPython.h>
+
 #include <flow/Policy.h>
 #include <flow/Outpipe.h>
 #include <flow/DataFlow.h>
 #include <chrono>
 #include <iostream>
-#include <Python.h>
+#include <fstream>
 
 #include <QtWidgets>
 #include <QPushButton>
+
 #include <mico/flow/blocks/misc/InterfaceSelectorWidget.h>
+
+#ifdef slots
+#undef slots
+#endif
+
+#include <Python.h>
+#include <boost/python.hpp>
+#include <boost/python/dict.hpp>
 
 namespace mico{
     BlockPython::BlockPython(){
@@ -50,8 +61,14 @@ namespace mico{
         if(inputInfo_.size() > 0){
             createPolicy(inputInfo_);
 
-            // registerCallback(, [&](flow::DataFlow _data){
-            // });
+            std::vector<std::string> inTags;
+            for(auto input: inputInfo_){
+                inTags.push_back(input.first);
+            }
+
+            registerCallback(inTags, [&](flow::DataFlow _data){
+                runPythonCode(_data, true);
+            });
         }
 
 
@@ -67,7 +84,7 @@ namespace mico{
         
         QWidget::connect(runButton_, &QPushButton::clicked, [this]() {
                 flow::DataFlow data({}, [](flow::DataFlow _data){});
-                this->runPythonCode(data);
+                this->runPythonCode(data, false);
             });
     }
 
@@ -81,33 +98,85 @@ namespace mico{
         }
     }
 
-    void BlockPython::runPythonCode(flow::DataFlow _data){
+    void BlockPython::runPythonCode(flow::DataFlow _data, bool _useData){
 
         std::string pythonCode = pythonEditor_->toPlainText().toStdString();
 
-        replaceAll(pythonCode, "\n", "\n\t");
-        pythonCode =    "def micoFlowFunction(inputMap):\n\t" + 
-                        "outputMap = {}:\n\t" + 
-                        pythonCode + 
-                        "\n\t return outputMap";
+    	Py_Initialize();
+        PyObject* main_module = PyImport_AddModule("__main__");
+        PyObject* main_dict = PyModule_GetDict(main_module);
 
-        std::cout << pythonCode << std::endl;
-
-        PyObject *pModule = PyImport_Import(pName);
-        PyObject *pFunc = PyObject_GetAttrString(pModule, "micoFlowFunction");
-        if (pFunc && PyCallable_Check(pFunc)) {
-            PyObject = pArgs = PyTuple_New(inputInfo_.size());
-            // Encode inputs
-
-            PyObject *pValue = PyObject_CallObject(pFunc, pArgs);
-        
-            // Encode outputs
-
+        PyObject *locals = PyDict_New();
+        if(_useData) { // Encode inputs
+            for(auto input:inputInfo_){
+                encodeInput(locals, _data, input.first, input.second);
+            }
         }
-        Py_XDECREF(pFunc);
+
+        PyObject *pValue = PyRun_String(pythonCode.c_str(), Py_file_input, main_dict, locals);
+        if (pValue == NULL) {
+            PyErr_Print();
+        }
+
+        for(auto output:outputInfo_){
+            flushPipe(locals, output.first, output.second);
+        }
         
-        // Py_Initialize();
-        // PyRun_SimpleString(pythonCode.c_str());
-    
+
+        Py_DECREF(pValue);
+        Py_DECREF(main_module);
+        Py_DECREF(main_dict);
+        Py_DECREF(locals);
+
+        Py_Finalize();
+    }
+
+
+    void BlockPython::encodeInput(void *_input, flow::DataFlow _data, std::string _tag, std::string _typeTag){
+        PyObject *pKey = PyUnicode_FromString(_tag.c_str());
+        PyObject *pValue;
+        
+        if(_typeTag == "int"){
+            pValue = PyLong_FromLong(_data.get<int>(_tag));
+        }else if(_typeTag == "float"){
+            pValue = PyFloat_FromDouble(_data.get<float>(_tag));
+        }else if(_typeTag == "vec3"){
+
+        }else if(_typeTag == "vec4"){
+
+        }else if(_typeTag == "mat33"){
+
+        }else if(_typeTag == "mat44"){
+
+        }else{
+            std::cout << "Type " << _typeTag << " of label "<< _tag << " is not supported yet in python block." << ".It will be initialized as none. Please contact the administrators" << std::endl;
+            return;
+        }
+
+        PyDict_SetItem((PyObject*) _input, pKey, pValue);
+    }
+
+    void BlockPython::flushPipe(void *_locals /*Yei...*/, std::string _tag, std::string _typeTag){
+        PyObject* pValue = PyDict_GetItem((PyObject*)_locals, PyUnicode_FromString(_tag.c_str()));
+
+        if(!pValue)  // Not filled
+            return;
+        
+        if(_typeTag == "int"){
+            getPipe(_tag)->flush((int) PyLong_AsLong(pValue));
+        }else if(_typeTag == "float"){
+            getPipe(_tag)->flush((float) PyFloat_AsDouble(pValue));
+        }else if(_typeTag == "vec3"){
+
+        }else if(_typeTag == "vec4"){
+
+        }else if(_typeTag == "mat33"){
+
+        }else if(_typeTag == "mat44"){
+
+        }else{
+            std::cout << "Type " << _typeTag << " of label "<< _tag << " is not supported yet in python block." << ".It will be initialized as none. Please contact the administrators" << std::endl;
+            return;
+        }
     }
 }
