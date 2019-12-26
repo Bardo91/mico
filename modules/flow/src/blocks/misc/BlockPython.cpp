@@ -37,8 +37,8 @@ namespace mico{
         InterfaceSelectorWidget selectorOutputs("Outputs");
         selectorOutputs.exec();
 
-        auto outputs = selectorOutputs.getInterfaces();
-        for(auto &output: outputs){
+        outputInfo_ = selectorOutputs.getInterfaces();
+        for(auto &output: outputInfo_){
             createPipe(output.first, output.second);
         }
 
@@ -46,9 +46,9 @@ namespace mico{
         InterfaceSelectorWidget selectorInputs("Inputs");
         selectorInputs.exec();
 
-        auto inputs = selectorInputs.getInterfaces();
-        if(inputs.size() > 0){
-            createPolicy(inputs);
+        inputInfo_ = selectorInputs.getInterfaces();
+        if(inputInfo_.size() > 0){
+            createPolicy(inputInfo_);
 
             // registerCallback(, [&](flow::DataFlow _data){
             // });
@@ -66,18 +66,48 @@ namespace mico{
         blockInterpreterLayout_->addWidget(runButton_);
         
         QWidget::connect(runButton_, &QPushButton::clicked, [this]() {
-                this->runPythonCode();
+                flow::DataFlow data({}, [](flow::DataFlow _data){});
+                this->runPythonCode(data);
             });
     }
 
+    void replaceAll(std::string& str, const std::string& from, const std::string& to) {
+        if(from.empty())
+            return;
+        size_t start_pos = 0;
+        while((start_pos = str.find(from, start_pos)) != std::string::npos) {
+            str.replace(start_pos, from.length(), to);
+            start_pos += to.length(); // In case 'to' contains 'from', like replacing 'x' with 'yx'
+        }
+    }
 
-
-    void BlockPython::runPythonCode(){
+    void BlockPython::runPythonCode(flow::DataFlow _data){
 
         std::string pythonCode = pythonEditor_->toPlainText().toStdString();
 
-        Py_Initialize();
-        PyRun_SimpleString(pythonCode.c_str());
+        replaceAll(pythonCode, "\n", "\n\t");
+        pythonCode =    "def micoFlowFunction(inputMap):\n\t" + 
+                        "outputMap = {}:\n\t" + 
+                        pythonCode + 
+                        "\n\t return outputMap";
+
+        std::cout << pythonCode << std::endl;
+
+        PyObject *pModule = PyImport_Import(pName);
+        PyObject *pFunc = PyObject_GetAttrString(pModule, "micoFlowFunction");
+        if (pFunc && PyCallable_Check(pFunc)) {
+            PyObject = pArgs = PyTuple_New(inputInfo_.size());
+            // Encode inputs
+
+            PyObject *pValue = PyObject_CallObject(pFunc, pArgs);
+        
+            // Encode outputs
+
+        }
+        Py_XDECREF(pFunc);
+        
+        // Py_Initialize();
+        // PyRun_SimpleString(pythonCode.c_str());
     
     }
 }
