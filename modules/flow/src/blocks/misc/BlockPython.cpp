@@ -41,6 +41,9 @@
 #include <Python.h>
 #include <boost/python.hpp>
 #include <boost/python/dict.hpp>
+#include <numpy/arrayobject.h>
+#include <mico/flow/blocks/misc/python/ConversionUtils.h>
+
 
 namespace mico{
     BlockPython::BlockPython(){
@@ -71,7 +74,6 @@ namespace mico{
             });
         }
 
-
         blockInterpreter_ = new QGroupBox("");
         blockInterpreterLayout_ = new QVBoxLayout();
         blockInterpreter_->setLayout(blockInterpreterLayout_);
@@ -99,10 +101,16 @@ namespace mico{
     }
 
     void BlockPython::runPythonCode(flow::DataFlow _data, bool _useData){
-
         std::string pythonCode = pythonEditor_->toPlainText().toStdString();
 
     	Py_Initialize();
+        if(PyArray_API == NULL) {
+            if(_import_array() < 0){
+                std::cout << "Error importing numpy" << std::endl;
+                return;
+            } 
+        }
+
         PyObject* main_module = PyImport_AddModule("__main__");
         PyObject* main_dict = PyModule_GetDict(main_module);
 
@@ -116,6 +124,8 @@ namespace mico{
         PyObject *pValue = PyRun_String(pythonCode.c_str(), Py_file_input, main_dict, locals);
         if (pValue == NULL) {
             PyErr_Print();
+        }else{
+            Py_DECREF(pValue);
         }
 
         for(auto output:outputInfo_){
@@ -123,7 +133,6 @@ namespace mico{
         }
         
 
-        Py_DECREF(pValue);
         Py_DECREF(main_module);
         Py_DECREF(main_dict);
         Py_DECREF(locals);
@@ -141,13 +150,11 @@ namespace mico{
         }else if(_typeTag == "float"){
             pValue = PyFloat_FromDouble(_data.get<float>(_tag));
         }else if(_typeTag == "vec3"){
-
+            pValue = EigenMatrix_to_python_matrix<Eigen::Vector3f>::convert(_data.get<Eigen::Vector3f>(_tag));
         }else if(_typeTag == "vec4"){
-
-        }else if(_typeTag == "mat33"){
-
+            pValue = EigenMatrix_to_python_matrix<Eigen::Vector4f>::convert(_data.get<Eigen::Vector4f>(_tag));
         }else if(_typeTag == "mat44"){
-
+            pValue = EigenMatrix_to_python_matrix<Eigen::Matrix4f>::convert(_data.get<Eigen::Matrix4f>(_tag));
         }else{
             std::cout << "Type " << _typeTag << " of label "<< _tag << " is not supported yet in python block." << ".It will be initialized as none. Please contact the administrators" << std::endl;
             return;

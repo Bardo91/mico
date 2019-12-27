@@ -29,11 +29,64 @@
 using namespace flow;
 using namespace mico;
 
+
+class IntStreamerBlock: public Block{
+public:
+    static std::string name() {return "Int streamer";}
+        IntStreamerBlock(){
+            createPipe("time", "int");
+        }
+
+        virtual void loopCallback() override{
+            auto t0 = std::chrono::high_resolution_clock::now();
+            while(isRunningLoop()){
+                auto t1 = std::chrono::high_resolution_clock::now();
+                float diff = counter_ + std::chrono::duration_cast<std::chrono::milliseconds>(t1-t0).count()/1000.0f;
+                getPipe("time")->flush(int(diff));
+                std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+            }      
+        }
+
+        virtual bool configure(std::unordered_map<std::string, std::string> _params) override { 
+            if(_params["init_value"] != ""){
+                std::istringstream istr(_params["init_value"]);
+                istr >> counter_;
+                return true;
+            }else{
+                return false;
+            } 
+        };
+        virtual std::vector<std::string> parameters() override{ return {"init_value"}; };
+private:
+    int counter_  = 1;
+};
+
+
+class IntCouterBlock: public Block{
+public:
+    static std::string name() {return "Int Couter";}
+    IntCouterBlock(){
+        createPolicy({{{"clock", "int"}}});
+        registerCallback({"clock"}, 
+                            [&](DataFlow _data){
+                                int data = _data.get<int>("clock");
+                                std::cout << data << std::endl;
+                            }
+                            );
+    }
+    ~IntCouterBlock(){ /*Nothing spetial*/}
+};
+
+
+
 using QtNodes::DataModelRegistry;
 
 FlowVisualInterface manager;
 
 void registerDataModels(FlowVisualInterface::RegistryType_ &_register) {
+
+        _register->registerModel<FlowVisualBlock<IntStreamerBlock, true>>("0streamers");
+        _register->registerModel<FlowVisualBlock<IntCouterBlock>>("0visualizer");
     // Casters
     _register->registerModel<FlowVisualBlock<BlockDataframeToPose>>         ("Cast");
     // _register->registerModel<FlowVisualBlock<BlockDataframeToCloud>>        ("Cast");
