@@ -19,46 +19,48 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-// Streamers
-#undef Q_FOREACH
-#include <mico/flow/blocks/streamers/StreamRealSense.h>
-#include <mico/flow/blocks/streamers/StreamDataset.h>
-#include <mico/flow/blocks/streamers/StreamPixhawk.h>
 
+#ifndef MICO_FLOW_STREAMERS_BLOCKS_PROCESSORS_BLOCKPYTHON_H_
+#define MICO_FLOW_STREAMERS_BLOCKS_PROCESSORS_BLOCKPYTHON_H_
 
-// Processors
-#include <mico/flow/blocks/processors/BlockOdometryRGBD.h>
-#include <mico/flow/blocks/processors/BlockOdometryPhotogrammetry.h>
-#include <mico/flow/blocks/processors/BlockDatabaseMarkI.h>
-#include <mico/flow/blocks/processors/BlockLoopClosure.h>
-#include <mico/flow/blocks/processors/BlockOptimizerCF.h>
-#include <mico/flow/blocks/processors/BlockEKFIMU.h>
-// #include <mico/flow/blocks/processors/BlockParticleFilterKinematic.h>
+#include <flow/Block.h>
 
+#include <QTextEdit>
+#include <QGroupBox>
+#include <QVBoxLayout>
+#include <QPushButton>
+#include <mico/flow/blocks/misc/python/PythonSyntaxHighlighter.h>
 
-// Visualizers
-#include <mico/flow/blocks/visualizers/BlockImageVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockTrayectoryVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockDatabaseVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockSceneVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockPointCloudVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockVisualizerPangolin.h>
+namespace mico{
+    class BlockPython: public flow::Block {
+    public:
+        static std::string name() {return "Python";}
 
-// Casters
-#include <mico/flow/blocks/CastBlocks.h>
+        BlockPython();
 
-// Queuers
-#include <mico/flow/blocks/BlockQueuer.h>
+        virtual QWidget * customWidget(){
+            return blockInterpreter_;
+        }
 
-// Savers
-#include <mico/flow/blocks/savers/SaverImage.h>
-#include <mico/flow/blocks/savers/SaverTrajectory.h>
-#include <mico/flow/blocks/savers/SaverEntity.h>
+    private:
+        void runPythonCode(flow::DataFlow _data, bool _useData);
 
-// DNN
-#ifdef HAS_DARKNET
-    #include <mico/flow/blocks/processors/BlockDarknet.h> // 666 HAS DARKNET
+        void encodeInput(void *_input /*Yei...*/, flow::DataFlow _data, std::string _tag, std::string _typeTag);
+        void flushPipe(void *_locals /*Yei...*/, std::string _tag, std::string _typeTag);
+
+    private:
+        bool idle_ = true;
+        bool isReady_ = false;
+
+        std::map<std::string, std::string> inputInfo_, outputInfo_;
+        
+        QGroupBox *blockInterpreter_;
+        QVBoxLayout *blockInterpreterLayout_;
+        QTextEdit * pythonEditor_;
+        QPushButton * runButton_;
+        PythonSyntaxHighlighter *highlighter_;
+    };
+
+}
+
 #endif
-
-// Misc
-#include <mico/flow/blocks/misc/BlockPython.h>

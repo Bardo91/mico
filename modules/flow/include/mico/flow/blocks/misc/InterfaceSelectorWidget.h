@@ -19,46 +19,55 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-// Streamers
-#undef Q_FOREACH
-#include <mico/flow/blocks/streamers/StreamRealSense.h>
-#include <mico/flow/blocks/streamers/StreamDataset.h>
-#include <mico/flow/blocks/streamers/StreamPixhawk.h>
+
+#ifndef MICO_FLOW_STREAMERS_BLOCKS_MISC_INTERFACESELECTORWIDGET_H_
+#define MICO_FLOW_STREAMERS_BLOCKS_MISC_INTERFACESELECTORWIDGET_H_
+
+#include <QDialog>
+#include <QLineEdit>
+#include <QComboBox>
+#include <QSpinBox>
+
+namespace mico{
+    class InterfaceElement: public QGroupBox{
+    public:
+        InterfaceElement(std::string _label = "label");
+
+        std::string label() const{
+            return label_->text().toStdString();
+        }
+        std::string type() const{
+            return typeList_->currentText().toStdString();
+        }
+
+    private:
+        QComboBox *typeList_;
+        QLineEdit *label_;
+    };
+
+    class InterfaceSelectorWidget : public QDialog{
+    public:
+        enum class INTERFACE_TYPE {INPUT, OUTPUT};
+        InterfaceSelectorWidget(std::string _title, QWidget *parent = nullptr);
+
+        std::map<std::string, std::string> getInterfaces(INTERFACE_TYPE _type) const;
+
+    private:
+        void updateInterfacesIn(int _nInterfaces);
+        void updateInterfacesOut(int _nInterfaces);
+
+    private:
+        QSpinBox *countSelectorIn_, *countSelectorOut_;
+        QHBoxLayout *twoColumnLayout_;
+        QVBoxLayout *interfacesLayoutIn_, *interfacesLayoutOut_;
+        QGroupBox *inputGroup_, *outputGroup_;
+        std::vector<InterfaceElement*> interfacesInput_;
+        std::vector<InterfaceElement*> interfacesOutput_;
+
+    };
 
 
-// Processors
-#include <mico/flow/blocks/processors/BlockOdometryRGBD.h>
-#include <mico/flow/blocks/processors/BlockOdometryPhotogrammetry.h>
-#include <mico/flow/blocks/processors/BlockDatabaseMarkI.h>
-#include <mico/flow/blocks/processors/BlockLoopClosure.h>
-#include <mico/flow/blocks/processors/BlockOptimizerCF.h>
-#include <mico/flow/blocks/processors/BlockEKFIMU.h>
-// #include <mico/flow/blocks/processors/BlockParticleFilterKinematic.h>
 
+}
 
-// Visualizers
-#include <mico/flow/blocks/visualizers/BlockImageVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockTrayectoryVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockDatabaseVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockSceneVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockPointCloudVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockVisualizerPangolin.h>
-
-// Casters
-#include <mico/flow/blocks/CastBlocks.h>
-
-// Queuers
-#include <mico/flow/blocks/BlockQueuer.h>
-
-// Savers
-#include <mico/flow/blocks/savers/SaverImage.h>
-#include <mico/flow/blocks/savers/SaverTrajectory.h>
-#include <mico/flow/blocks/savers/SaverEntity.h>
-
-// DNN
-#ifdef HAS_DARKNET
-    #include <mico/flow/blocks/processors/BlockDarknet.h> // 666 HAS DARKNET
 #endif
-
-// Misc
-#include <mico/flow/blocks/misc/BlockPython.h>
