@@ -2,6 +2,9 @@
 #include <boost/python.hpp>
 #include <numpy/arrayobject.h>
 
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
+
 namespace bp = boost::python;
 
 template <typename SCALAR> struct NumpyEquivalentType { };
@@ -28,6 +31,37 @@ struct EigenMatrix_to_python_matrix {
         return (PyObject *)pyArray;
     }
 };
+
+
+PyObject *cloudTo(const pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr &_cloud) {
+    const int R = _cloud->height; 
+    const int C = _cloud->width; 
+
+    const int dims = 2 + 1; // width, height, XYZ+RGB+NormalXYZ
+
+    npy_intp shape[dims] = {R, C, 9};
+    PyArrayObject *pyArray = (PyArrayObject *) PyArray_SimpleNew(dims, shape, NumpyEquivalentType<float>::type_code);
+
+    float *pyData = (float *)PyArray_DATA(pyArray);
+
+    for(unsigned i = 0; i < R; i++){
+        for(unsigned j = 0; j < C; j++){ // 666 TODO faster?
+            npy_intp shape[dims] = {i,j,0};
+            shape[2] = 0; *((float*)PyArray_GetPtr(pyArray, shape)) = _cloud->at(i,j).x;
+            shape[2] = 1; *((float*)PyArray_GetPtr(pyArray, shape)) = _cloud->at(i,j).y;
+            shape[2] = 2; *((float*)PyArray_GetPtr(pyArray, shape)) = _cloud->at(i,j).z;
+            shape[2] = 3; *((float*)PyArray_GetPtr(pyArray, shape)) = _cloud->at(i,j).r;
+            shape[2] = 4; *((float*)PyArray_GetPtr(pyArray, shape)) = _cloud->at(i,j).g;
+            shape[2] = 5; *((float*)PyArray_GetPtr(pyArray, shape)) = _cloud->at(i,j).b;
+            shape[2] = 6; *((float*)PyArray_GetPtr(pyArray, shape)) = _cloud->at(i,j).normal_x;
+            shape[2] = 7; *((float*)PyArray_GetPtr(pyArray, shape)) = _cloud->at(i,j).normal_y;
+            shape[2] = 8; *((float*)PyArray_GetPtr(pyArray, shape)) = _cloud->at(i,j).normal_z;
+        }
+    }
+
+    return (PyObject *)pyArray;
+}
+
 
 /* --- FROM PYTHON ------------------------------------------------------------ */
 template <typename MatType>

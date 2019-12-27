@@ -48,19 +48,15 @@
 namespace mico{
     BlockPython::BlockPython(){
         // Instantiate outputs
-        InterfaceSelectorWidget selectorOutputs("Outputs");
-        selectorOutputs.exec();
+        InterfaceSelectorWidget interfaceSelector("Python interface Selector");
+        interfaceSelector.exec();
 
-        outputInfo_ = selectorOutputs.getInterfaces();
+        outputInfo_ = interfaceSelector.getInterfaces(InterfaceSelectorWidget::INTERFACE_TYPE::OUTPUT);
         for(auto &output: outputInfo_){
             createPipe(output.first, output.second);
         }
 
-        // Instantiate Inputs
-        InterfaceSelectorWidget selectorInputs("Inputs");
-        selectorInputs.exec();
-
-        inputInfo_ = selectorInputs.getInterfaces();
+        inputInfo_ = interfaceSelector.getInterfaces(InterfaceSelectorWidget::INTERFACE_TYPE::INPUT);
         if(inputInfo_.size() > 0){
             createPolicy(inputInfo_);
 
@@ -174,13 +170,26 @@ namespace mico{
         }else if(_typeTag == "float"){
             getPipe(_tag)->flush((float) PyFloat_AsDouble(pValue));
         }else if(_typeTag == "vec3"){
-
+            bp::converter::rvalue_from_python_stage1_data *memory = new bp::converter::rvalue_from_python_stage1_data;
+            if(EigenMatrix_from_python_array<Eigen::Vector3f>::convertible(pValue)){
+                EigenMatrix_from_python_array<Eigen::Vector3f>::construct(pValue, memory);
+                Eigen::Vector3f result = *((Eigen::Vector3f*)memory->convertible);
+                getPipe(_tag)->flush(result);
+            }
         }else if(_typeTag == "vec4"){
-
-        }else if(_typeTag == "mat33"){
-
+            bp::converter::rvalue_from_python_stage1_data *memory = new bp::converter::rvalue_from_python_stage1_data;
+            if(EigenMatrix_from_python_array<Eigen::Vector4f>::convertible(pValue)){
+                EigenMatrix_from_python_array<Eigen::Vector4f>::construct(pValue, memory);
+                Eigen::Vector4f result = *((Eigen::Vector4f*)memory->convertible);
+                getPipe(_tag)->flush(result);
+            }
         }else if(_typeTag == "mat44"){
-
+            bp::converter::rvalue_from_python_stage1_data *memory = new bp::converter::rvalue_from_python_stage1_data;
+            if(EigenMatrix_from_python_array<Eigen::Matrix4f>::convertible(pValue)){
+                EigenMatrix_from_python_array<Eigen::Matrix4f>::construct(pValue, memory);
+                Eigen::Matrix4f result = *((Eigen::Matrix4f*)memory->convertible);
+                getPipe(_tag)->flush(result);
+            }
         }else{
             std::cout << "Type " << _typeTag << " of label "<< _tag << " is not supported yet in python block." << ".It will be initialized as none. Please contact the administrators" << std::endl;
             return;

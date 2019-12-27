@@ -31,7 +31,7 @@
 namespace mico{
     class InterfaceElement: public QGroupBox{
     public:
-        InterfaceElement();
+        InterfaceElement(std::string _label = "label");
 
         std::string label() const{
             return label_->text().toStdString();
@@ -47,18 +47,22 @@ namespace mico{
 
     class InterfaceSelectorWidget : public QDialog{
     public:
+        enum class INTERFACE_TYPE {INPUT, OUTPUT};
         InterfaceSelectorWidget(std::string _title, QWidget *parent = nullptr);
 
-        std::map<std::string, std::string> getInterfaces() const;
+        std::map<std::string, std::string> getInterfaces(INTERFACE_TYPE _type) const;
 
     private:
-        void updateInterfaces(int _nInterfaces);
+        void updateInterfacesIn(int _nInterfaces);
+        void updateInterfacesOut(int _nInterfaces);
 
     private:
-        QSpinBox *countSelector_;
-        QVBoxLayout *interfacesLayout_;
-        QVBoxLayout *mainLayout_;
-        std::vector<InterfaceElement*> interfaces_;
+        QSpinBox *countSelectorIn_, *countSelectorOut_;
+        QHBoxLayout *twoColumnLayout_;
+        QVBoxLayout *interfacesLayoutIn_, *interfacesLayoutOut_;
+        QGroupBox *inputGroup_, *outputGroup_;
+        std::vector<InterfaceElement*> interfacesInput_;
+        std::vector<InterfaceElement*> interfacesOutput_;
 
     };
 

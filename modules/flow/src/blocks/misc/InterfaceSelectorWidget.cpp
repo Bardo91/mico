@@ -28,11 +28,11 @@
 
 namespace mico{
 
-    InterfaceElement::InterfaceElement(){
+    InterfaceElement::InterfaceElement(std::string _label){
         QHBoxLayout * layout = new QHBoxLayout;
         setLayout(layout);
 
-        label_ =new QLineEdit("label");
+        label_ =new QLineEdit(_label.c_str());
         typeList_ = new QComboBox;
         
         auto flowTypes = flow::TypeLog::registeredTypes();
@@ -46,52 +46,96 @@ namespace mico{
 
 
     InterfaceSelectorWidget::InterfaceSelectorWidget(std::string _title, QWidget *parent): QDialog(parent) {
-        mainLayout_ = new QVBoxLayout;
-        setLayout(mainLayout_);
+        twoColumnLayout_ = new QHBoxLayout;
+        setLayout(twoColumnLayout_);
 
-        QHBoxLayout *countLayout = new QHBoxLayout;
-        mainLayout_->addLayout(countLayout);
-        QLabel *countLabel = new QLabel("N. Interfaces");
-        countLayout->addWidget(countLabel); 
-        countSelector_ = new QSpinBox();
-        countLayout->addWidget(countSelector_);
-        connect(countSelector_, QOverload<int>::of(&QSpinBox::valueChanged), [this](int _n){ this->updateInterfaces(_n); });
-        // connect(countSelector_, &QSpinBox::valueChanged, this, &InterfaceSelectorWidget::updateInterfaces);
+        // INPUTS
+        inputGroup_ = new QGroupBox("Inputs");
+        QVBoxLayout *inGroupLayout = new QVBoxLayout;
+        inputGroup_->setLayout(inGroupLayout);
+        twoColumnLayout_->addWidget(inputGroup_);
 
-        interfacesLayout_ = new QVBoxLayout();
-        mainLayout_->addLayout(interfacesLayout_);
+        QHBoxLayout *countLayoutIn = new QHBoxLayout;
+        inGroupLayout->addLayout(countLayoutIn);
+        QLabel *countLabelIn = new QLabel("N. Interfaces");
+        countLayoutIn->addWidget(countLabelIn); 
+        countSelectorIn_ = new QSpinBox();
+        countLayoutIn->addWidget(countSelectorIn_);
+        connect(countSelectorIn_, QOverload<int>::of(&QSpinBox::valueChanged), [this](int _n){ this->updateInterfacesIn(_n); });
+        
+        interfacesLayoutIn_ = new QVBoxLayout();
+        inGroupLayout->addLayout(interfacesLayoutIn_);
 
+        // OUTPUTS
+        outputGroup_ = new QGroupBox("Outputs");
+        QVBoxLayout *outGroupLayout = new QVBoxLayout;
+        outputGroup_->setLayout(outGroupLayout);
+        twoColumnLayout_->addWidget(outputGroup_);
+
+        QHBoxLayout *countLayoutOut = new QHBoxLayout;
+        outGroupLayout->addLayout(countLayoutOut);
+        QLabel *countLabelOut = new QLabel("N. Interfaces");
+        countLayoutOut->addWidget(countLabelOut); 
+        countSelectorOut_ = new QSpinBox();
+        countLayoutOut->addWidget(countSelectorOut_);
+        connect(countSelectorOut_, QOverload<int>::of(&QSpinBox::valueChanged), [this](int _n){ this->updateInterfacesOut(_n); });
+        
+        interfacesLayoutOut_ = new QVBoxLayout();
+        outGroupLayout->addLayout(interfacesLayoutOut_);
+
+        // OTHER
         setModal(true);
         setFocusPolicy(Qt::StrongFocus);
         setFocus();
         setWindowTitle(_title.c_str());
     }
 
-    std::map<std::string, std::string> InterfaceSelectorWidget::getInterfaces() const{
+    std::map<std::string, std::string> InterfaceSelectorWidget::getInterfaces(INTERFACE_TYPE _type) const{
         
         std::map<std::string, std::string> result;
 
-        for(auto &interface: interfaces_){
-            result[interface->label()] =  interface->type();
-        }
+        if(_type == INTERFACE_TYPE::INPUT){
+            for(auto &interface: interfacesInput_){
+                result[interface->label()] =  interface->type();
+            }
+        }else{
+            for(auto &interface: interfacesOutput_){
+                result[interface->label()] =  interface->type();
+            }
 
+        }
         return result;
     }
 
 
-    void InterfaceSelectorWidget::updateInterfaces(int _nInterfaces){
-        while(interfaces_.size() < _nInterfaces){
-            interfaces_.push_back(new InterfaceElement);
-            interfacesLayout_->addWidget(interfaces_.back());
+    void InterfaceSelectorWidget::updateInterfacesIn(int _nInterfaces){
+        while(interfacesInput_.size() < _nInterfaces){
+            interfacesInput_.push_back(new InterfaceElement("in_"+std::to_string(interfacesInput_.size())));
+            interfacesLayoutIn_->addWidget(interfacesInput_.back());
         }
         
-        while(interfaces_.size() > _nInterfaces){
-            interfacesLayout_->removeWidget(interfaces_.back());
-            delete interfaces_.back(); // also removes it from upper layout
-            interfaces_.pop_back();
+        while(interfacesInput_.size() > _nInterfaces){
+            interfacesLayoutIn_->removeWidget(interfacesInput_.back());
+            delete interfacesInput_.back(); // also removes it from upper layout
+            interfacesInput_.pop_back();
         }
 
         this->adjustSize();
+    }
+
+
+    void InterfaceSelectorWidget::updateInterfacesOut(int _nInterfaces){
+        while(interfacesOutput_.size() < _nInterfaces){
+            interfacesOutput_.push_back(new InterfaceElement("out_"+std::to_string(interfacesOutput_.size())));
+            interfacesLayoutOut_->addWidget(interfacesOutput_.back());
+        }
         
+        while(interfacesOutput_.size() > _nInterfaces){
+            interfacesLayoutOut_->removeWidget(interfacesOutput_.back());
+            delete interfacesOutput_.back(); // also removes it from upper layout
+            interfacesOutput_.pop_back();
+        }
+
+        this->adjustSize();
     }
 }
