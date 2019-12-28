@@ -97,6 +97,10 @@ namespace mico{
     }
 
     void BlockPython::runPythonCode(flow::DataFlow _data, bool _useData){
+        if(!idle_)
+            return;
+        idle_ = false;
+
         std::string pythonCode = pythonEditor_->toPlainText().toStdString();
 
     	Py_Initialize();
@@ -117,12 +121,7 @@ namespace mico{
             }
         }
 
-        PyObject *pValue = PyRun_String(pythonCode.c_str(), Py_file_input, main_dict, locals);
-        if (pValue == NULL) {
-            PyErr_Print();
-        }else{
-            Py_DECREF(pValue);
-        }
+        PyRun_String(pythonCode.c_str(), Py_file_input, main_dict, locals);
 
         for(auto output:outputInfo_){
             flushPipe(locals, output.first, output.second);
@@ -134,6 +133,7 @@ namespace mico{
         Py_DECREF(locals);
 
         Py_Finalize();
+        idle_ = true;
     }
 
 
@@ -157,6 +157,9 @@ namespace mico{
         }
 
         PyDict_SetItem((PyObject*) _input, pKey, pValue);
+
+        Py_DECREF(pKey);
+        Py_DECREF(pValue);
     }
 
     void BlockPython::flushPipe(void *_locals /*Yei...*/, std::string _tag, std::string _typeTag){
@@ -187,12 +190,16 @@ namespace mico{
             bp::converter::rvalue_from_python_stage1_data *memory = new bp::converter::rvalue_from_python_stage1_data;
             if(EigenMatrix_from_python_array<Eigen::Matrix4f>::convertible(pValue)){
                 EigenMatrix_from_python_array<Eigen::Matrix4f>::construct(pValue, memory);
-                Eigen::Matrix4f result = *((Eigen::Matrix4f*)memory->convertible);
+                Eigen::Matrix4f result; 
+                result.block<4,4>(0,0) = *((Eigen::Matrix4f*)memory->convertible);
+                std::cout << "res: " << result << std::endl;
                 getPipe(_tag)->flush(result);
             }
+            delete memory;
         }else{
             std::cout << "Type " << _typeTag << " of label "<< _tag << " is not supported yet in python block." << ".It will be initialized as none. Please contact the administrators" << std::endl;
-            return;
         }
+
+        Py_DECREF(pValue);
     }
 }

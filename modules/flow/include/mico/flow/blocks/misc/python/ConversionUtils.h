@@ -78,11 +78,11 @@ struct EigenMatrix_from_python_array {
         if (!PyArray_Check(obj_ptr))
             return 0;
 
-        std::cout << "Until here ok.   ndim = " << PyArray_NDIM(obj_ptr) << " isvec " << MatType::IsVectorAtCompileTime << std::endl;
+        //std::cout << "Until here ok.   ndim = " << PyArray_NDIM(obj_ptr) << " isvec " << MatType::IsVectorAtCompileTime << std::endl;
         if (PyArray_NDIM(obj_ptr) != 2)
             if ((PyArray_NDIM(obj_ptr) != 1) || (!MatType::IsVectorAtCompileTime))
                 return 0;
-        std::cout << "Until here ok." << std::endl;
+        //std::cout << "Until here ok." << std::endl;
 
         if (PyArray_ObjectType(obj_ptr, 0) != NumpyEquivalentType<T>::type_code)
             return 0;
@@ -100,7 +100,7 @@ struct EigenMatrix_from_python_array {
         typedef typename MatType::Scalar T;
         using namespace Eigen;
 
-        std::cout << "Until here ok. Constructing..." << std::endl;
+        //std::cout << "Until here ok. Constructing..." << std::endl;
         PyArrayObject *pyArray = reinterpret_cast<PyArrayObject *>(pyObj);
 
         if (PyArray_NDIM(pyArray) == 2) {
@@ -121,10 +121,10 @@ struct EigenMatrix_from_python_array {
             int itemsize = PyArray_ITEMSIZE(pyArray);
             int stride1 = PyArray_STRIDE(pyArray, 0) / itemsize;
             int stride2 = PyArray_STRIDE(pyArray, 1) / itemsize;
-            std::cout << "STRIDE = " << stride1 << " x " << stride2 << std::endl;
+            //std::cout << "STRIDE = " << stride1 << " x " << stride2 << std::endl;
             Eigen::Map<MatType, 0, Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic>>
                 pyMap(pyData, R, C, Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic>(stride2, stride1));
-            std::cout << "Map = " << pyMap << std::endl;
+            //std::cout << "Map = " << pyMap << std::endl;
 
             void *storage = ((bp::converter::rvalue_from_python_storage<MatType> *)(memory))->storage.bytes;
             MatType &mat = *new (storage) MatType(R, C);

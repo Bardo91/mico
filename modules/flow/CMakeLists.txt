@@ -87,6 +87,7 @@ message(STATUS "Boost_LIBRARIES = ${Boost_LIBRARIES}")
 
 target_include_directories(${COMPONENT_NAME} PUBLIC ${PYTHON_INCLUDE_DIRS})
 target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC ${PYTHON_LIBRARIES})
+target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC ${Boost_LIBRARIES})
 
 #########################################
 ######			SAMPLES 		   ######
