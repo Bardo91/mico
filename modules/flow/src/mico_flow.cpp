@@ -25,14 +25,14 @@
 #include <mico/base/map3d/Dataframe.h>
 
 // Type registration
-FLOW_TYPE_REGISTER("dataframe", std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>>)
-FLOW_TYPE_REGISTER("v-dataframe", std::vector<std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>>>)
+FLOW_TYPE_REGISTER(dataframe, std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>>)
+FLOW_TYPE_REGISTER(v_dataframe, std::vector<std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>>>)
 
-FLOW_TYPE_REGISTER("image", cv::Mat)
-FLOW_TYPE_REGISTER("v-image", std::vector<cv::Mat>)
+FLOW_TYPE_REGISTER(image, cv::Mat)
+FLOW_TYPE_REGISTER(v_image, std::vector<cv::Mat>)
 
 // DNN
 #ifdef HAS_DARKNET
-    FLOW_TYPE_REGISTER("entity", std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>)
-    FLOW_TYPE_REGISTER("v-entity", std::vector<std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>>)
+    FLOW_TYPE_REGISTER(entity, std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>)
+    FLOW_TYPE_REGISTER(v_entity, std::vector<std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>>)
 #endif

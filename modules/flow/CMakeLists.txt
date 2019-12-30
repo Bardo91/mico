@@ -74,6 +74,21 @@ if(BUILD_DNN)
   target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC mico::mico-dnn)
 endif(BUILD_DNN)
 target_link_libraries(${COMPONENT_NAME} PRIVATE "stdc++fs")
+
+
+# PYTHON
+find_package(Boost COMPONENTS python3)
+find_package(PythonLibs 3 REQUIRED)
+
+message(STATUS "PYTHON_LIBRARIES = ${PYTHON_LIBRARIES}")
+message(STATUS "PYTHON_INCLUDE_DIRS = ${PYTHON_INCLUDE_DIRS}")
+message(STATUS "PYTHON_SITE = ${PYTHON_SITE}")
+message(STATUS "Boost_LIBRARIES = ${Boost_LIBRARIES}")
+
+target_include_directories(${COMPONENT_NAME} PUBLIC ${PYTHON_INCLUDE_DIRS})
+target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC ${PYTHON_LIBRARIES})
+target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC ${Boost_LIBRARIES})
+
 #########################################
 ######			SAMPLES 		   ######
 #########################################

@@ -20,50 +20,55 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-#ifndef MICO_FLOW_STREAMERS_BLOCKS_PROCESSORS_BLOCKODOMETRYPHOTOGRAMMETRY_H_
-#define MICO_FLOW_STREAMERS_BLOCKS_PROCESSORS_BLOCKODOMETRYPHOTOGRAMMETRY_H_
+#ifndef MICO_FLOW_STREAMERS_BLOCKS_MISC_INTERFACESELECTORWIDGET_H_
+#define MICO_FLOW_STREAMERS_BLOCKS_MISC_INTERFACESELECTORWIDGET_H_
 
-#include <flow/Block.h>
-#include <mico/base/map3d/OdometryPhotogrammetry.h>
+#include <QDialog>
+#include <QLineEdit>
+#include <QComboBox>
+#include <QSpinBox>
 
 namespace mico{
-
-    class BlockOdometryPhotogrammetry: public flow::Block{
+    class InterfaceElement: public QGroupBox{
     public:
-        static std::string name() {return "Odometry Photogrammetry";}
+        InterfaceElement(std::string _label = "label");
 
-        BlockOdometryPhotogrammetry();
-        // ~BlockOdometryPhotogrammetry(){};
-
-        bool configure(std::unordered_map<std::string, std::string> _params) override;
-        std::vector<std::string> parameters() override;
+        std::string label() const{
+            return label_->text().toStdString();
+        }
+        std::string type() const{
+            return typeList_->currentText().toStdString();
+        }
 
     private:
-        void callbackOdometry(flow::DataFlow _data);
-
-        bool computePointCloud(std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> &_df);
-        bool pinHoleModel(float cam_height , std::vector<cv::KeyPoint> keypoints, pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr &OutputPointCloud);
-    private:
-
-        bool hasCalibration = false;
-
-        bool hasPrev_ = false;
-        int nextDfId_ = 0;
-        cv::Ptr<cv::ORB> featureDetector_ ;
-        std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> currentKeyframe_ = nullptr;
-        std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> prevDf_ = nullptr;
-        
-        OdometryPhotogrammetry<pcl::PointXYZRGBNormal, mico::DebugLevels::Debug , OutInterfaces::Cout> odom_;
-        bool idle_ = true;
-        
-        cv::Mat matrixLeft_, distCoefLeft_;
-        bool savedFirstAltitude_ = false;
-        float initSLAMAltitude_ = 5.0;
-        float firstAltitude_;
-        float altitude_;
-
-        std::map<int,std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>>> memoryDf_; 
+        QComboBox *typeList_;
+        QLineEdit *label_;
     };
+
+    class InterfaceSelectorWidget : public QDialog{
+    public:
+        enum class INTERFACE_TYPE {INPUT, OUTPUT};
+        InterfaceSelectorWidget(std::string _title, bool _hasInputs = true, bool _hasOutputs = true, QWidget *parent = nullptr);
+
+        std::map<std::string, std::string> getInterfaces(INTERFACE_TYPE _type) const;
+
+    private:
+        void updateInterfacesIn(int _nInterfaces);
+        void updateInterfacesOut(int _nInterfaces);
+
+    private:
+        QSpinBox *countSelectorIn_, *countSelectorOut_;
+        QHBoxLayout *twoColumnLayout_;
+        QVBoxLayout *interfacesLayoutIn_, *interfacesLayoutOut_;
+        QGroupBox *inputGroup_, *outputGroup_;
+        std::vector<InterfaceElement*> interfacesInput_;
+        std::vector<InterfaceElement*> interfacesOutput_;
+
+        bool hasInputs_ = false, hasOutputs_ = false;
+
+    };
+
+
 
 }
 

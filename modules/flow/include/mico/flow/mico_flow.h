@@ -59,3 +59,6 @@
 #ifdef HAS_DARKNET
     #include <mico/flow/blocks/processors/BlockDarknet.h> // 666 HAS DARKNET
 #endif
+
+// Misc
+#include <mico/flow/blocks/misc/BlockPython.h>

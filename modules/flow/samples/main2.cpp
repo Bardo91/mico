@@ -1,73 +1,75 @@
-// //---------------------------------------------------------------------------------------------------------------------
-// //  mico
-// //---------------------------------------------------------------------------------------------------------------------
-// //  Copyright 2018 Pablo Ramon Soria (a.k.a. Bardo91) pabramsor@gmail.com
-// //---------------------------------------------------------------------------------------------------------------------
-// //  Permission is hereby granted, free of charge, to any person obtaining a copy of this software
-// //  and associated documentation files (the "Software"), to deal in the Software without restriction,
-// //  including without limitation the rights to use, copy, modify, merge, publish, distribute,
-// //  sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
-// //  furnished to do so, subject to the following conditions:
-// //
-// //  The above copyright notice and this permission notice shall be included in all copies or substantial
-// //  portions of the Software.
-// //
-// //  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
-// //  BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// //  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES
-// //  OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-// //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-// //---------------------------------------------------------------------------------------------------------------------
+#include <Python.h>
+#include <string>
+int
+main(int argc, char *argv[])
+{
+    PyObject *pName, *pModule, *pDict, *pFunc;
+    PyObject *pArgs, *pValue;
+    int i;
 
-// #include <iostream>
+    if (argc < 3) {
+        fprintf(stderr,"Usage: call pythonfile funcname [args]\n");
+        return 1;
+    }
 
-// #include <ctime>
+    std::string code =  "def multiply(a,b):"
+                        "	print(\"Will compute\", a, \"times\", b)"
+                        "	c = 0"
+                        "	for i in range(0, a):"
+                        "		c = c + b"
+                        "	return c";
 
-// #include <any>
-// #include <opencv2/opencv.hpp>
+    Py_Initialize();
+    pName = PyUnicode_DecodeFSDefault(code.c_str());
+    /* Error checking of pName left out */
 
-// #include <csignal>
+    pModule = PyImport_Import(pName);
+    Py_DECREF(pName);
 
-// #include <mico/flow/mico_flow.h>
+    if (pModule != NULL) {
+        pFunc = PyObject_GetAttrString(pModule, argv[2]);
+        /* pFunc is a new reference */
 
-// using namespace mico;
-// using namespace flow;
-
-// bool run = true;
-// void signal_handler(int signal) {
-//   if(signal == SIGINT){
-//       run = false;
-//   }
-// }
-
-int main(){
-
-//     std::cout << "Creating Blocks" << std::endl;
-//     StreamDataset stream;
-//     if(!stream.configure({
-//             {"color","/home/marrcogrova/Documents/datasets/rgbd_dataset_freiburg1_room/rgb/left_%d.png"},
-//             {"depth","/home/marrcogrova/Documents/datasets/rgbd_dataset_freiburg1_room/depth/depth_%d.png"},
-//             {"calibration","/home/marrcogrova/Documents/datasets/rgbd_dataset_freiburg1_room/CalibrationFile.xml"}
-//         })){
-//             std::cout << "Failed configuration of camera" << std::endl;
-//             return -1;
-//     }
-//     BlockImageVisualizer imgVis;
-//     BlockImageVisualizer imgVisDepth;
-
-//     std::cout << "Connecting blocks" << std::endl;
-//     stream.connect("color", imgVis);
-//     stream.connect("depth", imgVisDepth);
-
-//     // Start streaming
-//     stream.start();
-//     std::cout << "Started stream" << std::endl;
-    
-//     while(run){
-//         std::this_thread::sleep_for(std::chrono::milliseconds(100));
-//     }
-    
-//     std::cout << "Finishing" << std::endl;
-//     stream.stop();    
-    
+        if (pFunc && PyCallable_Check(pFunc)) {
+            pArgs = PyTuple_New(argc - 3);
+            for (i = 0; i < argc - 3; ++i) {
+                pValue = PyLong_FromLong(atoi(argv[i + 3]));
+                if (!pValue) {
+                    Py_DECREF(pArgs);
+                    Py_DECREF(pModule);
+                    fprintf(stderr, "Cannot convert argument\n");
+                    return 1;
+                }
+                /* pValue reference stolen here: */
+                PyTuple_SetItem(pArgs, i, pValue);
+            }
+            pValue = PyObject_CallObject(pFunc, pArgs);
+            Py_DECREF(pArgs);
+            if (pValue != NULL) {
+                printf("Result of call: %ld\n", PyLong_AsLong(pValue));
+                Py_DECREF(pValue);
+            }
+            else {
+                Py_DECREF(pFunc);
+                Py_DECREF(pModule);
+                PyErr_Print();
+                fprintf(stderr,"Call failed\n");
+                return 1;
+            }
+        }
+        else {
+            if (PyErr_Occurred())
+                PyErr_Print();
+            fprintf(stderr, "Cannot find function \"%s\"\n", argv[2]);
+        }
+        Py_XDECREF(pFunc);
+        Py_DECREF(pModule);
+    }
+    else {
+        PyErr_Print();
+        fprintf(stderr, "Failed to load \"%s\"\n", argv[1]);
+        return 1;
+    }
+    Py_Finalize();
+    return 0;
 }

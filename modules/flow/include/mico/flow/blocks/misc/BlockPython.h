@@ -20,49 +20,45 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-#ifndef MICO_FLOW_STREAMERS_BLOCKS_PROCESSORS_BLOCKODOMETRYPHOTOGRAMMETRY_H_
-#define MICO_FLOW_STREAMERS_BLOCKS_PROCESSORS_BLOCKODOMETRYPHOTOGRAMMETRY_H_
+#ifndef MICO_FLOW_STREAMERS_BLOCKS_PROCESSORS_BLOCKPYTHON_H_
+#define MICO_FLOW_STREAMERS_BLOCKS_PROCESSORS_BLOCKPYTHON_H_
 
 #include <flow/Block.h>
-#include <mico/base/map3d/OdometryPhotogrammetry.h>
+
+#include <QTextEdit>
+#include <QGroupBox>
+#include <QVBoxLayout>
+#include <QPushButton>
+#include <mico/flow/blocks/misc/python/PythonSyntaxHighlighter.h>
 
 namespace mico{
-
-    class BlockOdometryPhotogrammetry: public flow::Block{
+    class BlockPython: public flow::Block {
     public:
-        static std::string name() {return "Odometry Photogrammetry";}
+        static std::string name() {return "Python";}
 
-        BlockOdometryPhotogrammetry();
-        // ~BlockOdometryPhotogrammetry(){};
+        BlockPython();
 
-        bool configure(std::unordered_map<std::string, std::string> _params) override;
-        std::vector<std::string> parameters() override;
+        virtual QWidget * customWidget(){
+            return blockInterpreter_;
+        }
 
     private:
-        void callbackOdometry(flow::DataFlow _data);
+        void runPythonCode(flow::DataFlow _data, bool _useData);
 
-        bool computePointCloud(std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> &_df);
-        bool pinHoleModel(float cam_height , std::vector<cv::KeyPoint> keypoints, pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr &OutputPointCloud);
+        void encodeInput(void *_input /*Yei...*/, flow::DataFlow _data, std::string _tag, std::string _typeTag);
+        void flushPipe(void *_locals /*Yei...*/, std::string _tag, std::string _typeTag);
+
     private:
-
-        bool hasCalibration = false;
-
-        bool hasPrev_ = false;
-        int nextDfId_ = 0;
-        cv::Ptr<cv::ORB> featureDetector_ ;
-        std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> currentKeyframe_ = nullptr;
-        std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> prevDf_ = nullptr;
-        
-        OdometryPhotogrammetry<pcl::PointXYZRGBNormal, mico::DebugLevels::Debug , OutInterfaces::Cout> odom_;
         bool idle_ = true;
-        
-        cv::Mat matrixLeft_, distCoefLeft_;
-        bool savedFirstAltitude_ = false;
-        float initSLAMAltitude_ = 5.0;
-        float firstAltitude_;
-        float altitude_;
+        bool isReady_ = false;
 
-        std::map<int,std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>>> memoryDf_; 
+        std::map<std::string, std::string> inputInfo_, outputInfo_;
+        
+        QGroupBox *blockInterpreter_;
+        QVBoxLayout *blockInterpreterLayout_;
+        QTextEdit * pythonEditor_;
+        QPushButton * runButton_;
+        PythonSyntaxHighlighter *highlighter_;
     };
 
 }
