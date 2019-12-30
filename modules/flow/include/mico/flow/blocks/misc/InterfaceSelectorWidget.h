@@ -48,7 +48,7 @@ namespace mico{
     class InterfaceSelectorWidget : public QDialog{
     public:
         enum class INTERFACE_TYPE {INPUT, OUTPUT};
-        InterfaceSelectorWidget(std::string _title, QWidget *parent = nullptr);
+        InterfaceSelectorWidget(std::string _title, bool _hasInputs = true, bool _hasOutputs = true, QWidget *parent = nullptr);
 
         std::map<std::string, std::string> getInterfaces(INTERFACE_TYPE _type) const;
 
@@ -63,6 +63,8 @@ namespace mico{
         QGroupBox *inputGroup_, *outputGroup_;
         std::vector<InterfaceElement*> interfacesInput_;
         std::vector<InterfaceElement*> interfacesOutput_;
+
+        bool hasInputs_ = false, hasOutputs_ = false;
 
     };
 

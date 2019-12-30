@@ -45,43 +45,50 @@ namespace mico{
     }
 
 
-    InterfaceSelectorWidget::InterfaceSelectorWidget(std::string _title, QWidget *parent): QDialog(parent) {
+    InterfaceSelectorWidget::InterfaceSelectorWidget(std::string _title, bool _hasInputs, bool _hasOutputs, QWidget *parent): QDialog(parent) {
+        hasInputs_ = _hasInputs;
+        hasOutputs_ = _hasOutputs;
+        
         twoColumnLayout_ = new QHBoxLayout;
         setLayout(twoColumnLayout_);
 
         // INPUTS
-        inputGroup_ = new QGroupBox("Inputs");
-        QVBoxLayout *inGroupLayout = new QVBoxLayout;
-        inputGroup_->setLayout(inGroupLayout);
-        twoColumnLayout_->addWidget(inputGroup_);
+        if(hasInputs_){
+            inputGroup_ = new QGroupBox("Inputs");
+            QVBoxLayout *inGroupLayout = new QVBoxLayout;
+            inputGroup_->setLayout(inGroupLayout);
+            twoColumnLayout_->addWidget(inputGroup_);
 
-        QHBoxLayout *countLayoutIn = new QHBoxLayout;
-        inGroupLayout->addLayout(countLayoutIn);
-        QLabel *countLabelIn = new QLabel("N. Interfaces");
-        countLayoutIn->addWidget(countLabelIn); 
-        countSelectorIn_ = new QSpinBox();
-        countLayoutIn->addWidget(countSelectorIn_);
-        connect(countSelectorIn_, QOverload<int>::of(&QSpinBox::valueChanged), [this](int _n){ this->updateInterfacesIn(_n); });
-        
-        interfacesLayoutIn_ = new QVBoxLayout();
-        inGroupLayout->addLayout(interfacesLayoutIn_);
+            QHBoxLayout *countLayoutIn = new QHBoxLayout;
+            inGroupLayout->addLayout(countLayoutIn);
+            QLabel *countLabelIn = new QLabel("N. Interfaces");
+            countLayoutIn->addWidget(countLabelIn); 
+            countSelectorIn_ = new QSpinBox();
+            countLayoutIn->addWidget(countSelectorIn_);
+            connect(countSelectorIn_, QOverload<int>::of(&QSpinBox::valueChanged), [this](int _n){ this->updateInterfacesIn(_n); });
+            
+            interfacesLayoutIn_ = new QVBoxLayout();
+            inGroupLayout->addLayout(interfacesLayoutIn_);
+        }
 
         // OUTPUTS
-        outputGroup_ = new QGroupBox("Outputs");
-        QVBoxLayout *outGroupLayout = new QVBoxLayout;
-        outputGroup_->setLayout(outGroupLayout);
-        twoColumnLayout_->addWidget(outputGroup_);
+        if(hasOutputs_){
+            outputGroup_ = new QGroupBox("Outputs");
+            QVBoxLayout *outGroupLayout = new QVBoxLayout;
+            outputGroup_->setLayout(outGroupLayout);
+            twoColumnLayout_->addWidget(outputGroup_);
 
-        QHBoxLayout *countLayoutOut = new QHBoxLayout;
-        outGroupLayout->addLayout(countLayoutOut);
-        QLabel *countLabelOut = new QLabel("N. Interfaces");
-        countLayoutOut->addWidget(countLabelOut); 
-        countSelectorOut_ = new QSpinBox();
-        countLayoutOut->addWidget(countSelectorOut_);
-        connect(countSelectorOut_, QOverload<int>::of(&QSpinBox::valueChanged), [this](int _n){ this->updateInterfacesOut(_n); });
-        
-        interfacesLayoutOut_ = new QVBoxLayout();
-        outGroupLayout->addLayout(interfacesLayoutOut_);
+            QHBoxLayout *countLayoutOut = new QHBoxLayout;
+            outGroupLayout->addLayout(countLayoutOut);
+            QLabel *countLabelOut = new QLabel("N. Interfaces");
+            countLayoutOut->addWidget(countLabelOut); 
+            countSelectorOut_ = new QSpinBox();
+            countLayoutOut->addWidget(countSelectorOut_);
+            connect(countSelectorOut_, QOverload<int>::of(&QSpinBox::valueChanged), [this](int _n){ this->updateInterfacesOut(_n); });
+            
+            interfacesLayoutOut_ = new QVBoxLayout();
+            outGroupLayout->addLayout(interfacesLayoutOut_);
+        }
 
         // OTHER
         setModal(true);
