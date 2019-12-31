@@ -19,38 +19,51 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#include <mico/flow/blocks/visualizers/BlockVisualizerPangolin.h>
+
+#ifndef MICO_FLOW_STREAMERS_BLOCKS_VISUALIZERS_PANGOLINVISUALIZER_H_
+#define MICO_FLOW_STREAMERS_BLOCKS_VISUALIZERS_PANGOLINVISUALIZER_H_
+
+#include <string>
+#include <mutex>
+#include <thread>
+#include <functional>
+#include <vector>
+
+#include <Eigen/Eigen>
+
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
 
 namespace mico{
+
     #ifdef MICO_HAS_PANGOLIN
+        class PangolinVisualizer {
+        public:
+            PangolinVisualizer();
+            ~PangolinVisualizer();
 
-        BlockVisualizerPangolin::BlockVisualizerPangolin(){
-            
-            createPolicy({{"Camera Pose", "mat44"}});
-            registerCallback({"Camera Pose"}, 
-                                    [&](flow::DataFlow  _data){
-                                        if(idle_){
-                                            idle_ = false;
-                                            Eigen::Matrix4f pose = _data.get<Eigen::Matrix4f>("Camera Pose");
-                                            if(isFirst_){
-                                                lastPosition_ = pose.block<3,1>(0,3);
-                                                isFirst_ = false;
-                                            }else{
-                                                Eigen::Vector3f currPosition = pose.block<3,1>(0,3);
-                                                visualizer_.addLine(lastPosition_, currPosition);
-                                                lastPosition_ = currPosition;
-                                            }
-                                            idle_ = true;
-                                        }
+            void addLine(const Eigen::Vector3f &_p0, const Eigen::Vector3f &_p1);
+            void addLines(const std::vector<Eigen::Vector3f> &_pts);
 
-                                    }
-                                );
-        }
-        
-        BlockVisualizerPangolin::~BlockVisualizerPangolin(){
+            void addPointCloud(const pcl::PointCloud<pcl::PointXYZRGBNormal> &_cloud);
 
-        }
+        private:
+            void renderCallback();
+            void drawLines();
+            void drawPointClouds();
 
+        private:
+            bool idle_ = true;
+            std::string windowName_ = "";
+
+            std::thread renderThread_;
+            std::mutex renderGuard_;
+            std::vector<std::vector<Eigen::Vector3f>> linesToDraw_;
+
+            static int sWinId;
+        };
     #endif
+
 }
 
+#endif

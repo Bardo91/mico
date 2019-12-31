@@ -24,14 +24,7 @@
 #define MICO_FLOW_STREAMERS_BLOCKS_VISUALIZERS_BLOCKVISUALIZERPANGOLIN_H_
 
 #include <flow/Block.h>
-
-#include <string>
-#include <mutex>
-#include <thread>
-#include <functional>
-#include <vector>
-
-#include <Eigen/Eigen>
+#include <mico/flow/blocks/visualizers/PangolinVisualizer.h>
 
 namespace mico{
 
@@ -43,27 +36,17 @@ namespace mico{
             BlockVisualizerPangolin();
             ~BlockVisualizerPangolin();
 
-            void drawOnRenderThread(std::function<void()> _fn);
-
-            void addLine(const Eigen::Vector3f &_p0, const Eigen::Vector3f &_p1);
-            void addLines(const std::vector<Eigen::Vector3f> &_pts);
-
         private:
             void renderCallback();
             void drawLines();
         private:
             bool idle_ = true;
+
             bool isFirst_ = true;
             Eigen::Vector3f lastPosition_;
-            std::string windowName_ = "";
-
-            std::thread renderThread_;
-            std::mutex renderGuard_;
-            std::vector<std::function<void()>> pendingDrawing_;
             
-            std::vector<std::vector<Eigen::Vector3f>> linesToDraw_;
+            PangolinVisualizer visualizer_;
 
-            static int sWinId;
         };
     #endif
 
