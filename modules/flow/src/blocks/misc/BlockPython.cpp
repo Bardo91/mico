@@ -151,21 +151,23 @@ namespace mico{
 
     void BlockPython::flushPipe(pybind11::dict _locals , std::string _tag, std::string _typeTag){
        
-        std::cout << _locals[_tag.c_str()].cast<float>() << std::endl;
+        if(_locals.contains(_tag.c_str())){
+            if(_typeTag == "int"){
+                getPipe(_tag)->flush(_locals[_tag.c_str()].cast<int>());
+            }else if(_typeTag == "float"){
+                getPipe(_tag)->flush(_locals[_tag.c_str()].cast<float>());
+            }else if(_typeTag == "vec3"){
+                getPipe(_tag)->flush(_locals[_tag.c_str()].cast<Eigen::Vector3f>());
+            }else if(_typeTag == "vec4"){
+                getPipe(_tag)->flush(_locals[_tag.c_str()].cast<Eigen::Vector4f>());
+            }else if(_typeTag == "mat44"){
+                getPipe(_tag)->flush(_locals[_tag.c_str()].cast<Eigen::Matrix4f>());
+            }else{
+                std::cout << "Type " << _typeTag << " of label "<< _tag << " is not supported yet in python block." << ".It will be initialized as none. Please contact the administrators" << std::endl;
+            }
+        }
 
-        // if(_typeTag == "int"){
-        //     getPipe(_tag)->flush(_locals[_tag.c_str()].cast<int>());
-        // }else if(_typeTag == "float"){
-        //     getPipe(_tag)->flush(_locals[_tag.c_str()].cast<float>());
-        // }else if(_typeTag == "vec3"){
-        //     getPipe(_tag)->flush(_locals[_tag.c_str()].cast<Eigen::Vector3f>());
-        // }else if(_typeTag == "vec4"){
-        //     getPipe(_tag)->flush(_locals[_tag.c_str()].cast<Eigen::Vector4f>());
-        // }else if(_typeTag == "mat44"){
-        //     getPipe(_tag)->flush(_locals[_tag.c_str()].cast<Eigen::Matrix4f>());
-        // }else{
-        //     std::cout << "Type " << _typeTag << " of label "<< _tag << " is not supported yet in python block." << ".It will be initialized as none. Please contact the administrators" << std::endl;
-        // }
+        
 
 
     }
