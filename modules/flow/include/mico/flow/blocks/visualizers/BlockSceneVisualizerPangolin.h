@@ -20,55 +20,34 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-#ifndef MICO_FLOW_STREAMERS_BLOCKS_VISUALIZERS_PANGOLINVISUALIZER_H_
-#define MICO_FLOW_STREAMERS_BLOCKS_VISUALIZERS_PANGOLINVISUALIZER_H_
+#ifndef MICO_FLOW_STREAMERS_BLOCKS_VISUALIZERS_BLOCKSCENEVISUALIZERPANGOLIN_H_
+#define MICO_FLOW_STREAMERS_BLOCKS_VISUALIZERS_BLOCKSCENEVISUALIZERPANGOLIN_H_
 
-#include <string>
-#include <mutex>
-#include <thread>
-#include <functional>
-#include <vector>
-
-#include <Eigen/Eigen>
-
-#include <pcl/point_cloud.h>
-#include <pcl/point_types.h>
+#include <flow/Block.h>
+#include <mico/flow/blocks/visualizers/PangolinVisualizer.h>
 
 namespace mico{
 
     #ifdef MICO_HAS_PANGOLIN
-        class PangolinVisualizer {
+        class BlockSceneVisualizerPangolin: public flow::Block {
         public:
-            PangolinVisualizer();
-            ~PangolinVisualizer();
+            static std::string name() {return "Pangolin Scene Visualizer";}
 
-            void addLine(const Eigen::Vector3f &_p0, const Eigen::Vector3f &_p1, const Eigen::Vector4f &_color = {0.0f,1.0f,0.0f,0.6f});
-            void addLines(const std::vector<Eigen::Vector3f> &_pts, const Eigen::Vector4f &_color = {0.0f,1.0f,0.0f,0.6f});
-
-            void addPointCloud(const pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr &_cloud);
-
-            void clearPointClouds();
-            void clearLines();
+            BlockSceneVisualizerPangolin();
+            ~BlockSceneVisualizerPangolin();
 
         private:
-            void renderCallback();
-            void drawLines();
-            void drawPointClouds();
+            Eigen::Vector3f lastPosition_;
+            bool isFirst_ = true;
+            
+            PangolinVisualizer visualizer_;
 
-        private:
-            bool idle_ = true;
-            std::string windowName_ = "";
-
-            std::thread renderThread_;
-            std::mutex renderGuard_;
-            std::vector<std::vector<Eigen::Vector3f>> linesToDraw_;
-            std::vector<Eigen::Vector4f> colorLines_;
-
-            std::vector<pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr> cloudsToDraw_;
-
-            static int sWinId;
         };
+
+    
     #endif
+
+
 
 }
 

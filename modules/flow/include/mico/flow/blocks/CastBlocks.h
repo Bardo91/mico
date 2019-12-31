@@ -41,7 +41,7 @@ namespace mico{
         // ~BlockDataframeToSomething(){};
     protected:
         bool idle_ = true;
-        virtual std::any dataToget(std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> &_df) = 0;
+        virtual std::any dataToget(mico::Dataframe<pcl::PointXYZRGBNormal>::Ptr &_df) = 0;
         virtual std::string tagToGet() = 0;
 
     };
@@ -49,14 +49,28 @@ namespace mico{
     //-----------------------------------------------------------------------------------------------------------------
     class BlockDataframeToPose: public BlockDataframeToSomething{
     public:
-        static std::string name();
-        BlockDataframeToPose();
+        static std::string name() { return "Dataframe -> Pose"; }
+        BlockDataframeToPose() { createPipe("Pose","mat44"); }
         // ~BlockDataframeToPose(){};
 
     protected:
-        virtual std::any dataToget(mico::Dataframe<pcl::PointXYZRGBNormal>::Ptr &_df)override;
+        virtual std::any dataToget(mico::Dataframe<pcl::PointXYZRGBNormal>::Ptr &_df) override { return _df->pose(); }
         
-        virtual std::string tagToGet() override;
+        virtual std::string tagToGet() override { return "Pose"; }
+    };
+
+
+    //-----------------------------------------------------------------------------------------------------------------
+    class BlockDataframeToCloud: public BlockDataframeToSomething{
+    public:
+        static std::string name() { return "Dataframe -> Cloud"; }
+        BlockDataframeToCloud(){ createPipe("Cloud","cloud"); }
+        // ~BlockDataframeToCloud(){};
+
+    protected:
+        virtual std::any dataToget(mico::Dataframe<pcl::PointXYZRGBNormal>::Ptr &_df) override { return _df->cloud(); }
+        
+        virtual std::string tagToGet() override { return "Cloud"; }
     };
 }
 

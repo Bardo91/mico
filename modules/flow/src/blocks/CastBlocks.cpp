@@ -41,23 +41,5 @@ namespace mico{
                                 );
     }
 
-
-    std::string BlockDataframeToPose::name() {
-        return "Dataframe -> Pose";
-    }
-    
-    BlockDataframeToPose::BlockDataframeToPose(){ 
-        createPipe("Pose","mat44"); 
-    }
-    
-    std::any BlockDataframeToPose::dataToget(mico::Dataframe<pcl::PointXYZRGBNormal>::Ptr &_df){
-        return _df->pose();
-    };
-    
-    std::string BlockDataframeToPose::tagToGet() {
-        return "Pose";
-    };
-
-
 }
 

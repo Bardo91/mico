@@ -43,6 +43,7 @@
 #include <mico/flow/blocks/visualizers/BlockSceneVisualizer.h>
 #include <mico/flow/blocks/visualizers/BlockPointCloudVisualizer.h>
 #include <mico/flow/blocks/visualizers/BlockTrajectoryVisualizerPangolin.h>
+#include <mico/flow/blocks/visualizers/BlockSceneVisualizerPangolin.h>
 
 // Casters
 #include <mico/flow/blocks/CastBlocks.h>

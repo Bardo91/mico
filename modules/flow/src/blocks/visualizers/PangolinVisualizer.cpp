@@ -53,11 +53,26 @@ namespace mico{
             renderGuard_.unlock();
         }
 
-        void PangolinVisualizer::addPointCloud(const pcl::PointCloud<pcl::PointXYZRGBNormal> &_cloud){
+        void PangolinVisualizer::addPointCloud(const pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr &_cloud){
             renderGuard_.lock();
-            
+            cloudsToDraw_.push_back(_cloud);
             renderGuard_.unlock();
         }
+        
+        void PangolinVisualizer::clearPointClouds(){
+            renderGuard_.lock();
+            cloudsToDraw_.clear();
+            renderGuard_.unlock();
+        }
+        
+        void PangolinVisualizer::clearLines(){
+            renderGuard_.lock();
+            linesToDraw_.clear();
+            colorLines_.clear();
+            renderGuard_.unlock();
+        }
+        
+
 
         void PangolinVisualizer::renderCallback(){
             pangolin::CreateWindowAndBind(windowName_,640,480);
@@ -88,6 +103,7 @@ namespace mico{
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
                 drawLines();
+                drawPointClouds();
                 
                 // Swap frames and Process Events
                 pangolin::FinishFrame();
@@ -115,7 +131,20 @@ namespace mico{
         }
 
         void PangolinVisualizer::drawPointClouds(){
+            renderGuard_.lock();
+            auto clouds = cloudsToDraw_;
+            renderGuard_.unlock();
+            
+            for(auto &cloud: clouds){
+                glPointSize(1);
+                glBegin(GL_POINTS);
+                for(auto &p: cloud->points){
+                    glColor3f(p.r,p.g,p.b);
+                    glVertex3f(p.x,p.y,p.z);
+                }
+                glEnd();
 
+            }
         }
 
     #endif
