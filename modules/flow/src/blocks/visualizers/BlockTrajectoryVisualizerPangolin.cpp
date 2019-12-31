@@ -54,7 +54,7 @@ namespace mico{
             }
 
         private:
-            int n_;
+            int n_ = 1;
             QSpinBox * spinBox_;
             QVBoxLayout *layout_;
         };

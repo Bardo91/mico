@@ -100,9 +100,9 @@ namespace mico{
             auto linesToDraw = linesToDraw_;
             auto colorLines = colorLines_;
             renderGuard_.unlock();
-            for(unsigned i = 0; i < linesToDraw_.size(); i++){
-                auto &line = linesToDraw[i];
-                auto &color = colorLines[i];
+            for(unsigned j = 0; j < linesToDraw.size(); j++){
+                auto &line = linesToDraw[j];
+                auto &color = colorLines[j];
                 glLineWidth(2);
                 glColor4f(color[0], color[1], color[2], color[3]);
                 glBegin(GL_LINES);
