@@ -40,6 +40,7 @@ namespace mico{
         static std::string name() {return "Python";}
 
         BlockPython();
+        ~BlockPython();
 
         virtual QWidget * customWidget(){
             return blockInterpreter_;

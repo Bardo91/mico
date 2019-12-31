@@ -47,6 +47,8 @@
 
 namespace mico{
     BlockPython::BlockPython(){
+        pybind11::initialize_interpreter();
+
         // Instantiate outputs
         InterfaceSelectorWidget interfaceSelector("Python interface Selector");
         interfaceSelector.exec();
@@ -85,6 +87,9 @@ namespace mico{
                 this->runPythonCode(data, false);
             });
     }
+    BlockPython::~BlockPython(){
+        pybind11::finalize_interpreter();
+    }
 
     void replaceAll(std::string& str, const std::string& from, const std::string& to) {
         if(from.empty())
@@ -102,21 +107,25 @@ namespace mico{
         idle_ = false;
 
         std::string pythonCode = pythonEditor_->toPlainText().toStdString();
-        pybind11::scoped_interpreter guard{}; // Not most efficient but safe
+        // pybind11::scoped_interpreter guard{}; // Not most efficient but safe
 
-        auto locals = pybind11::dict();
-        if(_useData) { // Encode inputs
-            for(auto input:inputInfo_){
-                encodeInput(locals, _data, input.first, input.second);
+        try {
+            auto locals = pybind11::dict();
+            if(_useData) { // Encode inputs
+                for(auto input:inputInfo_){
+                    encodeInput(locals, _data, input.first, input.second);
+                }
             }
-        }
-
-        pybind11::exec(pythonCode, pybind11::globals(), locals);
-
-        for(auto output:outputInfo_){
-            flushPipe(locals, output.first, output.second);
-        }
         
+            pybind11::exec(pythonCode, pybind11::globals(), locals);
+    
+            for(auto output:outputInfo_){
+                flushPipe(locals, output.first, output.second);
+            }        
+        }catch(const std::exception& e){
+            std::cout << e.what() << "\n";
+        }
+
         idle_ = true;
     }
 
@@ -142,19 +151,21 @@ namespace mico{
 
     void BlockPython::flushPipe(pybind11::dict _locals , std::string _tag, std::string _typeTag){
        
-        if(_typeTag == "int"){
-            getPipe(_tag)->flush(_locals[_tag.c_str()].cast<int>());
-        }else if(_typeTag == "float"){
-            getPipe(_tag)->flush(_locals[_tag.c_str()].cast<float>());
-        }else if(_typeTag == "vec3"){
-            getPipe(_tag)->flush(_locals[_tag.c_str()].cast<Eigen::Vector3f>());
-        }else if(_typeTag == "vec4"){
-            getPipe(_tag)->flush(_locals[_tag.c_str()].cast<Eigen::Vector4f>());
-        }else if(_typeTag == "mat44"){
-            getPipe(_tag)->flush(_locals[_tag.c_str()].cast<Eigen::Matrix4f>());
-        }else{
-            std::cout << "Type " << _typeTag << " of label "<< _tag << " is not supported yet in python block." << ".It will be initialized as none. Please contact the administrators" << std::endl;
-        }
+        std::cout << _locals[_tag.c_str()].cast<float>() << std::endl;
+
+        // if(_typeTag == "int"){
+        //     getPipe(_tag)->flush(_locals[_tag.c_str()].cast<int>());
+        // }else if(_typeTag == "float"){
+        //     getPipe(_tag)->flush(_locals[_tag.c_str()].cast<float>());
+        // }else if(_typeTag == "vec3"){
+        //     getPipe(_tag)->flush(_locals[_tag.c_str()].cast<Eigen::Vector3f>());
+        // }else if(_typeTag == "vec4"){
+        //     getPipe(_tag)->flush(_locals[_tag.c_str()].cast<Eigen::Vector4f>());
+        // }else if(_typeTag == "mat44"){
+        //     getPipe(_tag)->flush(_locals[_tag.c_str()].cast<Eigen::Matrix4f>());
+        // }else{
+        //     std::cout << "Type " << _typeTag << " of label "<< _tag << " is not supported yet in python block." << ".It will be initialized as none. Please contact the administrators" << std::endl;
+        // }
 
 
     }
