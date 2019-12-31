@@ -139,7 +139,7 @@ namespace mico{
                 glPointSize(1);
                 glBegin(GL_POINTS);
                 for(auto &p: cloud->points){
-                    glColor3f(p.r,p.g,p.b);
+                    glColor3f(p.r/255.0f,p.g/255.0f,p.b/255.0f);
                     glVertex3f(p.x,p.y,p.z);
                 }
                 glEnd();
