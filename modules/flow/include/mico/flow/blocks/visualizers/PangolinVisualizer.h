@@ -19,46 +19,52 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-// Streamers
-#undef Q_FOREACH
-#include <mico/flow/blocks/streamers/StreamRealSense.h>
-#include <mico/flow/blocks/streamers/StreamDataset.h>
-#include <mico/flow/blocks/streamers/StreamPixhawk.h>
 
+#ifndef MICO_FLOW_STREAMERS_BLOCKS_VISUALIZERS_PANGOLINVISUALIZER_H_
+#define MICO_FLOW_STREAMERS_BLOCKS_VISUALIZERS_PANGOLINVISUALIZER_H_
 
-// Processors
-#include <mico/flow/blocks/processors/BlockOdometryRGBD.h>
-#include <mico/flow/blocks/processors/BlockOdometryPhotogrammetry.h>
-#include <mico/flow/blocks/processors/BlockDatabaseMarkI.h>
-#include <mico/flow/blocks/processors/BlockLoopClosure.h>
-#include <mico/flow/blocks/processors/BlockOptimizerCF.h>
-#include <mico/flow/blocks/processors/BlockEKFIMU.h>
-// #include <mico/flow/blocks/processors/BlockParticleFilterKinematic.h>
+#include <string>
+#include <mutex>
+#include <thread>
+#include <functional>
+#include <vector>
 
+#include <Eigen/Eigen>
 
-// Visualizers
-#include <mico/flow/blocks/visualizers/BlockImageVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockTrayectoryVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockDatabaseVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockSceneVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockPointCloudVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockTrajectoryVisualizerPangolin.h>
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
 
-// Casters
-#include <mico/flow/blocks/CastBlocks.h>
+namespace mico{
 
-// Queuers
-#include <mico/flow/blocks/BlockQueuer.h>
+    #ifdef MICO_HAS_PANGOLIN
+        class PangolinVisualizer {
+        public:
+            PangolinVisualizer();
+            ~PangolinVisualizer();
 
-// Savers
-#include <mico/flow/blocks/savers/SaverImage.h>
-#include <mico/flow/blocks/savers/SaverTrajectory.h>
-#include <mico/flow/blocks/savers/SaverEntity.h>
+            void addLine(const Eigen::Vector3f &_p0, const Eigen::Vector3f &_p1, const Eigen::Vector4f &_color = {0.0f,1.0f,0.0f,0.6f});
+            void addLines(const std::vector<Eigen::Vector3f> &_pts, const Eigen::Vector4f &_color = {0.0f,1.0f,0.0f,0.6f});
 
-// DNN
-#ifdef HAS_DARKNET
-    #include <mico/flow/blocks/processors/BlockDarknet.h> // 666 HAS DARKNET
+            void addPointCloud(const pcl::PointCloud<pcl::PointXYZRGBNormal> &_cloud);
+
+        private:
+            void renderCallback();
+            void drawLines();
+            void drawPointClouds();
+
+        private:
+            bool idle_ = true;
+            std::string windowName_ = "";
+
+            std::thread renderThread_;
+            std::mutex renderGuard_;
+            std::vector<std::vector<Eigen::Vector3f>> linesToDraw_;
+            std::vector<Eigen::Vector4f> colorLines_;
+
+            static int sWinId;
+        };
+    #endif
+
+}
+
 #endif
-
-// Misc
-#include <mico/flow/blocks/misc/BlockPython.h>

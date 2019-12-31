@@ -19,7 +19,8 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#include <mico/flow/blocks/visualizers/BlockVisualizerPangolin.h>
+
+#include <mico/flow/blocks/visualizers/PangolinVisualizer.h>
 
 #include <pangolin/pangolin.h>
 #include <pangolin/scene/axis.h>
@@ -28,57 +29,37 @@
 
 namespace mico{
     #ifdef MICO_HAS_PANGOLIN
-        int BlockVisualizerPangolin::sWinId = 0;
+        int PangolinVisualizer::sWinId = 0;
 
-        BlockVisualizerPangolin::BlockVisualizerPangolin(){
+        PangolinVisualizer::PangolinVisualizer(){
             windowName_ = "pangolin_"+std::to_string(sWinId);
             sWinId++;
         
-            renderThread_ = std::thread(&BlockVisualizerPangolin::renderCallback, this);    
-        
-            createPolicy({{"Camera Pose", "mat44"}});
-            registerCallback({"Camera Pose"}, 
-                                    [&](flow::DataFlow  _data){
-                                        if(idle_){
-                                            idle_ = false;
-                                            Eigen::Matrix4f pose = _data.get<Eigen::Matrix4f>("Camera Pose");
-                                            if(isFirst_){
-                                                lastPosition_ = pose.block<3,1>(0,3);
-                                                isFirst_ = false;
-                                            }else{
-                                                Eigen::Vector3f currPosition = pose.block<3,1>(0,3);
-                                                addLine(lastPosition_, currPosition);
-                                                lastPosition_ = currPosition;
-                                            }
-                                            idle_ = true;
-                                        }
-
-                                    }
-                                );
-
+            renderThread_ = std::thread(&PangolinVisualizer::renderCallback, this);    
         }
-        
-        BlockVisualizerPangolin::~BlockVisualizerPangolin(){
+
+        PangolinVisualizer::~PangolinVisualizer(){
 
         }
 
-        void BlockVisualizerPangolin::addLine(const Eigen::Vector3f &_p0, const Eigen::Vector3f &_p1){
-            renderGuard_.lock();
-            linesToDraw_.push_back({_p0, _p1});
-            renderGuard_.unlock();
+        void PangolinVisualizer::addLine(const Eigen::Vector3f &_p0, const Eigen::Vector3f &_p1, const Eigen::Vector4f &_color){
+            addLines({_p0, _p1}, _color);
         }
 
-        void BlockVisualizerPangolin::addLines(const std::vector<Eigen::Vector3f> &_pts){
+        void PangolinVisualizer::addLines(const std::vector<Eigen::Vector3f> &_pts, const Eigen::Vector4f &_color){
             renderGuard_.lock();
             linesToDraw_.push_back(_pts);
+            colorLines_.push_back(_color);
             renderGuard_.unlock();
         }
 
-        void BlockVisualizerPangolin::drawOnRenderThread(std::function<void()> _fn){
-
+        void PangolinVisualizer::addPointCloud(const pcl::PointCloud<pcl::PointXYZRGBNormal> &_cloud){
+            renderGuard_.lock();
+            
+            renderGuard_.unlock();
         }
 
-        void BlockVisualizerPangolin::renderCallback(){
+        void PangolinVisualizer::renderCallback(){
             pangolin::CreateWindowAndBind(windowName_,640,480);
             glEnable(GL_DEPTH_TEST);
         
@@ -114,13 +95,16 @@ namespace mico{
             }
         }
 
-        void BlockVisualizerPangolin::drawLines(){
+        void PangolinVisualizer::drawLines(){
             renderGuard_.lock();
             auto linesToDraw = linesToDraw_;
+            auto colorLines = colorLines_;
             renderGuard_.unlock();
-            for(auto &line:linesToDraw){
+            for(unsigned i = 0; i < linesToDraw_.size(); i++){
+                auto &line = linesToDraw[i];
+                auto &color = colorLines[i];
                 glLineWidth(2);
-                glColor4f(0.0f,1.0f,0.0f,0.6f);
+                glColor4f(color[0], color[1], color[2], color[3]);
                 glBegin(GL_LINES);
                 for(unsigned i = 1; i < line.size(); i++){
                     glVertex3f(line[i-1][0], line[i-1][1], line[i-1][2]);
@@ -129,6 +113,10 @@ namespace mico{
                 glEnd();
             }
         }
-#endif
-}
 
+        void PangolinVisualizer::drawPointClouds(){
+
+        }
+
+    #endif
+}
