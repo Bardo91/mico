@@ -98,7 +98,7 @@ namespace mico{
                 isFirst_[_id] = false;
             }else{
                 Eigen::Vector3f currPosition = pose.block<3,1>(0,3);
-                visualizer_.addLine(lastPositions_[_id], currPosition);
+                visualizer_.addLine(lastPositions_[_id], currPosition, colorLines_[_id]);
                 lastPositions_[_id] = currPosition;
             }
         }
