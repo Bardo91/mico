@@ -102,104 +102,60 @@ namespace mico{
         idle_ = false;
 
         std::string pythonCode = pythonEditor_->toPlainText().toStdString();
+        pybind11::scoped_interpreter guard{}; // Not most efficient but safe
 
-    	Py_Initialize();
-        if(PyArray_API == NULL) {
-            if(_import_array() < 0){
-                std::cout << "Error importing numpy" << std::endl;
-                return;
-            } 
-        }
-
-        PyObject* main_module = PyImport_AddModule("__main__");
-        PyObject* main_dict = PyModule_GetDict(main_module);
-
-        PyObject *locals = PyDict_New();
+        auto locals = pybind11::dict();
         if(_useData) { // Encode inputs
             for(auto input:inputInfo_){
                 encodeInput(locals, _data, input.first, input.second);
             }
         }
 
-        PyRun_String(pythonCode.c_str(), Py_file_input, main_dict, locals);
+        pybind11::exec(pythonCode, pybind11::globals(), locals);
 
         for(auto output:outputInfo_){
             flushPipe(locals, output.first, output.second);
         }
         
-
-        Py_DECREF(main_module);
-        Py_DECREF(main_dict);
-        Py_DECREF(locals);
-
-        Py_Finalize();
         idle_ = true;
     }
 
 
-    void BlockPython::encodeInput(void *_input, flow::DataFlow _data, std::string _tag, std::string _typeTag){
-        PyObject *pKey = PyUnicode_FromString(_tag.c_str());
-        PyObject *pValue;
-        
+    void BlockPython::encodeInput(pybind11::dict _locals, flow::DataFlow _data, std::string _tag, std::string _typeTag){
+
         if(_typeTag == "int"){
-            pValue = PyLong_FromLong(_data.get<int>(_tag));
+            _locals[_tag.c_str()] = pybind11::int_(_data.get<int>(_tag));
         }else if(_typeTag == "float"){
-            pValue = PyFloat_FromDouble(_data.get<float>(_tag));
+            _locals[_tag.c_str()] = pybind11::float_(_data.get<float>(_tag));
         }else if(_typeTag == "vec3"){
-            pValue = EigenMatrix_to_python_matrix<Eigen::Vector3f>::convert(_data.get<Eigen::Vector3f>(_tag));
+            _locals[_tag.c_str()] = _data.get<Eigen::Vector3f>(_tag);
         }else if(_typeTag == "vec4"){
-            pValue = EigenMatrix_to_python_matrix<Eigen::Vector4f>::convert(_data.get<Eigen::Vector4f>(_tag));
+            _locals[_tag.c_str()] = _data.get<Eigen::Vector4f>(_tag);
         }else if(_typeTag == "mat44"){
-            pValue = EigenMatrix_to_python_matrix<Eigen::Matrix4f>::convert(_data.get<Eigen::Matrix4f>(_tag));
+            _locals[_tag.c_str()] = _data.get<Eigen::Matrix4f>(_tag);
         }else{
             std::cout << "Type " << _typeTag << " of label "<< _tag << " is not supported yet in python block." << ".It will be initialized as none. Please contact the administrators" << std::endl;
             return;
         }
 
-        PyDict_SetItem((PyObject*) _input, pKey, pValue);
-
-        Py_DECREF(pKey);
-        Py_DECREF(pValue);
     }
 
-    void BlockPython::flushPipe(void *_locals /*Yei...*/, std::string _tag, std::string _typeTag){
-        PyObject* pValue = PyDict_GetItem((PyObject*)_locals, PyUnicode_FromString(_tag.c_str()));
-
-        if(!pValue)  // Not filled
-            return;
-        
+    void BlockPython::flushPipe(pybind11::dict _locals , std::string _tag, std::string _typeTag){
+       
         if(_typeTag == "int"){
-            getPipe(_tag)->flush((int) PyLong_AsLong(pValue));
+            getPipe(_tag)->flush(_locals[_tag.c_str()].cast<int>());
         }else if(_typeTag == "float"){
-            getPipe(_tag)->flush((float) PyFloat_AsDouble(pValue));
+            getPipe(_tag)->flush(_locals[_tag.c_str()].cast<float>());
         }else if(_typeTag == "vec3"){
-            bp::converter::rvalue_from_python_stage1_data *memory = new bp::converter::rvalue_from_python_stage1_data;
-            if(EigenMatrix_from_python_array<Eigen::Vector3f>::convertible(pValue)){
-                EigenMatrix_from_python_array<Eigen::Vector3f>::construct(pValue, memory);
-                Eigen::Vector3f result = *((Eigen::Vector3f*)memory->convertible);
-                getPipe(_tag)->flush(result);
-            }
+            getPipe(_tag)->flush(_locals[_tag.c_str()].cast<Eigen::Vector3f>());
         }else if(_typeTag == "vec4"){
-            bp::converter::rvalue_from_python_stage1_data *memory = new bp::converter::rvalue_from_python_stage1_data;
-            if(EigenMatrix_from_python_array<Eigen::Vector4f>::convertible(pValue)){
-                EigenMatrix_from_python_array<Eigen::Vector4f>::construct(pValue, memory);
-                Eigen::Vector4f result = *((Eigen::Vector4f*)memory->convertible);
-                getPipe(_tag)->flush(result);
-            }
+            getPipe(_tag)->flush(_locals[_tag.c_str()].cast<Eigen::Vector4f>());
         }else if(_typeTag == "mat44"){
-            bp::converter::rvalue_from_python_stage1_data *memory = new bp::converter::rvalue_from_python_stage1_data;
-            if(EigenMatrix_from_python_array<Eigen::Matrix4f>::convertible(pValue)){
-                EigenMatrix_from_python_array<Eigen::Matrix4f>::construct(pValue, memory);
-                Eigen::Matrix4f result; 
-                result.block<4,4>(0,0) = *((Eigen::Matrix4f*)memory->convertible);
-                std::cout << "res: " << result << std::endl;
-                getPipe(_tag)->flush(result);
-            }
-            delete memory;
+            getPipe(_tag)->flush(_locals[_tag.c_str()].cast<Eigen::Matrix4f>());
         }else{
             std::cout << "Type " << _typeTag << " of label "<< _tag << " is not supported yet in python block." << ".It will be initialized as none. Please contact the administrators" << std::endl;
         }
 
-        Py_DECREF(pValue);
+
     }
 }

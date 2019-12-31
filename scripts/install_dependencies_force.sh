@@ -160,3 +160,5 @@ fi
 install_git_repo "flow" "https://github.com/Bardo91/flow"
 
 install_git_repo "Pangolin" "https://github.com/stevenlovegrove/Pangolin"
+
+install_git_repo "pybind11" "https://github.com/pybind/pybind11"

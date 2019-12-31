@@ -31,6 +31,9 @@
 #include <QPushButton>
 #include <mico/flow/blocks/misc/python/PythonSyntaxHighlighter.h>
 
+#include <pybind11/embed.h> // everything needed for embedding
+#include <pybind11/eigen.h>
+
 namespace mico{
     class BlockPython: public flow::Block {
     public:
@@ -45,8 +48,8 @@ namespace mico{
     private:
         void runPythonCode(flow::DataFlow _data, bool _useData);
 
-        void encodeInput(void *_input /*Yei...*/, flow::DataFlow _data, std::string _tag, std::string _typeTag);
-        void flushPipe(void *_locals /*Yei...*/, std::string _tag, std::string _typeTag);
+        void encodeInput(pybind11::dict, flow::DataFlow _data, std::string _tag, std::string _typeTag);
+        void flushPipe(pybind11::dict, std::string _tag, std::string _typeTag);
 
     private:
         bool idle_ = true;
