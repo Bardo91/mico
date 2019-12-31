@@ -19,38 +19,41 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#include <mico/flow/blocks/visualizers/BlockVisualizerPangolin.h>
+
+#ifndef MICO_FLOW_STREAMERS_BLOCKS_VISUALIZERS_BLOCKTRAJECTORYVISUALIZERPANGOLIN_H_
+#define MICO_FLOW_STREAMERS_BLOCKS_VISUALIZERS_BLOCKTRAJECTORYVISUALIZERPANGOLIN_H_
+
+#include <flow/Block.h>
+#include <mico/flow/blocks/visualizers/PangolinVisualizer.h>
 
 namespace mico{
+
     #ifdef MICO_HAS_PANGOLIN
+        class BlockTrajectoryVisualizerPangolin: public flow::Block {
+        public:
+            static std::string name() {return "Pangolin Trajectory Visualizer";}
 
-        BlockVisualizerPangolin::BlockVisualizerPangolin(){
+            BlockTrajectoryVisualizerPangolin();
+            ~BlockTrajectoryVisualizerPangolin();
+
+        private:
+            void poseCallback(flow::DataFlow  _data, int _id);
+
+        private:
+            int nTrajs_ = 1;
+
+            std::vector<Eigen::Vector3f> lastPositions_;
+            std::vector<bool> isFirst_;
             
-            createPolicy({{"Camera Pose", "mat44"}});
-            registerCallback({"Camera Pose"}, 
-                                    [&](flow::DataFlow  _data){
-                                        if(idle_){
-                                            idle_ = false;
-                                            Eigen::Matrix4f pose = _data.get<Eigen::Matrix4f>("Camera Pose");
-                                            if(isFirst_){
-                                                lastPosition_ = pose.block<3,1>(0,3);
-                                                isFirst_ = false;
-                                            }else{
-                                                Eigen::Vector3f currPosition = pose.block<3,1>(0,3);
-                                                visualizer_.addLine(lastPosition_, currPosition);
-                                                lastPosition_ = currPosition;
-                                            }
-                                            idle_ = true;
-                                        }
+            PangolinVisualizer visualizer_;
 
-                                    }
-                                );
-        }
-        
-        BlockVisualizerPangolin::~BlockVisualizerPangolin(){
+        };
 
-        }
-
+    
     #endif
+
+
+
 }
 
+#endif
