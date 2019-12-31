@@ -39,6 +39,7 @@ namespace mico{
 
                 spinBox_ = new QSpinBox();
                 spinBox_->setMinimum(1);
+                spinBox_->setMaximum(6);
                 layout_->addWidget(spinBox_);
                 connect(spinBox_, QOverload<int>::of(&QSpinBox::valueChanged), [this](int _n){ this->n_ = _n; });
 

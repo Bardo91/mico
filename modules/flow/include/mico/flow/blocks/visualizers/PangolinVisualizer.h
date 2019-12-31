@@ -42,8 +42,8 @@ namespace mico{
             PangolinVisualizer();
             ~PangolinVisualizer();
 
-            void addLine(const Eigen::Vector3f &_p0, const Eigen::Vector3f &_p1);
-            void addLines(const std::vector<Eigen::Vector3f> &_pts);
+            void addLine(const Eigen::Vector3f &_p0, const Eigen::Vector3f &_p1, const Eigen::Vector4f &_color = {0.0f,1.0f,0.0f,0.6f});
+            void addLines(const std::vector<Eigen::Vector3f> &_pts, const Eigen::Vector4f &_color = {0.0f,1.0f,0.0f,0.6f});
 
             void addPointCloud(const pcl::PointCloud<pcl::PointXYZRGBNormal> &_cloud);
 
@@ -59,6 +59,7 @@ namespace mico{
             std::thread renderThread_;
             std::mutex renderGuard_;
             std::vector<std::vector<Eigen::Vector3f>> linesToDraw_;
+            std::vector<Eigen::Vector4f> colorLines_;
 
             static int sWinId;
         };

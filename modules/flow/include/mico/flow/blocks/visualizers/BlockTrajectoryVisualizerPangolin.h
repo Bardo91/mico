@@ -43,6 +43,12 @@ namespace mico{
             int nTrajs_ = 1;
 
             std::vector<Eigen::Vector3f> lastPositions_;
+            std::vector<Eigen::Vector4f> colorLines_ = {{0.0f, 1.0f, 0.0f, 0.6f}, 
+                                                        {1.0f, 0.0f, 0.0f, 0.6f}, 
+                                                        {0.0f, 0.0f, 1.0f, 0.6f}, 
+                                                        {0.6f, 0.6f, 0.0f, 0.6f}, 
+                                                        {0.6f, 0.0f, 0.6f, 0.6f}, 
+                                                        {0.0f, 0.6f, 0.6f, 0.6f}};
             std::vector<bool> isFirst_;
             
             PangolinVisualizer visualizer_;

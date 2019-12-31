@@ -42,13 +42,14 @@ namespace mico{
 
         }
 
-        void PangolinVisualizer::addLine(const Eigen::Vector3f &_p0, const Eigen::Vector3f &_p1){
-            addLines({_p0, _p1});
+        void PangolinVisualizer::addLine(const Eigen::Vector3f &_p0, const Eigen::Vector3f &_p1, const Eigen::Vector4f &_color){
+            addLines({_p0, _p1}, _color);
         }
 
-        void PangolinVisualizer::addLines(const std::vector<Eigen::Vector3f> &_pts){
+        void PangolinVisualizer::addLines(const std::vector<Eigen::Vector3f> &_pts, const Eigen::Vector4f &_color){
             renderGuard_.lock();
             linesToDraw_.push_back(_pts);
+            colorLines_.push_back(_color);
             renderGuard_.unlock();
         }
 
@@ -97,10 +98,13 @@ namespace mico{
         void PangolinVisualizer::drawLines(){
             renderGuard_.lock();
             auto linesToDraw = linesToDraw_;
+            auto colorLines = colorLines_;
             renderGuard_.unlock();
-            for(auto &line:linesToDraw){
+            for(unsigned i = 0; i < linesToDraw_.size(); i++){
+                auto &line = linesToDraw[i];
+                auto &color = colorLines[i];
                 glLineWidth(2);
-                glColor4f(0.0f,1.0f,0.0f,0.6f);
+                glColor4f(color[0], color[1], color[2], color[3]);
                 glBegin(GL_LINES);
                 for(unsigned i = 1; i < line.size(); i++){
                     glVertex3f(line[i-1][0], line[i-1][1], line[i-1][2]);
