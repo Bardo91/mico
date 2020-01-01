@@ -19,48 +19,35 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-// Streamers
-#undef Q_FOREACH
-#include <mico/flow/blocks/streamers/StreamRealSense.h>
-#include <mico/flow/blocks/streamers/StreamDataset.h>
-#include <mico/flow/blocks/streamers/StreamPixhawk.h>
-#include <mico/flow/blocks/streamers/StreamWebcam.h>
 
 
-// Processors
-#include <mico/flow/blocks/processors/BlockOdometryRGBD.h>
-#include <mico/flow/blocks/processors/BlockOdometryPhotogrammetry.h>
-#include <mico/flow/blocks/processors/BlockDatabaseMarkI.h>
-#include <mico/flow/blocks/processors/BlockLoopClosure.h>
-#include <mico/flow/blocks/processors/BlockOptimizerCF.h>
-#include <mico/flow/blocks/processors/BlockEKFIMU.h>
-// #include <mico/flow/blocks/processors/BlockParticleFilterKinematic.h>
+#ifndef MICO_FLOW_BLOCKS_STREAMERS_STREAMWEBCAM_H_
+#define MICO_FLOW_BLOCKS_STREAMERS_STREAMWEBCAM_H_
+
+#include <flow/Block.h>
+#include <opencv2/opencv.hpp>
+
+namespace mico{
+
+    class StreamWebcam:public flow::Block{
+    public:
+        static std::string name() {return "Dataset StreamWebcam";}
+        
+        StreamWebcam();
+        ~StreamWebcam();
+        
+        virtual bool configure(std::unordered_map<std::string, std::string> _params) override;
+        std::vector<std::string> parameters() override;
+        
+    protected:
+        virtual void loopCallback() override;
+
+    private:
+        cv::VideoCapture *camera_;
+    };
+
+}
 
 
-// Visualizers
-#include <mico/flow/blocks/visualizers/BlockImageVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockTrayectoryVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockDatabaseVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockSceneVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockPointCloudVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockTrajectoryVisualizerPangolin.h>
-#include <mico/flow/blocks/visualizers/BlockSceneVisualizerPangolin.h>
 
-// Casters
-#include <mico/flow/blocks/CastBlocks.h>
-
-// Queuers
-#include <mico/flow/blocks/BlockQueuer.h>
-
-// Savers
-#include <mico/flow/blocks/savers/SaverImage.h>
-#include <mico/flow/blocks/savers/SaverTrajectory.h>
-#include <mico/flow/blocks/savers/SaverEntity.h>
-
-// DNN
-#ifdef HAS_DARKNET
-    #include <mico/flow/blocks/processors/BlockDarknet.h> // 666 HAS DARKNET
 #endif
-
-// Misc
-#include <mico/flow/blocks/misc/BlockPython.h>

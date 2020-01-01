@@ -43,6 +43,7 @@ void registerDataModels(FlowVisualInterface::RegistryType_ &_register) {
     _register->registerModel<FlowVisualBlock<StreamDataset, true>>          ("Streamers");
     _register->registerModel<FlowVisualBlock<StreamRealSense, true>>        ("Streamers");
     _register->registerModel<FlowVisualBlock<StreamPixhawk, true>>          ("Streamers");
+    _register->registerModel<FlowVisualBlock<StreamWebcam, true>>          ("Streamers");
 
     #ifdef MICO_USE_ROS
         // ROS Streamers

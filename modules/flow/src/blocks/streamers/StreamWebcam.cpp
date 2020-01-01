@@ -19,48 +19,50 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-// Streamers
-#undef Q_FOREACH
-#include <mico/flow/blocks/streamers/StreamRealSense.h>
-#include <mico/flow/blocks/streamers/StreamDataset.h>
-#include <mico/flow/blocks/streamers/StreamPixhawk.h>
+
 #include <mico/flow/blocks/streamers/StreamWebcam.h>
+#include <flow/Outpipe.h>
+
+namespace mico{
+        StreamWebcam::StreamWebcam(){
+            createPipe("Color", "image");
+        }
 
 
-// Processors
-#include <mico/flow/blocks/processors/BlockOdometryRGBD.h>
-#include <mico/flow/blocks/processors/BlockOdometryPhotogrammetry.h>
-#include <mico/flow/blocks/processors/BlockDatabaseMarkI.h>
-#include <mico/flow/blocks/processors/BlockLoopClosure.h>
-#include <mico/flow/blocks/processors/BlockOptimizerCF.h>
-#include <mico/flow/blocks/processors/BlockEKFIMU.h>
-// #include <mico/flow/blocks/processors/BlockParticleFilterKinematic.h>
+        StreamWebcam::~StreamWebcam(){ 
+            camera_->release();
+            delete camera_;
+        };
 
+        bool StreamWebcam::configure(std::unordered_map<std::string, std::string> _params) {
+            if(isRunningLoop()) // Cant configure if already running.
+                return false;            
 
-// Visualizers
-#include <mico/flow/blocks/visualizers/BlockImageVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockTrayectoryVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockDatabaseVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockSceneVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockPointCloudVisualizer.h>
-#include <mico/flow/blocks/visualizers/BlockTrajectoryVisualizerPangolin.h>
-#include <mico/flow/blocks/visualizers/BlockSceneVisualizerPangolin.h>
+            int deviceId = 0;
+            for(auto &p:_params){
+                if(p.first == "device_id")
+                    deviceId = atoi(p.second.c_str());
+            }
+            camera_ = new cv::VideoCapture(deviceId);
 
-// Casters
-#include <mico/flow/blocks/CastBlocks.h>
+            return camera_->isOpened();
 
-// Queuers
-#include <mico/flow/blocks/BlockQueuer.h>
+        }
+        
+        std::vector<std::string> StreamWebcam::parameters(){
+            return {
+                "device_id" 
+            };
+        }
 
-// Savers
-#include <mico/flow/blocks/savers/SaverImage.h>
-#include <mico/flow/blocks/savers/SaverTrajectory.h>
-#include <mico/flow/blocks/savers/SaverEntity.h>
-
-// DNN
-#ifdef HAS_DARKNET
-    #include <mico/flow/blocks/processors/BlockDarknet.h> // 666 HAS DARKNET
-#endif
-
-// Misc
-#include <mico/flow/blocks/misc/BlockPython.h>
+        void StreamWebcam::loopCallback() {
+            while(isRunningLoop()){
+                if(auto pipe = getPipe("Color"); pipe->registrations() !=0 ){
+                    cv::Mat image;
+                    (*camera_) >> image;
+                    pipe->flush(image);     
+                }
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            }         
+        }
+}
