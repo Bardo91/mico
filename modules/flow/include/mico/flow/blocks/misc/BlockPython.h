@@ -63,6 +63,8 @@ namespace mico{
         QTextEdit * pythonEditor_;
         QPushButton * runButton_;
         PythonSyntaxHighlighter *highlighter_;
+
+        pybind11::gil_scoped_release *gilReleaser_; // Needed https://stackoverflow.com/questions/54772595/opencv-functions-lock-when-called-by-a-python-script-itself-called-by-a-c-thre
     };
 
 }

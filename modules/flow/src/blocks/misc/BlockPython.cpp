@@ -51,6 +51,7 @@
 namespace mico{
     BlockPython::BlockPython(){
         pybind11::initialize_interpreter();
+        gilReleaser_ = new pybind11::gil_scoped_release;
 
         // Instantiate outputs
         InterfaceSelectorWidget interfaceSelector("Python interface Selector");
@@ -71,7 +72,7 @@ namespace mico{
             }
 
             registerCallback(inTags, [&](flow::DataFlow _data){
-                runPythonCode(_data, true);
+                this->runPythonCode(_data, true);
             });
         }
 
@@ -91,6 +92,7 @@ namespace mico{
             });
     }
     BlockPython::~BlockPython(){
+        delete gilReleaser_;
         pybind11::finalize_interpreter();
     }
 
@@ -107,7 +109,9 @@ namespace mico{
     void BlockPython::runPythonCode(flow::DataFlow _data, bool _useData){
         if(!idle_)
             return;
+        
         idle_ = false;
+        pybind11::gil_scoped_acquire gil;
 
         std::string pythonCode = pythonEditor_->toPlainText().toStdString();
         // pybind11::scoped_interpreter guard{}; // Not most efficient but safe
@@ -119,14 +123,18 @@ namespace mico{
                     encodeInput(locals, _data, input.first, input.second);
                 }
             }
-        
+
             pybind11::exec(pythonCode, pybind11::globals(), locals);
     
             for(auto output:outputInfo_){
                 flushPipe(locals, output.first, output.second);
             }        
-        }catch(const std::exception& e){
-            std::cout << e.what() << "\n";
+
+        }catch(pybind11::error_already_set &_e){
+            std::cout << "Catched pybinds exception: " << _e.what() << "\n";
+            _e.restore();
+        }catch(const std::exception& _e){
+            std::cout << "Catched std exception: " << _e.what() << "\n";
         }
 
         idle_ = true;
