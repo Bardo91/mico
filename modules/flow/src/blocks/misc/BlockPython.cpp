@@ -131,10 +131,10 @@ namespace mico{
             }        
 
         }catch(pybind11::error_already_set &_e){
-            std::cout << "Catched pybinds exception: " << _e.what() << "\n";
+            //std::cout << "Catched pybinds exception: " << _e.what() << "\n";
             _e.restore();
         }catch(const std::exception& _e){
-            std::cout << "Catched std exception: " << _e.what() << "\n";
+            //std::cout << "Catched std exception: " << _e.what() << "\n";
         }
 
         idle_ = true;
