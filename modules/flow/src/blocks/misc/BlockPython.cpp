@@ -42,7 +42,10 @@
 #include <boost/python.hpp>
 #include <boost/python/dict.hpp>
 #include <numpy/arrayobject.h>
+
 #include <mico/flow/blocks/misc/python/ConversionUtils.h>
+
+#include <opencv2/opencv.hpp>
 
 
 namespace mico{
@@ -142,6 +145,15 @@ namespace mico{
             _locals[_tag.c_str()] = _data.get<Eigen::Vector4f>(_tag);
         }else if(_typeTag == "mat44"){
             _locals[_tag.c_str()] = _data.get<Eigen::Matrix4f>(_tag);
+        }else if(_typeTag == "image"){
+            auto image = _data.get<cv::Mat>(_tag);
+            if(image.channels() == 1){
+                _locals[_tag.c_str()] = cv_mat_uint8_1c_to_numpy(image);
+            }else if(image.channels() == 3){
+                _locals[_tag.c_str()] = cv_mat_uint8_3c_to_numpy(image);
+            }else{
+                std::cout << "Unsupported image type conversion in Python block" << std::endl;
+            }
         }else{
             std::cout << "Type " << _typeTag << " of label "<< _tag << " is not supported yet in python block." << ".It will be initialized as none. Please contact the administrators" << std::endl;
             return;
@@ -162,6 +174,15 @@ namespace mico{
                 getPipe(_tag)->flush(_locals[_tag.c_str()].cast<Eigen::Vector4f>());
             }else if(_typeTag == "mat44"){
                 getPipe(_tag)->flush(_locals[_tag.c_str()].cast<Eigen::Matrix4f>());
+            }else if(_typeTag == "image"){
+                auto pyArray = pybind11::array_t<unsigned char>(_locals[_tag.c_str()]);
+                if(pyArray.ndim() == 2){
+                    getPipe(_tag)->flush(numpy_uint8_1c_to_cv_mat(pyArray));
+                }else if(pyArray.ndim() == 3){
+                    getPipe(_tag)->flush(numpy_uint8_3c_to_cv_mat(pyArray));
+                }else{
+                    std::cout << "Unsupported image type conversion in Python block" << std::endl;
+                }
             }else{
                 std::cout << "Type " << _typeTag << " of label "<< _tag << " is not supported yet in python block." << ".It will be initialized as none. Please contact the administrators" << std::endl;
             }
