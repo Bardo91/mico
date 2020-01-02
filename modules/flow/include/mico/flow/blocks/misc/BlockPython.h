@@ -46,6 +46,8 @@ namespace mico{
             return blockInterpreter_;
         }
 
+        bool resizable() const override { return true; }
+
     private:
         void runPythonCode(flow::DataFlow _data, bool _useData);
 
