@@ -43,6 +43,7 @@ namespace mico{
                 if(p.first == "device_id")
                     deviceId = atoi(p.second.c_str());
             }
+            
             camera_ = new cv::VideoCapture(deviceId);
 
             return camera_->isOpened();

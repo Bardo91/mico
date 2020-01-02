@@ -31,7 +31,7 @@ namespace mico{
 
     class StreamWebcam:public flow::Block{
     public:
-        static std::string name() {return "Dataset StreamWebcam";}
+        static std::string name() {return "Streamer Webcam";}
         
         StreamWebcam();
         ~StreamWebcam();
