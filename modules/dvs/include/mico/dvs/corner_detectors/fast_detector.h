@@ -35,7 +35,7 @@ namespace mico{
 
   class FastDetector : public Detector{
     public:
-      FastDetector(bool connect = true);
+      FastDetector();
       virtual ~FastDetector();
 
       bool isFeature(const dvs_msgs::Event &e);

@@ -25,13 +25,12 @@
 #include <ros/ros.h>
 #include <dvs_msgs/EventArray.h>
 
-#include <mico/dvs/corner_detectors/timer.h>
 
 namespace mico{
 
   class Detector{
     public:
-      Detector(bool connect = true);
+      Detector();
       virtual ~Detector();
 
       // check if event

@@ -23,8 +23,7 @@
 
 namespace mico{
 
-  FastDetector::FastDetector(bool connect)
-  : Detector(connect),
+  FastDetector::FastDetector() :
     circle3_ {{0, 3}, {1, 3}, {2, 2}, {3, 1},
               {3, 0}, {3, -1}, {2, -2}, {1, -3},
               {0, -3}, {-1, -3}, {-2, -2}, {-3, -1},
@@ -63,11 +62,13 @@ namespace mico{
     for (int i=0; i<16; i++){
       for (int streak_size = 3; streak_size<=6; streak_size++){
         // check that streak event is larger than neighbor
-        if (sae_[pol](e.x+circle3_[i][0], e.y+circle3_[i][1]) <  sae_[pol](e.x+circle3_[(i-1+16)%16][0], e.y+circle3_[(i-1+16)%16][1]))
+        if (sae_[pol](e.x+circle3_[i][0], e.y+circle3_[i][1]) <
+                              sae_[pol](e.x+circle3_[(i-1+16)%16][0], e.y+circle3_[(i-1+16)%16][1]))
           continue;
 
         // check that streak event is larger than neighbor
-        if (sae_[pol](e.x+circle3_[(i+streak_size-1)%16][0], e.y+circle3_[(i+streak_size-1)%16][1]) <          sae_[pol](e.x+circle3_[(i+streak_size)%16][0], e.y+circle3_[(i+streak_size)%16][1]))
+        if (sae_[pol](e.x+circle3_[(i+streak_size-1)%16][0], e.y+circle3_[(i+streak_size-1)%16][1]) <
+                  sae_[pol](e.x+circle3_[(i+streak_size)%16][0], e.y+circle3_[(i+streak_size)%16][1]))
           continue;
 
         double min_t = sae_[pol](e.x+circle3_[i][0], e.y+circle3_[i][1]);
@@ -103,12 +104,13 @@ namespace mico{
       for (int i=0; i<20; i++){
         for (int streak_size = 4; streak_size<=8; streak_size++){
           // check that first event is larger than neighbor
-          if (sae_[pol](e.x+circle4_[i][0], e.y+circle4_[i][1]) <  sae_[pol](e.x+circle4_[(i-1+20)%20][0], e.y+circle4_[(i-1+20)%20][1]))
+          if (sae_[pol](e.x+circle4_[i][0], e.y+circle4_[i][1]) <  
+                          sae_[pol](e.x+circle4_[(i-1+20)%20][0], e.y+circle4_[(i-1+20)%20][1]))
             continue;
 
           // check that streak event is larger than neighbor
           if (sae_[pol](e.x+circle4_[(i+streak_size-1)%20][0], e.y+circle4_[(i+streak_size-1)%20][1]) <          
-              sae_[pol](e.x+circle4_[(i+streak_size)%20][0], e.y+circle4_[(i+streak_size)%20][1]))
+                          sae_[pol](e.x+circle4_[(i+streak_size)%20][0], e.y+circle4_[(i+streak_size)%20][1]))
             continue;
 
           double min_t = sae_[pol](e.x+circle4_[i][0], e.y+circle4_[i][1]);

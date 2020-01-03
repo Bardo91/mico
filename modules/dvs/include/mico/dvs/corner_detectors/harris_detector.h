@@ -36,7 +36,7 @@ namespace mico{
 
   class HarrisDetector : public Detector{
   public:
-    HarrisDetector(bool connect = true);
+    HarrisDetector();
     virtual ~HarrisDetector();
 
     bool isFeature(const dvs_msgs::Event &e);

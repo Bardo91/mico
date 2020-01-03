@@ -24,20 +24,19 @@
 
 namespace mico{
 
-  FixedDistinctQueue::FixedDistinctQueue(int window, int queue) :
-    first_(-1), last_(-1), queueMax_(queue)
-  {
+  FixedDistinctQueue::FixedDistinctQueue(int window, int queue){
+    first_ = -1;
+    last_  = -1;
+    queueMax_ = queue;
     window_ = Eigen::MatrixXi::Constant(window, window, -1);
     queue_.reserve(queueMax_);
   }
 
-  bool FixedDistinctQueue::isFull() const
-  {
+  bool FixedDistinctQueue::isFull() const{
     return (queue_.size() >= queueMax_);
   }
 
-  void FixedDistinctQueue::addNew(int x, int y)
-  {
+  void FixedDistinctQueue::addNew(int x, int y){
     // queue full?
     if (queue_.size() < queueMax_)
     {

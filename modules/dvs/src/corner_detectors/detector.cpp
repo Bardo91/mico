@@ -23,17 +23,10 @@
 
 namespace mico{
 
-  Detector::Detector(bool detect){
+  Detector::Detector(){
     totalCorners_ = 0;
     totalEvents_  = 0;
     totalTime_    = 0;
-
-    // interface
-    if (detect)
-    {
-      // feature_pub_ = nh_.advertise<dvs_msgs::EventArray>("/feature_events", 1);
-      // event_sub_ = nh_.subscribe("/dvs/events", 0, &Detector::eventCallback, this);
-    }
   }
 
   Detector::~Detector(){
@@ -46,38 +39,28 @@ namespace mico{
     feature_msg.width = _msg.width;
     feature_msg.height = _msg.height;
 
-    utils::time::Timer<std::chrono::nanoseconds> timer;
     for (const auto e : _msg.events){
+  
       if (isFeature(e)){ // call to FAST or Harris
         feature_msg.events.push_back(e);
       }
     }
-    const auto elapsed_time_nsecs = timer.toc();
-
-    // global stats
-    totalTime_    += elapsed_time_nsecs;
-    totalEvents_  += _msg.events.size();
-    totalCorners_ += feature_msg.events.size();
-
     // publish feature events
     cornersDetected_ = feature_msg;
 
-    // stats
-    const int numEvents_ = _msg.events.size();
-    if (numEvents_ > 0){
-      const int numFeatures_ = feature_msg.events.size();
-      const float reductionRate_ = 100.*(1.-numFeatures_/(float) numEvents_);
-      const float reductionFactor_ = numEvents_/(float) numFeatures_;
-      const float eventsPerSecond_ = float(numEvents_)/(elapsed_time_nsecs/1e9);
-      const float nsPerEvent_ = elapsed_time_nsecs/float(numEvents_);
-      ROS_INFO("%s reduction rate: %.3f%% (%.0fx). Speed: %.0f e/s / %.0f ns/e.",
-        detectorName_.c_str(), reductionRate_, reductionFactor_,
-        eventsPerSecond_, nsPerEvent_);
-    }
-    else
-    {
-      ROS_INFO("%s reduction rate: No events.", detectorName_.c_str());
-    }
+    // global stats
+    // totalTime_    += elapsed_time_nsecs;
+    // totalEvents_  += _msg.events.size();
+    // totalCorners_ += feature_msg.events.size();
+
+    // events stats
+    // numEvents_ = _msg.events.size();
+    // numFeatures_ = feature_msg.events.size();
+    // reductionRate_ = 100.*(1.-numFeatures_/(float) numEvents_);
+    // reductionFactor_ = numEvents_/(float) numFeatures_;
+    // eventsPerSecond_ = float(numEvents_)/(elapsed_time_nsecs/1e9);
+    // nsPerEvent_ = elapsed_time_nsecs/float(numEvents_); 
+    
   }
 
 } // namespace

@@ -23,9 +23,7 @@
 
 namespace mico{
 
-  HarrisDetector::HarrisDetector(bool connect)
-  : Detector(connect)
-  {
+  HarrisDetector::HarrisDetector(){
     detectorName_ = "Harris";
 
     // parameters
