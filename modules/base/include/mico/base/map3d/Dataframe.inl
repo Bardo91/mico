@@ -126,7 +126,7 @@ namespace mico {
     template<typename PointType_>
     inline cv::Mat Dataframe<PointType_>::featureDescriptors() const{
         std::lock_guard<std::mutex> lock(dataLock_);
-        return featureDescriptors_;
+        return featureDescriptors_.clone();
     }
 
     template<typename PointType_>
@@ -157,7 +157,7 @@ namespace mico {
     template<typename PointType_>
     inline cv::Mat Dataframe<PointType_>::leftImage() const{
         std::lock_guard<std::mutex> lock(dataLock_);
-        return left_;
+        return left_.clone();
     }
 
     template<typename PointType_>
@@ -169,7 +169,7 @@ namespace mico {
     template<typename PointType_>
     inline cv::Mat Dataframe<PointType_>::rightImage() const{
         std::lock_guard<std::mutex> lock(dataLock_);
-        return right_;
+        return right_.clone();
     }
 
     template<typename PointType_>
@@ -181,7 +181,7 @@ namespace mico {
     template<typename PointType_>
     inline cv::Mat Dataframe<PointType_>::depthImage() const{
         std::lock_guard<std::mutex> lock(dataLock_);
-        return depth_;
+        return depth_.clone();
     }
 
     template<typename PointType_>
