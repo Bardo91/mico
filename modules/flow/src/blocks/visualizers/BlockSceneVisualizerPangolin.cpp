@@ -26,10 +26,12 @@
 #include <QVBoxLayout>
 #include <QLabel>
 
+#include <mico/base/map3d/Dataframe.h>
+
 namespace mico{
     #ifdef MICO_HAS_PANGOLIN
         BlockSceneVisualizerPangolin::BlockSceneVisualizerPangolin(){
-            createPolicy({{"pose", "mat44"},{"cloud", "cloud"}});
+            createPolicy({{"pose", "mat44"},{"Dataframe", "dataframe"}});
             
             registerCallback(   {"pose"}, 
                                 [&](flow::DataFlow  _data){
@@ -45,14 +47,15 @@ namespace mico{
                                 }
                                 );
 
-
-            registerCallback(   {"cloud"}, 
+            registerCallback({ "Dataframe" }, 
                                 [&](flow::DataFlow  _data){
-                                    auto cloud = _data.get<pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr>("cloud");
-                                    visualizer_.addPointCloud(cloud);
+                                    auto df = _data.get<Dataframe<pcl::PointXYZRGBNormal>::Ptr>("Dataframe");
+                                    
+                                    pcl::PointCloud<pcl::PointXYZRGBNormal> cloud; 
+                                    pcl::transformPointCloudWithNormals(*df->cloud(), cloud, df->pose());
+                                    visualizer_.addPointCloud(cloud.makeShared());
                                 }
-                                );
-        
+                            );
         }
         
         BlockSceneVisualizerPangolin::~BlockSceneVisualizerPangolin(){
