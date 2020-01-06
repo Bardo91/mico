@@ -31,7 +31,7 @@
 namespace mico{
     #ifdef MICO_HAS_PANGOLIN
         BlockSceneVisualizerPangolin::BlockSceneVisualizerPangolin(){
-            createPolicy({{"pose", "mat44"},{"Dataframe", "dataframe"}});
+            createPolicy({{"pose", "mat44"},{"Dataframe", "dataframe"}, {"Cloud", "cloud"}});
             
             registerCallback(   {"pose"}, 
                                 [&](flow::DataFlow  _data){
@@ -54,6 +54,14 @@ namespace mico{
                                     pcl::PointCloud<pcl::PointXYZRGBNormal> cloud; 
                                     pcl::transformPointCloudWithNormals(*df->cloud(), cloud, df->pose());
                                     visualizer_.addPointCloud(cloud.makeShared());
+                                }
+                            );
+
+
+            registerCallback({ "Cloud" }, 
+                                [&](flow::DataFlow  _data){
+                                    auto cloud = _data.get<pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr>("Cloud"); 
+                                    visualizer_.addPointCloud(cloud);
                                 }
                             );
         }

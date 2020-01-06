@@ -95,6 +95,10 @@ void registerDataModels(FlowVisualInterface::RegistryType_ &_register) {
     // Misc
     _register->registerModel<FlowVisualBlock<BlockPython>>                  ("Misc");
 
+    // Misc
+    _register->registerModel<FlowVisualBlock<BlockTransformCloud>>                  ("Utils 3D");
+    _register->registerModel<FlowVisualBlock<BlockVoxelFiltering>>                  ("Utils 3D");
+
 }
 
 
