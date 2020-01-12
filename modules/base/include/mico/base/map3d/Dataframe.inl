@@ -255,11 +255,11 @@ namespace mico {
     #endif
 
     template<typename PointType_>
-    inline void Dataframe<PointType_>::wordCreation(){
+    inline void Dataframe<PointType_>::wordCreation(Dataframe<PointType_>::Ptr _self, Dataframe<PointType_>::Ptr _matched){
         assert(covisibility_.size() == 1);  // Just one KF In covisibility.
 
-        auto prevDf = covisibility_[0];
-        auto selfRef = Dataframe<PointType_>::Ptr(this);
+        auto prevDf = _matched;
+        auto selfRef = _self;
 
         typename pcl::PointCloud<PointType_>::Ptr transformedFeatureCloud(new pcl::PointCloud<PointType_>());
         pcl::transformPointCloud(*prevDf->featureCloud(), *transformedFeatureCloud, prevDf->pose());

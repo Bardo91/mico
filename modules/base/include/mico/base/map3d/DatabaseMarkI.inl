@@ -64,7 +64,7 @@ namespace mico {
         
         if(mLastDataframe){
             _df->appendCovisibility(mLastDataframe);
-            _df->wordCreation();
+            _df->wordCreation(_df, mLastDataframe);
         }
 
         updateCurrentKeyframe(_df);
