@@ -86,7 +86,7 @@ namespace mico{
         constexpr static const char * OutputName_ = "Vec dataframes";
         constexpr static const char * InputType_ = "dataframe";
         constexpr static const char * InputName_ = "dataframe";
-        typedef mico::Dataframe<pcl::PointXYZRGBNormal>::Ptr Type_;
+        typedef std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> Type_;
     };
 
     //-----------------------------------------------------------------------------------------------------------------

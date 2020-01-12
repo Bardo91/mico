@@ -83,10 +83,11 @@ target_link_libraries(${COMPONENT_NAME} PRIVATE pybind11::embed)
 #########################################
 ######			SAMPLES 		   ######
 #########################################
-
-add_executable(sample_2 samples/main2.cpp)
-target_link_libraries(sample_2 LINK_PRIVATE mico::mico-flow)
-target_compile_definitions(sample_2 PUBLIC WITHGPERFTOOLS)
+if(BUILD_EXAMPLES)
+  add_executable(sample_2 samples/main2.cpp)
+  target_link_libraries(sample_2 LINK_PRIVATE mico::mico-flow)
+  target_compile_definitions(sample_2 PUBLIC WITHGPERFTOOLS)
+endif(BUILD_EXAMPLES)
 
 if(BUILD_DNN)
   add_executable(darknet_example samples/darknet_example.cpp)

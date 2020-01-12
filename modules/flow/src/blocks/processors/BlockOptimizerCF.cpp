@@ -28,14 +28,14 @@
 namespace mico{
 
     BlockOptimizerCF::BlockOptimizerCF(){
-        createPolicy({{"Subset Dataframes","v-dataframe"}});
+        createPolicy({{"Subset Dataframes","v_dataframe"}});
         
         registerCallback({"Subset Dataframes"}, 
                                 [&](flow::DataFlow _data){
                                     if(idle_){
                                         idle_ = false;
                                         // std::cout << "Optimization start" << std::endl;
-                                        auto vDataframes = _data.get<std::vector<Dataframe<pcl::PointXYZRGBNormal>::Ptr>>("Subset Dataframes");
+                                        auto vDataframes = _data.get<std::vector<std::shared_ptr<Dataframe<pcl::PointXYZRGBNormal>>>>("Subset Dataframes");
                                         std::map<int, Dataframe<pcl::PointXYZRGBNormal>::Ptr> dfMap;
                                         for(auto &df: vDataframes){
                                             for(auto &visDf: df->covisibility()){
