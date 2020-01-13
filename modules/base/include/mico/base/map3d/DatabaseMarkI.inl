@@ -75,14 +75,19 @@ namespace mico {
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_, DebugLevels DebugLevel_, OutInterfaces OutInterface_>
     inline void DatabaseMarkI<PointType_, DebugLevel_, OutInterface_>::writeSignature(std::shared_ptr<mico::Dataframe<PointType_>> &_df) {
-        std::vector<cv::Mat> descriptors;
+        /*std::vector<cv::Mat> descriptors; 666 WTF pq haciamos esto si aún no hay palabras....
         for (auto &w : _df->words()) {
             descriptors.push_back(w.second->descriptor);
+        }*/
+        cv::Mat descriptors = _df->featureDescriptors();
+        std::vector<cv::Mat> v_descriptors(descriptors.rows);
+        for(unsigned i = 0; i < descriptors.rows;i++){
+            v_descriptors[i] = descriptors.row(i);
         }
 
         DBoW2::BowVector signature;
         DBoW2::FeatureVector featVec; 
-        mVocabulary.transform(descriptors,signature, featVec, 4);
+        mVocabulary.transform(v_descriptors,signature, featVec, 4);
         _df->signature(signature);
         _df->featureVector(featVec);
     }
@@ -92,13 +97,13 @@ namespace mico {
     inline double DatabaseMarkI<PointType_, DebugLevel_, OutInterface_>::computeScore(  std::shared_ptr<mico::Dataframe<PointType_>> _df1,
                                                                                         std::shared_ptr<mico::Dataframe<PointType_>> _df2) {
         if(_df1 == nullptr || _df2 == nullptr)
-            return 0;
+            return -1;
 
         #ifdef USE_DBOW2
             // Adding df in current dataframe or create a new one
             return mVocabulary.score(_df1->signature(), _df2->signature());
         #else
-            return 0;
+            return -1;
         #endif
     }
 

@@ -39,7 +39,7 @@ namespace mico{
                                         auto df = _data.get<std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>>>("Next Dataframe");
 
                                         if(database_.addDataframe(df)){ // New dataframe created 
-                                            librarian_[df->id()] = df;
+                                            // librarian_[df->id()] = df;
                                             getPipe("Keyframe")->flush(database_.lastDataframe());
                                         }
                                         idle_ = true;

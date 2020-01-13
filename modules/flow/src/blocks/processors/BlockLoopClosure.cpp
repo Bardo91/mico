@@ -30,7 +30,7 @@ namespace mico{
     BlockLoopClosure::BlockLoopClosure(){
         createPolicy({{"Next Keyframe", "dataframe"}});
 
-        createPipe("Loop","v-dataframe");
+        createPipe("Loop","v_dataframe");
 
         registerCallback({"Next Keyframe"}, 
                                 [&](flow::DataFlow _data){
