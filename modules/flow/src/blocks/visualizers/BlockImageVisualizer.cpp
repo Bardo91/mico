@@ -95,28 +95,34 @@ namespace mico{
     }
 
     vtkSmartPointer<vtkImageData> BlockImageVisualizer::convertCVMatToVtkImageData(const cv::Mat &sourceCVImage, bool flipOverXAxis) {
+        cv::Mat sourceImage;
+        if(sourceCVImage.channels() == 1){
+            cv::cvtColor(sourceCVImage, sourceImage, cv::ColorConversionCodes::COLOR_GRAY2RGB);
+        }else{
+            cv::cvtColor(sourceCVImage, sourceImage, cv::ColorConversionCodes::COLOR_BGR2RGB);
+        }
+        
         vtkSmartPointer<vtkImageData> outputVtkImage = vtkSmartPointer<vtkImageData>::New();
         double spacing[3] = {1, 1, 1};
         double origin[3] = {0, 0, 0};
-        int extent[6] = {0, sourceCVImage.cols - 1, 0, sourceCVImage.rows - 1, 0, 0};
-        auto numOfChannels = sourceCVImage.channels();
+        int extent[6] = {0, sourceImage.cols - 1, 0, sourceImage.rows - 1, 0, 0};
+        auto numOfChannels = sourceImage.channels();
         outputVtkImage->SetSpacing(spacing);
         outputVtkImage->SetOrigin(origin);
         outputVtkImage->SetExtent(extent);
-        outputVtkImage->SetDimensions(sourceCVImage.cols, sourceCVImage.rows, 1);
+        outputVtkImage->SetDimensions(sourceImage.cols, sourceImage.rows, 1);
         outputVtkImage->AllocateScalars(VTK_UNSIGNED_CHAR, numOfChannels);
 
         cv::Mat tempCVImage;
         if (flipOverXAxis) { // Normaly you should flip the image!
-            cv::flip(sourceCVImage, tempCVImage, 0);
+            cv::flip(sourceImage, tempCVImage, 0);
         }
         else {
-            tempCVImage = sourceCVImage;
+            tempCVImage = sourceImage;
         }
-        cv::cvtColor(tempCVImage, tempCVImage, cv::ColorConversionCodes::COLOR_BGR2RGB);
         
         unsigned char* dptr = reinterpret_cast<unsigned char*>(outputVtkImage->GetScalarPointer());
-        mempcpy(dptr, tempCVImage.data, sourceCVImage.cols*sourceCVImage.rows*3);
+        mempcpy(dptr, tempCVImage.data, sourceImage.cols*sourceImage.rows*3);
 
         outputVtkImage->Modified();
 

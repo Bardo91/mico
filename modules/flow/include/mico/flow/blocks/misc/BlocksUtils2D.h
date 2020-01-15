@@ -71,6 +71,33 @@ namespace mico{
     };
 
 
+    class BlocksImageConversion: public flow::Block {
+    public:
+        static std::string name() {return "Image Conversion";}
+
+        BlocksImageConversion();
+
+        virtual QWidget * customWidget(){
+            return visualContainer_;
+        }
+
+    private:
+        void initVisualization();
+
+        void changeFilter(int _index);
+
+    private:
+        std::mutex guard_;
+        std::vector<std::pair<std::string, int>> typeConversion_;
+        std::pair<std::string, int> currentType_;
+        
+        QComboBox *conversionSelector_ = nullptr;
+        QGroupBox *visualContainer_ = nullptr;
+        QVBoxLayout *mainLayout_ = nullptr;
+
+    };
+
+
     //-----------------------------------------------------------------------------------------------------------------
     //-------------------------------------------- IMPLEMENTATIONS ----------------------------------------------------
     //-----------------------------------------------------------------------------------------------------------------
