@@ -69,6 +69,10 @@ namespace mico{
             return {"queue_size", "stride"};
         }
 
+        std::string description() const override {return    "Block that takes an input stream of data and places it into an array of given size."
+                                                            "The queue is flushed by the given stride size.\n"
+                                                            "   - Inputs: \n"
+                                                            "   - Outputs: \n";};
     
     private:
         std::deque<typename Trait_::Type_> queue_;

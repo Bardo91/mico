@@ -52,6 +52,9 @@ namespace mico{
             return visualContainer_;
         }
 
+        std::string description() const override {return    "Block with various simple 2D filters for images.\n"
+                                                            "   - Inputs: \n"
+                                                            "   - Outputs: \n";};
     private:
         void initVisualization();
 
@@ -80,6 +83,10 @@ namespace mico{
         virtual QWidget * customWidget(){
             return visualContainer_;
         }
+
+        std::string description() const override {return    "Block image type conversion utilities.\n"
+                                                            "   - Inputs: \n"
+                                                            "   - Outputs: \n";};
 
     private:
         void initVisualization();

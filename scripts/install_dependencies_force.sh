@@ -49,7 +49,7 @@ sudo apt-get install -y libboost-all-dev curl
 sudo apt-get install -y qt5-default
 sudo apt-get install -y libqt5opengl5 libqt5opengl5-dev
 
-install_git_repo "nodeeditor" "https://github.com/paceholder/nodeeditor"
+install_git_repo "nodeeditor" "https://github.com/bardo91/nodeeditor"
 
 ###################################################################
 ###########				INSTALL CUDA 10 		        ###########

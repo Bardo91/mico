@@ -38,6 +38,10 @@ namespace mico{
         
         virtual bool configure(std::unordered_map<std::string, std::string> _params) override;
         std::vector<std::string> parameters() override;
+
+        std::string description() const override {return    "Streamer block that reads data from a dataset (in split files format) and streams it syncronously."
+                                                            "It assumes that all the files are sequentially indexed.\n"
+                                                            "   - Outputs: \n";};
         
     protected:
         virtual void loopCallback() override;

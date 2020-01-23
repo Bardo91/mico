@@ -39,6 +39,10 @@ namespace mico{
         
         virtual bool configure(std::unordered_map<std::string, std::string> _params) override;
         std::vector<std::string> parameters() override;
+
+
+        std::string description() const override {return    "Block that receives an stream of entities (typically from object detection techniques) and serialize them into a file.\n"
+                                                            "   - Inputs: \n";};
     private:
         std::string pathFolder_;
         std::ofstream file_;

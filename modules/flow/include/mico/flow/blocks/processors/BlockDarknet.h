@@ -44,6 +44,11 @@ namespace mico{
         bool configure(std::unordered_map<std::string, std::string> _params) override;
         std::vector<std::string> parameters() override;
 
+
+        std::string description() const override {return    "Block that implements darknet deep neuronal network for multiple 2D object detection.\n"
+                                                            "   - Inputs: \n"
+                                                            "   - Outputs: \n";};
+
     private:
         bool idle_ = true;
         bool hasParameters_ = false; //weights, cfg, confidence threshold and use dense cloud

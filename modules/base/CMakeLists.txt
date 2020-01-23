@@ -51,14 +51,14 @@ option(USE_MODULE_SLAM		"Compile the slam module"					ON)
 option(USE_G2O				"Using g2o for the optimization module" 	ON)
 option(USE_DBOW2			"Using DBoW2 in the slam algorithms"	 	ON)
 option(USE_FASTCOM			"Compile Fastcom for communications"	    ON)
-option(MICO_USE_ROS			"Compile ROS dependent modules"	 			ON)
+option(MICO_USE_ROS			"Compile ROS dependent modules"	 			OFF)
 
 option(USE_MAVLINK 			"Compile MAVLINK interface classes"			ON)
 
 # Others
-option(BUILD_TOOLS			"Compile mico-base tools" 					ON)
+option(BUILD_TOOLS			"Compile mico-base tools" 					OFF)
 option(BUILD_EXAMPLES		"Compile mico-base examples"				OFF)
-option(BUILD_TESTS		"Compile mico-base tests"				ON)
+option(BUILD_TESTS		"Compile mico-base tests"				OFF)
 
 #########################################
 ###### Loading 3rd party libraries.######
