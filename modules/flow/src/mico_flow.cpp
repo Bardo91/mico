@@ -28,7 +28,6 @@
 FLOW_TYPE_REGISTER(dataframe, std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>>)
 FLOW_TYPE_REGISTER(v_dataframe, std::vector<std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>>>)
 
-FLOW_TYPE_REGISTER(image, cv::Mat)
 FLOW_TYPE_REGISTER(v_image, std::vector<cv::Mat>)
 
 // DNN

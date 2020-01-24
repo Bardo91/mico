@@ -29,9 +29,11 @@ namespace mico{
         }
 
 
-        StreamWebcam::~StreamWebcam(){ 
-            camera_->release();
-            delete camera_;
+        StreamWebcam::~StreamWebcam(){
+            if(camera_){
+                camera_->release();
+                delete camera_;
+            } 
         };
 
         bool StreamWebcam::configure(std::unordered_map<std::string, std::string> _params) {
