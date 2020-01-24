@@ -45,6 +45,9 @@ namespace mico{
         BlockImageVisualizer();
         // ~BlockImageVisualizer(){};
 
+        std::string description() const override {return    "Simple image visualizer block. Compatible with RGB and Depth images.\n"
+                                                            "   - Inputs: \n";};
+
     private:
         vtkSmartPointer<vtkImageData> convertCVMatToVtkImageData(const cv::Mat &sourceCVImage, bool flipOverXAxis);
         vtkSmartPointer<vtkImageData> convertCVMatToVtkImageDataDepth(const cv::Mat &sourceCVImage, bool flipOverXAxis);
