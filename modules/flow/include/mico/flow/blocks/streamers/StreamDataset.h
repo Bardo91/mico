@@ -27,6 +27,10 @@
 #include <flow/Block.h>
 #include <mico/base/StereoCameras/StereoCameraVirtual.h>
 
+#include <fstream>
+#include <sstream>
+#include <string>
+
 namespace mico{
 
     class StreamDataset:public flow::Block{
@@ -48,6 +52,7 @@ namespace mico{
 
     private:
         StereoCameraVirtual camera_;
+        std::ifstream* groundtruth_;
     };
 
 }
