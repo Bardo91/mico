@@ -24,7 +24,10 @@
 #include <QDialog>
 #include <QSpinBox>
 #include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QGroupBox>
 #include <QLabel>
+#include <QPushButton>
 
 #include <mico/base/map3d/Dataframe.h>
 
@@ -41,7 +44,7 @@ namespace mico{
                                         isFirst_ = false;
                                     }else{
                                         Eigen::Vector3f currPosition = pose.block<3,1>(0,3);
-                                        visualizer_.addLine(lastPosition_, currPosition);
+                                        visualizer_->addLine(lastPosition_, currPosition);
                                         lastPosition_ = currPosition;
                                     }
                                 }
@@ -53,7 +56,7 @@ namespace mico{
                                     
                                     pcl::PointCloud<pcl::PointXYZRGBNormal> cloud; 
                                     pcl::transformPointCloudWithNormals(*df->cloud(), cloud, df->pose());
-                                    visualizer_.addPointCloud(cloud.makeShared());
+                                    visualizer_->addPointCloud(cloud.makeShared());
                                 }
                             );
 
@@ -61,13 +64,34 @@ namespace mico{
             registerCallback({ "Cloud" }, 
                                 [&](flow::DataFlow  _data){
                                     auto cloud = _data.get<pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr>("Cloud"); 
-                                    visualizer_.addPointCloud(cloud);
+                                    visualizer_->addPointCloud(cloud);
                                 }
                             );
         }
         
         BlockSceneVisualizerPangolin::~BlockSceneVisualizerPangolin(){
+                if(visualizer_){
+                   delete visualizer_;
+                }
+        }
 
+
+        QWidget * BlockSceneVisualizerPangolin::customWidget() {
+            QGroupBox * box = new QGroupBox;
+            
+            QHBoxLayout * layout = new QHBoxLayout;
+            QPushButton *button = new QPushButton("Start Visualizer");
+            layout->addWidget(button);
+            
+            box->setLayout(layout);
+
+            QWidget::connect(button, &QPushButton::clicked, [this](){
+                if(!visualizer_){
+                    visualizer_ = new PangolinVisualizer();
+                }
+            });
+
+            return box;
         }
 
     #endif

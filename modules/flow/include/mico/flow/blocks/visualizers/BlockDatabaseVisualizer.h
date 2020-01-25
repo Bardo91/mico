@@ -57,7 +57,7 @@
 #include <map>
 
 namespace mico{
-    class BlockDatabaseVisualizer: public flow::Block, VtkVisualizer3D{
+    class BlockDatabaseVisualizer: public flow::Block {
     public:
         virtual std::string name() override {return "Database Visualizer";}
 
@@ -70,6 +70,9 @@ namespace mico{
             return true;
         }
         std::vector<std::string> parameters() override { return {"cs_scale"}; }
+
+
+        virtual QWidget * customWidget() override;
 
     private:
         int updateRender(int _id, const  pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr _cloud, const  Eigen::Matrix4f &_pose);
@@ -84,6 +87,8 @@ namespace mico{
         std::unordered_map<int, std::shared_ptr<Entity<pcl::PointXYZRGBNormal>>> entities_;
     #endif
 
+        VtkVisualizer3D *visualizer_ = nullptr;
+
         std::map<int, vtkSmartPointer<vtkActor>>  actors_;
         std::vector<vtkSmartPointer<vtkActor>>  actorsToDelete_;
         std::vector<int> idsToDraw_;
@@ -96,7 +101,6 @@ namespace mico{
         bool idle_ = true;
         
         bool running_ = true;
-        std::thread redrawerThread_;
         
     };
 

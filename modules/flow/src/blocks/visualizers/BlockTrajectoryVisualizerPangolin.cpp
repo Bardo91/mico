@@ -23,8 +23,10 @@
 
 #include <QDialog>
 #include <QSpinBox>
-#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QGroupBox>
 #include <QLabel>
+#include <QPushButton>
 
 namespace mico{
     #ifdef MICO_HAS_PANGOLIN
@@ -88,7 +90,9 @@ namespace mico{
         }
         
         BlockTrajectoryVisualizerPangolin::~BlockTrajectoryVisualizerPangolin(){
-
+            if(visualizer_){
+                delete visualizer_;
+            }
         }
 
         void BlockTrajectoryVisualizerPangolin::poseCallback(flow::DataFlow  _data, int _id){
@@ -98,10 +102,30 @@ namespace mico{
                 isFirst_[_id] = false;
             }else{
                 Eigen::Vector3f currPosition = pose.block<3,1>(0,3);
-                visualizer_.addLine(lastPositions_[_id], currPosition, colorLines_[_id]);
+                visualizer_->addLine(lastPositions_[_id], currPosition, colorLines_[_id]);
                 lastPositions_[_id] = currPosition;
             }
         }
+
+
+        QWidget * BlockTrajectoryVisualizerPangolin::customWidget() {
+            QGroupBox * box = new QGroupBox;
+            
+            QHBoxLayout * layout = new QHBoxLayout;
+            QPushButton *button = new QPushButton("Start Visualizer");
+            layout->addWidget(button);
+            
+            box->setLayout(layout);
+
+            QWidget::connect(button, &QPushButton::clicked, [this](){
+                if(!visualizer_){
+                    visualizer_ = new PangolinVisualizer();
+                }
+            });
+
+            return box;
+        }
+
 
     #endif
 }

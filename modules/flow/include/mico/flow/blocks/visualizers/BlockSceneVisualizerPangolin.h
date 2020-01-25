@@ -36,11 +36,13 @@ namespace mico{
             BlockSceneVisualizerPangolin();
             ~BlockSceneVisualizerPangolin();
 
+            virtual QWidget * customWidget() override;
+
         private:
             Eigen::Vector3f lastPosition_;
             bool isFirst_ = true;
             
-            PangolinVisualizer visualizer_;
+            PangolinVisualizer *visualizer_ = nullptr;
 
         };
 

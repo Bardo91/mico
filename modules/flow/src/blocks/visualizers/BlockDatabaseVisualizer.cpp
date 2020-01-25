@@ -44,9 +44,13 @@
 
 #include <pcl/filters/voxel_grid.h>
 
+#include <QGroupBox>
+#include <QPushButton>
+#include <QHBoxLayout>
+
 namespace mico{
 
-    BlockDatabaseVisualizer::BlockDatabaseVisualizer(): VtkVisualizer3D("Database Visualizer") {
+    BlockDatabaseVisualizer::BlockDatabaseVisualizer() {
         #ifdef HAS_DARKNET
         createPolicy({     {"Last Dataframe","dataframe"}, 
                             {"Camera Pose","mat44"}, 
@@ -62,10 +66,10 @@ namespace mico{
                                         pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud = pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr(new pcl::PointCloud<pcl::PointXYZRGBNormal>());
                                         updateRender(df->id(), df->cloud(), df->pose());
                                         dataframes_[df->id()] = df;
-                                        runOnUiThread([&](){
+                                        visualizer_->runOnUiThread([&](){
                                             if(idsToDraw_.size() > 0){
                                                 for(auto id: idsToDraw_){
-                                                    renderer->AddActor(actors_[id]);
+                                                    visualizer_->addActor(actors_[id]);
                                                 }
                                             }
                                             actorsGuard_.lock();
@@ -81,14 +85,14 @@ namespace mico{
                                         idle_ = false;
                                         Eigen::Matrix4f pose = _data.get<Eigen::Matrix4f>("Camera Pose");
                                         updateCoordinates(pose);
-                                        runOnUiThread([&](){
+                                        visualizer_->runOnUiThread([&](){
                                             actorsGuard_.lock();
                                             if(actorCs_ && actorCs_ != prevActorCs_){
                                                 if(prevActorCs_){
-                                                    renderer->RemoveActor(prevActorCs_);
+                                                    visualizer_->removeActor(prevActorCs_);
                                                 }
                                                 prevActorCs_ = actorCs_;
-                                                renderer->AddActor(actorCs_);
+                                                visualizer_->addActor(actorCs_);
                                             }
                                             actorsGuard_.unlock();
                                         });
@@ -113,46 +117,32 @@ namespace mico{
                             );
         #endif
 
-        // redrawerThread_ = std::thread([&](){
-        //     while(running_){    //666 better condition for proper finalization.
-        //         for(auto &df: dataframes_){
-        //             if(df.second != nullptr && df.second->isOptimized()){
-                        
-        //                 actorsGuard_.lock();
-        //                 actorsToDelete_.push_back(actors_[df.first]);
-        //                 actorsGuard_.unlock();
-        //                 updateRender(df.first, df.second->cloud(), df.second->pose());
-
-        //                 df.second->isOptimized(false);
-        //             }
-        //         }
-
-        //         #ifdef HAS_DARKNET
-        //         for(auto &e: entities_){
-        //             if(e.second != nullptr){
-        //                 actorsGuard_.lock();
-        //                 actorsToDelete_.push_back(actors_[e.first]);
-        //                 actorsGuard_.unlock();
-        //                 auto dfs = e.second->dfs();
-        //                 updateRender(e.first, e.second->cloud(dfs[0]), e.second->pose(dfs[0]));
-        //             }
-        //         }
-        //         #endif
-
-        //         std::this_thread::sleep_for(std::chrono::milliseconds(500));    // low frame rate.
-        //     }
-
-        // });
     }
 
     BlockDatabaseVisualizer::~BlockDatabaseVisualizer(){
         running_ = false;
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        if(visualizer_){
+            delete visualizer_;
+        }
+    }
 
-        if(redrawerThread_.joinable())
-            redrawerThread_.join();
+    QWidget * BlockDatabaseVisualizer::customWidget() {
+        QGroupBox * box = new QGroupBox;
 
+        QHBoxLayout * layout = new QHBoxLayout;
+        QPushButton *button = new QPushButton("Start Visualizer");
+        layout->addWidget(button);
+        
+        box->setLayout(layout);
 
+        QWidget::connect(button, &QPushButton::clicked, [this](){
+            if(!visualizer_){
+                visualizer_ = new VtkVisualizer3D("Database Visualizer");
+            }
+        });
+
+        return box;
     }
 
     int BlockDatabaseVisualizer::updateRender(int _id, const  pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr _cloud, const Eigen::Matrix4f &_pose){

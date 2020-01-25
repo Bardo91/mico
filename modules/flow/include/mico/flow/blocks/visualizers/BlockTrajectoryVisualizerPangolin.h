@@ -36,6 +36,8 @@ namespace mico{
             BlockTrajectoryVisualizerPangolin();
             ~BlockTrajectoryVisualizerPangolin();
 
+            virtual QWidget * customWidget() override;
+
         private:
             void poseCallback(flow::DataFlow  _data, int _id);
 
@@ -51,7 +53,7 @@ namespace mico{
                                                         {0.0f, 0.6f, 0.6f, 0.6f}};
             std::vector<bool> isFirst_;
             
-            PangolinVisualizer visualizer_;
+            PangolinVisualizer *visualizer_ = nullptr;
 
         };
 
