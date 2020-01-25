@@ -31,7 +31,7 @@ namespace mico{
 
     class SaverImage:public flow::Block{
     public:
-        static std::string name() {return "Saver Image";}
+        virtual std::string name() override {return "Saver Image";}
         
         SaverImage();
         // ~SaverImage(){};

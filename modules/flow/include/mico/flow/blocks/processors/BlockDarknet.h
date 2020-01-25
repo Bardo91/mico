@@ -36,7 +36,7 @@ namespace mico{
 
     class BlockDarknet: public flow::Block{
     public:
-        static std::string name() {return "Darknet";}
+        virtual std::string name() override {return "Darknet";}
 
         BlockDarknet();
         // ~BlockDarknet(){};

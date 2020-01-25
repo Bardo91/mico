@@ -32,7 +32,7 @@ namespace mico{
 
     class SaverEntity:public flow::Block{
     public:
-        static std::string name() {return "Saver Entity";}
+        virtual std::string name() override {return "Saver Entity";}
         
         SaverEntity();
         // ~SaverEntity(){};

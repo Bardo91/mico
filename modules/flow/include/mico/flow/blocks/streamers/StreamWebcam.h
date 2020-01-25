@@ -31,7 +31,7 @@ namespace mico{
 
     class StreamWebcam:public flow::Block{
     public:
-        static std::string name() {return "Streamer Webcam";}
+        virtual std::string name() override {return "Streamer Webcam";}
         
         StreamWebcam();
         ~StreamWebcam();

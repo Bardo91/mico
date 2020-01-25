@@ -52,7 +52,7 @@
 namespace mico{
     class BlockPointCloudVisualizer: public flow::Block, VtkVisualizer3D{
     public:
-        static std::string name() {return "Point cloud Visualizer";}
+        virtual std::string name() override {return "Point cloud Visualizer";}
 
         BlockPointCloudVisualizer();
         ~BlockPointCloudVisualizer();

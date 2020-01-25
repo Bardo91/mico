@@ -59,7 +59,7 @@
 namespace mico{
     class BlockDatabaseVisualizer: public flow::Block, VtkVisualizer3D{
     public:
-        static std::string name() {return "Database Visualizer";}
+        virtual std::string name() override {return "Database Visualizer";}
 
         BlockDatabaseVisualizer();
         ~BlockDatabaseVisualizer();
