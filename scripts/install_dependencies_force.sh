@@ -28,6 +28,7 @@ install_git_repo () {
 	fi
 }
 
+sudo apt-get install -y build-essential
 
 ###################################################################
 ###########		INSTALL CMAKE LAST RELEASE		        ###########
@@ -158,6 +159,8 @@ fi
 
 
 install_git_repo "flow" "https://github.com/Bardo91/flow"
+
+sudo apt-get install -y libglew-dev libxkbcommon-dev
 
 install_git_repo "Pangolin" "https://github.com/stevenlovegrove/Pangolin"
 
