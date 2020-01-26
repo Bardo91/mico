@@ -22,7 +22,6 @@
 #include <mico/flow/blocks/visualizers/BlockTrajectoryVisualizerPangolin.h>
 
 #include <QDialog>
-#include <QSpinBox>
 #include <QHBoxLayout>
 #include <QGroupBox>
 #include <QLabel>
@@ -31,44 +30,8 @@
 namespace mico{
     #ifdef MICO_HAS_PANGOLIN
 
-        class SpinWidgetWindow: public QDialog{
-        public:
-            SpinWidgetWindow(QWidget *parent = nullptr){
-                layout_ = new QVBoxLayout();
-                setLayout(layout_);
-                
-                layout_->addWidget(new QLabel("Select number of trajectories to be displayed."));
-
-                spinBox_ = new QSpinBox();
-                spinBox_->setMinimum(1);
-                spinBox_->setMaximum(6);
-                layout_->addWidget(spinBox_);
-                connect(spinBox_, QOverload<int>::of(&QSpinBox::valueChanged), [this](int _n){ this->n_ = _n; });
-
-                setModal(true);
-                setFocusPolicy(Qt::StrongFocus);
-                setFocus();
-                setWindowTitle("Trajectory selector");
-            }
-
-            int number() const{
-                return n_;
-            }
-
-        private:
-            int n_ = 1;
-            QSpinBox * spinBox_;
-            QVBoxLayout *layout_;
-        };
-
 
         BlockTrajectoryVisualizerPangolin::BlockTrajectoryVisualizerPangolin(){
-            
-            SpinWidgetWindow nTrajSelector;
-            nTrajSelector.exec();
-
-            nTrajs_ = nTrajSelector.number();
-
             lastPositions_.resize(nTrajs_);
             isFirst_.resize(nTrajs_, true);
 
@@ -124,6 +87,23 @@ namespace mico{
             });
 
             return box;
+        }
+
+
+        QBoxLayout * BlockTrajectoryVisualizerPangolin::creationWidget(){
+            QBoxLayout *layout = new QVBoxLayout();
+            
+            
+            layout->addWidget(new QLabel("Select number of trajectories to be displayed."));
+
+            spinBox_ = new QSpinBox();
+            spinBox_->setMinimum(1);
+            spinBox_->setMaximum(6);
+            layout->addWidget(spinBox_);
+            QWidget::connect(spinBox_, QOverload<int>::of(&QSpinBox::valueChanged), [this](int _n){ 
+                this->nTrajs_ = _n; 
+                });
+            return layout;
         }
 
 

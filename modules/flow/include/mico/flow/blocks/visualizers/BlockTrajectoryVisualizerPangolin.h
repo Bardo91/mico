@@ -25,6 +25,7 @@
 
 #include <flow/Block.h>
 #include <mico/flow/blocks/visualizers/PangolinVisualizer.h>
+#include <QSpinBox>
 
 namespace mico{
 
@@ -37,12 +38,15 @@ namespace mico{
             ~BlockTrajectoryVisualizerPangolin();
 
             virtual QWidget * customWidget() override;
+            virtual QBoxLayout * creationWidget() override;
 
         private:
             void poseCallback(flow::DataFlow  _data, int _id);
 
         private:
             int nTrajs_ = 1;
+
+            QSpinBox * spinBox_;
 
             std::vector<Eigen::Vector3f> lastPositions_;
             std::vector<Eigen::Vector4f> colorLines_ = {{0.0f, 1.0f, 0.0f, 0.6f}, 
