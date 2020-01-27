@@ -21,18 +21,18 @@
 
 
 #include <mico/flow/blocks/streamers/StreamRealSense.h>
-#include <flow/OutPipe.h>
+#include <flow/Outpipe.h>
 
 namespace mico{
 
         StreamRealSense::StreamRealSense(){
-            opipes_["color"] = new flow::OutPipe("color");
-            opipes_["depth"] = new flow::OutPipe("depth");
-            opipes_["cloud"] = new flow::OutPipe("cloud");
+            createPipe("Color", "image");
+            createPipe("Depth", "image");
+            createPipe("Cloud", "cloud");
         }
 
         bool StreamRealSense::configure(std::unordered_map<std::string, std::string> _params) {
-            if(runLoop_ || hasInitCamera_) // Cant configure if already running.
+            if(isRunningLoop() || hasInitCamera_) // Cant configure if already running.
                 return true;
 
             cjson::Json jParams = {};
@@ -68,21 +68,21 @@ namespace mico{
                 camera_.grab(); // 666 Grab some images to remove trash initial ones
             }
 
-            while(runLoop_){
+            while(isRunningLoop()){
                 cv::Mat left, right, depth;
                 pcl::PointCloud<pcl::PointXYZRGBNormal> colorNormalCloud;
                 camera_.grab();
-                if(opipes_["color"]->registrations() !=0 ){
+                if(getPipe("Color")->registrations() !=0 ){
                     camera_.rgb(left, right);
-                    opipes_["color"]->flush(left);     
+                    getPipe("Color")->flush(left);     
                 }
-                if(opipes_["depth"]->registrations() !=0 ){
+                if(getPipe("Depth")->registrations() !=0 ){
                     camera_.depth(depth);
-                    opipes_["depth"]->flush(depth);
+                    getPipe("Depth")->flush(depth);
                 }
-                if(opipes_["cloud"]->registrations() !=0 ){
+                if(getPipe("Cloud")->registrations() !=0 ){
                     camera_.cloud(colorNormalCloud);
-                    opipes_["cloud"]->flush(colorNormalCloud.makeShared());
+                    getPipe("Cloud")->flush(colorNormalCloud.makeShared());
                 }
             }      
         }

@@ -38,7 +38,13 @@ namespace mico{
         bool configure(std::unordered_map<std::string, std::string> _params) override;
         std::vector<std::string> parameters() override;
 
+        std::string description() const override {return    "Block for visual odometry estimation using RGBD information.\n"
+                                                            "   - Inputs: \n"
+                                                            "   - Outputs: \n";};
+
     private:
+        void callbackOdometry(flow::DataFlow _data);
+
         void computeFeatures(std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> &_df);
         bool colorPixelToPoint(const cv::Mat &_depth, const cv::Point2f &_pixel, cv::Point3f &_point);
     private:
@@ -54,6 +60,9 @@ namespace mico{
         bool idle_ = true;
         cv::Mat matrixLeft_, distCoefLeft_, matrixRight_, distCoefRight_;
         float dispToDepth_;
+
+        // for safety reasons, because it seems that sometimes the dataframes are deleted before being catched after the flush and the any is destroying them.
+        std::map<int,std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>>> memoryDf_; 
     };
 
 }

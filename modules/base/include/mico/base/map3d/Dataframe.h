@@ -36,6 +36,8 @@
 
 #include <map>
 
+#include <mutex>
+
 namespace mico {
     template<typename PointType_>
     class Word;
@@ -50,7 +52,7 @@ namespace mico {
 
         /// Dataframes can only be created with ID which uniquely define it.
         Dataframe(size_t _id);
-        ~Dataframe(){}
+        ~Dataframe();
 
         int id() const;
 
@@ -150,7 +152,10 @@ namespace mico {
 
         /// Find and create words comparing current dataframe and the ones in covisibility. 
         /// This method should be called once.
-        void wordCreation();    
+        void wordCreation(Ptr _self, Ptr _matched);     // 666 Fcking shit because for adding covisibilities we need shared_ptr and we cannot
+                                                        // recreat it inside (please dont do shared_ptr(this) because it destroy pointer when destroyed)
+                                                        // and also this method has a lot of legacy issues.... but it works and we need to recode it
+                                                        // again completelly.
 
         void reinforce(std::shared_ptr<Dataframe<PointType_>> &_df);
         
@@ -191,6 +196,8 @@ namespace mico {
 
         // Util flags
         bool optimized_ = false;
+
+        mutable std::mutex dataLock_; 
 
         // Signature of dataframe  666 Possible optimization with trait? so can use different implementations
         #ifdef USE_DBOW2

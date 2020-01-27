@@ -45,6 +45,7 @@ namespace mico{
         bool hasPrev_ = false;
         int nextDfId_ = 0;
         DatabaseMarkI<pcl::PointXYZRGBNormal/*, mico::DebugLevels::Debug , OutInterfaces::Cout*/> database_;
+        std::map<int, mico::Dataframe<pcl::PointXYZRGBNormal>::Ptr> librarian_;
         bool idle_ = true;
     };
 

@@ -41,36 +41,39 @@ namespace mico{
         window_ = vtkSmartPointer<vtkRenderWindow>::New();
         window_->AddRenderer(renderer_);
 
-        iPolicy_ = new flow::Policy({"color", "depth"});
-        iPolicy_->registerCallback({"color"}, 
-                                [&](std::unordered_map<std::string,std::any> _data){
+        createPolicy({  {"Color", "image"}, 
+                        {"Depth","image"}});
+
+        registerCallback({"Color"}, 
+                                [&](flow::DataFlow  _data){
                                     if(idle_){
                                         idle_ = false;  
                                         
-                                        cv::Mat image = std::any_cast<cv::Mat>(_data["color"]);
-                                        
-                                        auto vtkImage = convertCVMatToVtkImageData(image, true);
-                                        mapper_->SetInputData(vtkImage);
-                                        mapper_->SetColorWindow(255); // width of the color range to map to
-                                        mapper_->SetColorLevel(127.5); // center of the color range to map to
+                                        cv::Mat image = _data.get<cv::Mat>("Color");
+                                        if(image.rows != 0){
+                                            auto vtkImage = convertCVMatToVtkImageData(image, true);
+                                            mapper_->SetInputData(vtkImage);
+                                            mapper_->SetColorWindow(255); // width of the color range to map to
+                                            mapper_->SetColorLevel(127.5); // center of the color range to map to
 
-                                        int imageSize[3];
-                                        vtkImage->GetDimensions(imageSize);
-                                        window_->SetSize(imageSize[0], imageSize[1]);
+                                            int imageSize[3];
+                                            vtkImage->GetDimensions(imageSize);
+                                            window_->SetSize(imageSize[0], imageSize[1]);
 
-                                        window_->Render();
+                                            window_->Render();
+                                        }
                                         idle_ = true;
                                     }
 
                                 }
                             );
 
-        iPolicy_->registerCallback({"depth"}, 
-                                [&](std::unordered_map<std::string,std::any> _data){
+        registerCallback({"Depth"}, 
+                                [&](flow::DataFlow  _data){
                                     if(idle_){
                                         idle_ = false;
                                         
-                                        cv::Mat image = std::any_cast<cv::Mat>(_data["depth"]);
+                                        cv::Mat image = _data.get<cv::Mat>("Depth");
                                         
                                         auto vtkImage = convertCVMatToVtkImageDataDepth(image, true);
                                         mapper_->SetInputData(vtkImage);
@@ -92,28 +95,34 @@ namespace mico{
     }
 
     vtkSmartPointer<vtkImageData> BlockImageVisualizer::convertCVMatToVtkImageData(const cv::Mat &sourceCVImage, bool flipOverXAxis) {
+        cv::Mat sourceImage;
+        if(sourceCVImage.channels() == 1){
+            cv::cvtColor(sourceCVImage, sourceImage, cv::ColorConversionCodes::COLOR_GRAY2RGB);
+        }else{
+            cv::cvtColor(sourceCVImage, sourceImage, cv::ColorConversionCodes::COLOR_BGR2RGB);
+        }
+        
         vtkSmartPointer<vtkImageData> outputVtkImage = vtkSmartPointer<vtkImageData>::New();
         double spacing[3] = {1, 1, 1};
         double origin[3] = {0, 0, 0};
-        int extent[6] = {0, sourceCVImage.cols - 1, 0, sourceCVImage.rows - 1, 0, 0};
-        auto numOfChannels = sourceCVImage.channels();
+        int extent[6] = {0, sourceImage.cols - 1, 0, sourceImage.rows - 1, 0, 0};
+        auto numOfChannels = sourceImage.channels();
         outputVtkImage->SetSpacing(spacing);
         outputVtkImage->SetOrigin(origin);
         outputVtkImage->SetExtent(extent);
-        outputVtkImage->SetDimensions(sourceCVImage.cols, sourceCVImage.rows, 1);
+        outputVtkImage->SetDimensions(sourceImage.cols, sourceImage.rows, 1);
         outputVtkImage->AllocateScalars(VTK_UNSIGNED_CHAR, numOfChannels);
 
         cv::Mat tempCVImage;
         if (flipOverXAxis) { // Normaly you should flip the image!
-            cv::flip(sourceCVImage, tempCVImage, 0);
+            cv::flip(sourceImage, tempCVImage, 0);
         }
         else {
-            tempCVImage = sourceCVImage;
+            tempCVImage = sourceImage;
         }
-        cv::cvtColor(tempCVImage, tempCVImage, cv::ColorConversionCodes::COLOR_BGR2RGB);
         
         unsigned char* dptr = reinterpret_cast<unsigned char*>(outputVtkImage->GetScalarPointer());
-        mempcpy(dptr, tempCVImage.data, sourceCVImage.cols*sourceCVImage.rows*3);
+        mempcpy(dptr, tempCVImage.data, sourceImage.cols*sourceImage.rows*3);
 
         outputVtkImage->Modified();
 

@@ -36,18 +36,18 @@ namespace mico{
         static std::string name() {return Trait_::Name_;}
 
         BlockQueuer(){
-            opipes_[Trait_::Output_] = new flow::OutPipe(Trait_::Output_);
-            iPolicy_ = new flow::Policy({Trait_::Input_});
-            iPolicy_->registerCallback({Trait_::Input_}, 
-                                [&](std::unordered_map<std::string,std::any> _data){
+            createPipe(Trait_::OutputName_, Trait_::OutputType_);
+            createPolicy({{{Trait_::InputName_, Trait_::InputType_}}});
+            registerCallback({Trait_::InputName_}, 
+                                [&](flow::DataFlow _data){
                                     if(idle_){
                                         idle_ = false;
-                                        typename Trait_::Type_ data = std::any_cast<typename Trait_::Type_>(_data[Trait_::Input_]);
+                                        typename Trait_::Type_ data = _data.get<typename Trait_::Type_>(Trait_::InputName_);
                                         queue_.push_back(data);
                                         if(queue_.size() > size_){
                                             queue_.pop_front();
                                             if(strideCounter_ % stride_ == 0){
-                                                opipes_[Trait_::Output_]->flush(std::vector<typename Trait_::Type_>({queue_.begin(), queue_.end()}));
+                                                getPipe(Trait_::OutputName_)->flush(std::vector<typename Trait_::Type_>({queue_.begin(), queue_.end()}));
                                                 strideCounter_ = 0;
                                             }
                                             strideCounter_++;
@@ -69,6 +69,10 @@ namespace mico{
             return {"queue_size", "stride"};
         }
 
+        std::string description() const override {return    "Block that takes an input stream of data and places it into an array of given size."
+                                                            "The queue is flushed by the given stride size.\n"
+                                                            "   - Inputs: \n"
+                                                            "   - Outputs: \n";};
     
     private:
         std::deque<typename Trait_::Type_> queue_;
@@ -82,16 +86,20 @@ namespace mico{
     //-----------------------------------------------------------------------------------------------------------------
     struct QueuerTraitClusterframes{
         constexpr static const char * Name_ = "Queuer Dataframes";
-        constexpr static const char * Output_ = "v-dataframe";
-        constexpr static const char * Input_ = "dataframe";
-        typedef mico::Dataframe<pcl::PointXYZRGBNormal>::Ptr Type_;
+        constexpr static const char * OutputType_ = "v-dataframe";
+        constexpr static const char * OutputName_ = "Vec dataframes";
+        constexpr static const char * InputType_ = "dataframe";
+        constexpr static const char * InputName_ = "dataframe";
+        typedef std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> Type_;
     };
 
     //-----------------------------------------------------------------------------------------------------------------
     struct QueuerTraitColor{
         constexpr static const char * Name_ = "Queuer Color Images";
-        constexpr static const char * Output_ = "v-color";
-        constexpr static const char * Input_ = "color";
+        constexpr static const char * OutputType_ = "v-image";
+        constexpr static const char * OutputName_ = "Vec images";
+        constexpr static const char * InputType_ = "image";
+        constexpr static const char * InputName_ = "image";
         typedef cv::Mat Type_;
     };
 

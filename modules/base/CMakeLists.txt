@@ -50,14 +50,15 @@ add_library(${PROJECT_NAME}::${COMPONENT_NAME} ALIAS ${COMPONENT_NAME})
 option(USE_MODULE_SLAM		"Compile the slam module"					ON)
 option(USE_G2O				"Using g2o for the optimization module" 	ON)
 option(USE_DBOW2			"Using DBoW2 in the slam algorithms"	 	ON)
+option(USE_FASTCOM			"Compile Fastcom for communications"	    ON)
 option(MICO_USE_ROS			"Compile ROS dependent modules"	 			OFF)
 
 option(USE_MAVLINK 			"Compile MAVLINK interface classes"			ON)
 
 # Others
-option(BUILD_TOOLS			"Compile mico-base tools" 					ON)
-option(BUILD_EXAMPLES		"Compile mico-base examples"				ON)
-option(BUILD_TESTS		"Compile mico-base tests"				ON)
+option(BUILD_TOOLS			"Compile mico-base tools" 					OFF)
+option(BUILD_EXAMPLES		"Compile mico-base examples"				OFF)
+option(BUILD_TESTS		"Compile mico-base tests"				OFF)
 
 #########################################
 ###### Loading 3rd party libraries.######
@@ -101,6 +102,8 @@ if(${LIBFREENECT_FOUND})
     target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC ${LIBFREENECT_LIBRARY})
 endif()
 
+#########################################
+## Load SLAM modules
 if(${USE_MODULE_SLAM})
 	target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC ${dlib_LIBRARIES})
 	if(${USE_DBOW2})
@@ -241,7 +244,19 @@ if (${USE_MAVLINK})
 	else()
 		set(USE_MAVLINK OFF)
 	endif()
-endif()
+endif(${USE_MAVLINK})
+
+#########################################
+# Fastcom to avoid use ROS
+if (${USE_FASTCOM})
+	find_package(fastcom)
+	if(${fastcom_FOUND})
+		target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC fastcom::fastcom )
+		target_compile_definitions(${COMPONENT_NAME} PUBLIC USE_FASTCOM )	
+	else()
+		set(USE_FASTCOM OFF)
+	endif()
+endif(${USE_FASTCOM})
 
 #########################################
 ######			Library 		   ######

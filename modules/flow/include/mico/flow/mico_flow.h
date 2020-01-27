@@ -24,11 +24,8 @@
 #include <mico/flow/blocks/streamers/StreamRealSense.h>
 #include <mico/flow/blocks/streamers/StreamDataset.h>
 #include <mico/flow/blocks/streamers/StreamPixhawk.h>
+#include <mico/flow/blocks/streamers/StreamWebcam.h>
 
-#ifdef MICO_USE_ROS
-    #include <flow/visual/blocks/streamers/ros/ROSStreamers.h>
-    #include <flow/visual/blocks/publishers/ros/ROSPublishers.h>
-#endif
 
 // Processors
 #include <mico/flow/blocks/processors/BlockOdometryRGBD.h>
@@ -37,6 +34,7 @@
 #include <mico/flow/blocks/processors/BlockLoopClosure.h>
 #include <mico/flow/blocks/processors/BlockOptimizerCF.h>
 #include <mico/flow/blocks/processors/BlockEKFIMU.h>
+// #include <mico/flow/blocks/processors/BlockParticleFilterKinematic.h>
 
 
 // Visualizers
@@ -45,6 +43,8 @@
 #include <mico/flow/blocks/visualizers/BlockDatabaseVisualizer.h>
 #include <mico/flow/blocks/visualizers/BlockSceneVisualizer.h>
 #include <mico/flow/blocks/visualizers/BlockPointCloudVisualizer.h>
+#include <mico/flow/blocks/visualizers/BlockTrajectoryVisualizerPangolin.h>
+#include <mico/flow/blocks/visualizers/BlockSceneVisualizerPangolin.h>
 
 // Casters
 #include <mico/flow/blocks/CastBlocks.h>
@@ -61,3 +61,8 @@
 #ifdef HAS_DARKNET
     #include <mico/flow/blocks/processors/BlockDarknet.h> // 666 HAS DARKNET
 #endif
+
+// Misc
+#include <mico/flow/blocks/misc/BlockPython.h>
+#include <mico/flow/blocks/misc/BlocksUtils3D.h>
+#include <mico/flow/blocks/misc/BlocksUtils2D.h>

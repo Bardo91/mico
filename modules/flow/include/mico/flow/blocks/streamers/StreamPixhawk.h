@@ -41,6 +41,8 @@ namespace mico{
         virtual bool configure(std::unordered_map<std::string, std::string> _params) override;
         std::vector<std::string> parameters() override;
 
+        std::string description() const override {return    "Streamer block that reads from a pixhawk connected throught USB and streams it information.\n"
+                                                            "   - Outputs: \n";};
     protected:
         virtual void loopCallback() override;
 

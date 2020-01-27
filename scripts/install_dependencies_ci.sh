@@ -24,7 +24,7 @@ install_git_repo () {
 	fi
 }
 
-install_git_repo "nodeeditor" "https://github.com/paceholder/nodeeditor"
+install_git_repo "nodeeditor" "https://github.com/bardo91/nodeeditor"
 
 install_git_repo "flow" "https://github.com/Bardo91/flow"
 
@@ -51,7 +51,13 @@ else
 	cd ../..
 fi
 
+
+install_git_repo "flow" "https://github.com/Bardo91/flow"
+
+install_git_repo "Pangolin" "https://github.com/stevenlovegrove/Pangolin"
+
+install_git_repo "pybind11" "https://github.com/pybind/pybind11"
+
 sudo apt-get install -y qt5-default
 sudo apt-get install -y libqt5opengl5 libqt5opengl5-dev
-install_git_repo "nodeeditor" "https://github.com/paceholder/nodeeditor"
  

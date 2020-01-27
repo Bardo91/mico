@@ -40,6 +40,8 @@ namespace mico{
         virtual bool configure(std::unordered_map<std::string, std::string> _params) override;
         std::vector<std::string> parameters() override;
     
+        std::string description() const override {return    "Streamer block that reads from an Intel realsense device and streams its flows of images.\n"
+                                                            "   - Outputs: \n";};
     protected:
         virtual void loopCallback() override;
 

@@ -4,7 +4,7 @@
 
 [![Releases](https://img.shields.io/github/release/bardo91/mico.svg)](https://github.com/bardo91/mico/releases)  [![Issues](https://img.shields.io/github/issues/bardo91/mico.svg)](https://github.com/bardo91/mico/issues)  [![Stars](https://img.shields.io/github/stars/bardo91/mico.svg)](https://github.com/bardo91/mico/stars)
 
-[![Build Status](https://travis-ci.org/Bardo91/mico.svg?branch=master)](https://travis-ci.org/Bardo91/mico)
+[![Build Status](https://travis-ci.com/Bardo91/mico.svg?branch=master)](https://travis-ci.org/Bardo91/mico)
 
 # Installation
 
@@ -27,6 +27,11 @@ make -j$(nproc)
 sudo make install
 ```
 
+# Tested Build configurations
+
+|   | Ubuntu  | OpenCV | OpenCV_contrib | PCL                          | CUDA | g2o |   ROS    |
+|---|---------|--------|----------------|------------------------------|------|-----|----------|
+| 1 | 18.04.1 | 3.2    | 3.2            | 1.8.1+dfsg1-2ubuntu2.18.04.1 | 10.0 | 1.0 |  Melodic |
 
 
 

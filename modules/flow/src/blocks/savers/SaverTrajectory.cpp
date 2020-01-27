@@ -25,11 +25,11 @@
 namespace mico{
 
     SaverTrajectory::SaverTrajectory(){
-        iPolicy_ = new flow::Policy({"pose"});
+        createPolicy({{"Pose", "mat44"}});
 
-        iPolicy_->registerCallback({"pose"}, 
-                                [&](std::unordered_map<std::string,std::any> _data){                                
-                                    Eigen::Matrix4f pose = std::any_cast<Eigen::Matrix4f>(_data["pose"]);
+        registerCallback({"Pose"}, 
+                                [&](flow::DataFlow _data){                                
+                                    Eigen::Matrix4f pose = _data.get<Eigen::Matrix4f>("Pose");
                                     Eigen::Quaternionf q(pose.block<3,3>(0,0));
                                     file_   << pose(0,3) << ", "<< pose(1,3) << ", "<< pose(2,3) << ", "
                                             << q.w() << ", " << q.x() << ", " << q.y() << ", " << q.z() << std::endl;

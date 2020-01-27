@@ -19,15 +19,12 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#include <flow/visual/FlowVisualInterface.h>
-#include <flow/visual/blocks/FlowVisualBlock.h>
+#include <flow/flow.h>
 // #include <gperftools/profiler.h>
 
 #include <mico/flow/mico_flow.h>
 #include <csignal>
 #include <iostream>
-
-#include <X11/Xlib.h>   
 
 using namespace flow;
 using namespace mico;
@@ -37,27 +34,33 @@ using QtNodes::DataModelRegistry;
 FlowVisualInterface manager;
 
 void registerDataModels(FlowVisualInterface::RegistryType_ &_register) {
+
     // Casters
     _register->registerModel<FlowVisualBlock<BlockDataframeToPose>>         ("Cast");
-    // _register->registerModel<FlowVisualBlock<BlockDataframeToCloud>>        ("Cast");
-    // _register->registerModel<FlowVisualBlock<PoseDemux>>                    ("Cast");
+    _register->registerModel<FlowVisualBlock<BlockDataframeToCloud>>        ("Cast");
 
     // Streamers
-    _register->registerModel<FlowVisualBlock<StreamDataset, true>>          ("Streamers");
-    _register->registerModel<FlowVisualBlock<StreamRealSense, true>>        ("Streamers");
-    _register->registerModel<FlowVisualBlock<StreamPixhawk, true>>          ("Streamers");
+    _register->registerModel<FlowVisualBlock<StreamDataset, true>>         ("Streamers");
+    _register->registerModel<FlowVisualBlock<StreamRealSense, true>>       ("Streamers");
+    _register->registerModel<FlowVisualBlock<StreamPixhawk, true>>         ("Streamers");
+    _register->registerModel<FlowVisualBlock<StreamWebcam, true>>          ("Streamers");
 
+    // ROS
     #ifdef MICO_USE_ROS
-        // ROS Streamers
-        _register->registerModel<FlowVisualBlock<BlockROSSuscriberImu>>              ("ROS");
-        _register->registerModel<FlowVisualBlock<BlockROSSuscriberGPS>>              ("ROS");
-        _register->registerModel<FlowVisualBlock<BlockROSSuscriberCloud>>            ("ROS");
-        _register->registerModel<FlowVisualBlock<BlockROSSuscriberImage>>            ("ROS");
-        _register->registerModel<FlowVisualBlock<BlockROSSuscriberPoseStamped>>      ("ROS");
+        _register->registerModel<FlowVisualBlock<BlockROSSubscriberImu>>             ("ROS Streamers");
+        _register->registerModel<FlowVisualBlock<BlockROSSubscriberGPS>>             ("ROS Streamers");
+        _register->registerModel<FlowVisualBlock<BlockROSSubscriberCloud>>           ("ROS Streamers");
+        _register->registerModel<FlowVisualBlock<BlockROSSubscriberImage>>           ("ROS Streamers");
+        _register->registerModel<FlowVisualBlock<BlockROSSubscriberPoseStamped>>     ("ROS Streamers");
+        _register->registerModel<FlowVisualBlock<BlockROSSubscriberEventArray>>      ("ROS Streamers");
 
-        // ROS Publishers
-        _register->registerModel<FlowVisualBlock<BlockROSPublisherPoseStamped>>      ("ROS");
-        _register->registerModel<FlowVisualBlock<BlockROSPublisherPointCloud>>       ("ROS");
+        _register->registerModel<FlowVisualBlock<BlockROSPublisherPoseStamped>>      ("ROS Publishers");
+        _register->registerModel<FlowVisualBlock<BlockROSPublisherPointCloud>>       ("ROS Publishers");
+    #endif
+
+    #ifdef USE_FASTCOM
+        _register->registerModel<FlowVisualBlock<BlockFastcomImagePublisher>>       ("Fastcom");
+        _register->registerModel<FlowVisualBlock<BlockFastcomImageSubscriber>>      ("Fastcom");
     #endif
 
     // DNN
@@ -77,7 +80,10 @@ void registerDataModels(FlowVisualInterface::RegistryType_ &_register) {
     _register->registerModel<FlowVisualBlock<BlockPointCloudVisualizer>>    ("Visualizers");
     _register->registerModel<FlowVisualBlock<BlockDatabaseVisualizer>>      ("Visualizers");
     _register->registerModel<FlowVisualBlock<BlockSceneVisualizer>>         ("Visualizers");
-
+    #ifdef MICO_HAS_PANGOLIN
+        _register->registerModel<FlowVisualBlock<BlockTrajectoryVisualizerPangolin>>   ("Visualizers");
+        _register->registerModel<FlowVisualBlock<BlockSceneVisualizerPangolin>>        ("Visualizers");
+    #endif
     //Savers
     _register->registerModel<FlowVisualBlock<SaverImage>>                   ("Savers");
     _register->registerModel<FlowVisualBlock<SaverTrajectory>>              ("Savers");
@@ -85,10 +91,20 @@ void registerDataModels(FlowVisualInterface::RegistryType_ &_register) {
 
     // Queuers
     _register->registerModel<FlowVisualBlock<BlockQueuer<QueuerTraitClusterframes>>> ("Queuer");
-    _register->registerModel<FlowVisualBlock<BlockQueuer<QueuerTraitColor>>> ("Queuer");
+    _register->registerModel<FlowVisualBlock<BlockQueuer<QueuerTraitColor>>>         ("Queuer");
 
     // State filtering
     _register->registerModel<FlowVisualBlock<BlockEKFIMU>>                  ("State Filtering");
+
+    // Misc
+    _register->registerModel<FlowVisualBlock<BlockPython>>                  ("Misc");
+
+    // Misc
+    _register->registerModel<FlowVisualBlock<BlockTransformCloud>>              ("Utils 3D");
+    _register->registerModel<FlowVisualBlock<BlockVoxelFiltering>>              ("Utils 3D");
+
+    _register->registerModel<FlowVisualBlock<BlocksFilters2D>>                  ("Utils 2D");
+    _register->registerModel<FlowVisualBlock<BlocksImageConversion>>            ("Utils 2D");
 
 }
 
@@ -101,7 +117,6 @@ void signalHandler( int signum ) {
 }
 
 int main(int _argc, char *_argv[]) {    
-	XInitThreads();	
     signal(SIGINT, signalHandler);  
 
     #ifdef MICO_USE_ROS

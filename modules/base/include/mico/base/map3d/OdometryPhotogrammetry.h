@@ -19,8 +19,8 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
-#ifndef MICO_ODOMETRYPHOTOGRAMMETRY_H_
-#define MICO_ODOMETRYPHOTOGRAMMETRY_H_
+#ifndef MICO_BASE_MAP3D_ODOMETRYPHOTOGRAMMETRY_H_
+#define MICO_BASE_MAP3D_ODOMETRYPHOTOGRAMMETRY_H_
 
 #include <opencv2/opencv.hpp>
 
@@ -119,6 +119,6 @@ namespace mico {
   };
 } // namespace mico
 
-#include "OdometryPhotogrammetry.inl"
+#include <mico/base/map3d/OdometryPhotogrammetry.inl>
 
 #endif // ODOMETRYPHOTOGRAMETRY_H_

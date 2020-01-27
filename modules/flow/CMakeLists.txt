@@ -58,6 +58,13 @@ endif()
 find_package(flow REQUIRED)
 target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC flow::flow)
 
+find_package(Pangolin)
+if(${Pangolin_FOUND})
+  target_include_directories(${COMPONENT_NAME} PUBLIC ${Pangolin_INCLUDE_DIRS})
+  target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC ${Pangolin_LIBRARIES})
+  target_compile_definitions(${COMPONENT_NAME} PUBLIC "MICO_HAS_PANGOLIN")	
+endif()
+
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/" ${CMAKE_MODULE_PATH})
 
 target_compile_options(${COMPONENT_NAME} PUBLIC "-Wall")
@@ -67,13 +74,20 @@ if(BUILD_DNN)
   target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC mico::mico-dnn)
 endif(BUILD_DNN)
 target_link_libraries(${COMPONENT_NAME} PRIVATE "stdc++fs")
+
+
+# PYTHON
+find_package(pybind11 REQUIRED)
+target_link_libraries(${COMPONENT_NAME} PRIVATE pybind11::embed)
+
 #########################################
 ######			SAMPLES 		   ######
 #########################################
-
-add_executable(sample_2 samples/main2.cpp)
-target_link_libraries(sample_2 LINK_PRIVATE mico::mico-flow)
-target_compile_definitions(sample_2 PUBLIC WITHGPERFTOOLS)
+if(BUILD_EXAMPLES)
+  add_executable(sample_2 samples/main2.cpp)
+  target_link_libraries(sample_2 LINK_PRIVATE mico::mico-flow)
+  target_compile_definitions(sample_2 PUBLIC WITHGPERFTOOLS)
+endif(BUILD_EXAMPLES)
 
 if(BUILD_DNN)
   add_executable(darknet_example samples/darknet_example.cpp)

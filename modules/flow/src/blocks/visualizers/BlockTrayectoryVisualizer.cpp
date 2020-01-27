@@ -24,7 +24,7 @@
 #include <mico/flow/blocks/visualizers/BlockTrayectoryVisualizer.h>
 
 #include <flow/Policy.h>
-#include <flow/OutPipe.h>
+#include <flow/Outpipe.h>
 
 #include <Eigen/Eigen>
 
@@ -44,13 +44,13 @@ namespace mico{
         actor->SetMapper(mapper);
         renderer->AddActor(actor);
 
-        iPolicy_ = new flow::Policy({"pose"});
+        createPolicy({{"Camera Pose", "pose"}});
 
-        iPolicy_->registerCallback({"pose"}, 
-                                [&](std::unordered_map<std::string,std::any> _data){
+        registerCallback({"Camera Pose"}, 
+                                [&](flow::DataFlow  _data){
                                     if(idle_){
                                         idle_ = false;
-                                        Eigen::Matrix4f pose = std::any_cast<Eigen::Matrix4f>(_data["pose"]);
+                                        Eigen::Matrix4f pose = _data.get<Eigen::Matrix4f>("Camera Pose");
                                         if(isFirstPoint){
                                             points->InsertNextPoint(pose(0,3), pose(1,3), pose(2,3));
                                             isFirstPoint = false;

@@ -21,70 +21,37 @@
 
 #include <mico/flow/blocks/processors/BlockOdometryPhotogrammetry.h>
 #include <flow/Policy.h>
-#include <flow/OutPipe.h>
+#include <flow/Outpipe.h>
 
 namespace mico{
 
     BlockOdometryPhotogrammetry::BlockOdometryPhotogrammetry(){
-        
-        iPolicy_ = new flow::Policy({"color", "altitude", "dataframe"});
+        createPolicy({     {"Color Image", "image"},
+                            {"Altitude", "float"},
+                            {"Keyframe", "dataframe"}});
 
-        opipes_["dataframe"] = new flow::OutPipe("dataframe");
+        createPipe("Dataframe Positioned", "dataframe");
 
         featureDetector_ = cv::ORB::create(2000);
         
-        iPolicy_->registerCallback({"color", "altitude"}, 
-                                [&](std::unordered_map<std::string,std::any> _data){
-                                    if(idle_){
-                                        idle_ = false;
-
-                                        altitude_ = std::any_cast<float>(_data["altitude"]);
-                                        if (!savedFirstAltitude_){
-                                            firstAltitude_ = altitude_;
-                                            savedFirstAltitude_ = true;
-                                        }
-                                        if(hasCalibration){
-                                            Dataframe<pcl::PointXYZRGBNormal>::Ptr df(new Dataframe<pcl::PointXYZRGBNormal>((int) nextDfId_));
-                                            try{
-                                                df->leftImage(std::any_cast<cv::Mat>(_data["color"])); 
-                                            }catch(std::exception& e){
-                                                std::cout << "Failure Odometry Photogrammetry " <<  e.what() << std::endl;
-                                                idle_ = true;
-                                                return;
-                                            }
-                                            if(!computePointCloud(df)){
-                                                idle_ = true;
-                                                return;
-                                            }
-
-                                            if(df->featureDescriptors().rows == 0)
-                                                return;
-
-                                            if(lastDataframe_ != nullptr){
-                                                if(odom_.computeOdometry(lastDataframe_, df)){
-                                                    nextDfId_++;
-                                                    opipes_["dataframe"]->flush(df);  
-                                                }
-                                            }else{
-                                                if(prevDf_!=nullptr){
-                                                    if(odom_.computeOdometry(prevDf_, df)){
-                                                        nextDfId_++;
-                                                        opipes_["dataframe"]->flush(df);  
-                                                        prevDf_ = df;
-                                                    }
-                                                }else{
-                                                    prevDf_ = df;
-                                                }
-                                            }
-                                        }else{
-                                            std::cout << "Please, configure Odometry Photogrammetry with the path to the calibration file {\"Calibration\":\"/path/to/file\"}" << std::endl;
-                                        }
-                                    idle_ = true;
-                                    }
+        registerCallback({"Color Image"}, 
+                                 [this](flow::DataFlow _data){
+                                    this->callbackOdometry(_data);
                                 });
-        iPolicy_->registerCallback({"dataframe"}, 
-                                [&](std::unordered_map<std::string,std::any> _data){
-                                        lastDataframe_ = std::any_cast<std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>>>(_data["dataframe"]);
+
+        registerCallback({"Altitude"},
+            [&](flow::DataFlow _data){
+                    altitude_ = _data.get<float>("Altitude");
+                    if (!savedFirstAltitude_){
+                        firstAltitude_ = altitude_;
+                        savedFirstAltitude_ = true;
+                    }
+                });
+        
+        
+        registerCallback({"Keyframe"}, 
+                                [&](flow::DataFlow _data){
+                                        currentKeyframe_ = _data.get<std::shared_ptr< mico::Dataframe<pcl::PointXYZRGBNormal>>>("Keyframe");
                                     }
                                 );
 
@@ -103,6 +70,21 @@ namespace mico{
                 
                 hasCalibration = true;
                 return true;
+            }else if(param.first == "params_json"){
+                std::ifstream file(param.second);
+                if (!file.is_open()) {
+                    std::cout << "Cannot open file." << std::endl;
+                    return false;
+                }
+                cjson::Json configFile;
+                if (!configFile.parse(file)) {
+                    std::cout << "Cannot parse config file." << std::endl;
+                    return false;
+                }
+                if (!odom_.init(configFile["registrator_params"])) {
+                    std::cout << "Error initializing odometry parameters" << std::endl;
+                    return false;
+                }
             }
         }
 
@@ -111,8 +93,48 @@ namespace mico{
     }
     
     std::vector<std::string> BlockOdometryPhotogrammetry::parameters(){
-        return {"calibration"};
+        return {"calibration", "params_json"};
     }
+
+    void BlockOdometryPhotogrammetry::callbackOdometry(flow::DataFlow _data){
+        if(idle_){
+            if(hasCalibration){
+                std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> df(new Dataframe<pcl::PointXYZRGBNormal>(nextDfId_));
+                nextDfId_++;
+                try{
+                    df->leftImage(_data.get<cv::Mat>("Color Image"));
+                    df->intrinsics(matrixLeft_);
+                    df->distCoeff(distCoefLeft_);
+                }catch(std::exception& e){
+                    std::cout << "Failure Odometry Photogrammetry " <<  e.what() << std::endl;
+                    idle_ = true;
+                    return;
+                }
+                if(!computePointCloud(df))
+                    return;
+
+                if(df->featureDescriptors().rows == 0)
+                    return;
+
+                Dataframe<pcl::PointXYZRGBNormal>::Ptr referenceFrame;
+                if(currentKeyframe_ != nullptr) // If there is a keyframe, kf based odometry
+                    referenceFrame = currentKeyframe_;
+                else  // Just sequential odometry
+                    referenceFrame = prevDf_;
+                
+                if(odom_.computeOdometry(referenceFrame, df)){
+                    // memoryDf_[df->id()] = df;   // 666 safety reasons, but memory consumption.
+                    getPipe("Dataframe Positioned")->flush(df);  
+                }
+                prevDf_ = df;
+
+            }else{
+                std::cout << "Please, configure Odometry Photogrammetry with the path to the calibration file {\"Calibration\":\"/path/to/file\"}" << std::endl;
+            }
+            idle_ = true;
+        }
+    }
+
 
     bool BlockOdometryPhotogrammetry::computePointCloud(std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> &_df){
         cv::Mat descriptors;
@@ -121,42 +143,41 @@ namespace mico{
 
         cv::cvtColor(_df->leftImage(), leftGrayUndistort, cv::ColorConversionCodes::COLOR_BGR2GRAY);
         featureDetector_->detectAndCompute(leftGrayUndistort, cv::Mat(), kpts, descriptors);
+        _df->featureDescriptors(descriptors.clone());
+        
         if (kpts.size() < 8) {
             return false;
         }
-        _df->featureDescriptors(descriptors);
         
         // bad SLAM inicialization
-        float _altitude = 40.0;//(altitude_ - firstAltitude_);
-        if (_altitude < initSLAMAltitude_ ){
-            printf("Actual altitude  %f m, SLAM inicializate when %f m \n",_altitude, initSLAMAltitude_);
+        if (altitude_ < initSLAMAltitude_ ){
+            printf("Actual altitude  %f m, SLAM inicializate when %f m \n",altitude_, initSLAMAltitude_);
             return false;
         }
         // Create feature cloud
         _df->featureCloud(pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr(new pcl::PointCloud<pcl::PointXYZRGBNormal>()));
         _df->cloud(pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr(new pcl::PointCloud<pcl::PointXYZRGBNormal>()));
-        if(pinHoleModel(_altitude,kpts, _df->featureCloud())){
+        pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGBNormal>());
+        if(pinHoleModel(altitude_,kpts, cloud)){
 
             std::vector<cv::Point2f> projs;
             projs.resize(kpts.size());
             for (unsigned k = 0; k < kpts.size(); k++) {
                 projs[k] = kpts[k].pt;
             }
+            _df->featureCloud(cloud);
             _df->featureProjections(projs);
             
             pcl::copyPointCloud(*(_df->featureCloud()) , *(_df->cloud()));
         }else{
             return false;
         }
-
-        // Filling new dataframe
-        _df->pose(Eigen::Matrix4f::Identity());
         
         return true;
     }
 
 
-    bool BlockOdometryPhotogrammetry::pinHoleModel(float _altitude ,std::vector<cv::KeyPoint> keypoints, pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr OutputPointCloud){
+    bool BlockOdometryPhotogrammetry::pinHoleModel(float _altitude ,std::vector<cv::KeyPoint> keypoints, pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr &OutputPointCloud){
         const float cx = matrixLeft_.at<float>(0,2);
         const float cy = matrixLeft_.at<float>(1,2);    // 666 Move to member? faster method....
         const float fx = matrixLeft_.at<float>(0,0);

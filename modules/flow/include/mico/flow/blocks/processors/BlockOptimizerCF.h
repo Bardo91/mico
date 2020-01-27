@@ -41,6 +41,9 @@ namespace mico{
         bool configure(std::unordered_map<std::string, std::string> _params) override;
         std::vector<std::string> parameters() override;
 
+        std::string description() const override {return    "Block for optimizing 3D graph maps using g2o.\n"
+                                                            "   - Inputs: \n"
+                                                            "   - Outputs: \n";};
     private:
         bool idle_ = true;
         mico::BundleAdjuster_g2o<pcl::PointXYZRGBNormal>/*, DebugLevels::Debug, OutInterfaces::Cout>*/ optimizer_;
