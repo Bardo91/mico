@@ -55,9 +55,8 @@ namespace mico{
 
         void StreamKinect::loopCallback() {
             if(!hasInitCamera_){
-                cjson::Json dummy;  // 666 do it better
-                dummy["dummy"] = "dummy";
-                camera_.init(dummy);
+                std::cout << "Cant init Kinect camera if not configured first" << std::endl;
+                return;
             }
                 
             for(unsigned i = 0; i < 10; i++){
