@@ -22,6 +22,7 @@
 // Streamers
 #undef Q_FOREACH
 #include <mico/flow/blocks/streamers/StreamRealSense.h>
+#include <mico/flow/blocks/streamers/StreamKinect.h>
 #include <mico/flow/blocks/streamers/StreamDataset.h>
 #include <mico/flow/blocks/streamers/StreamPixhawk.h>
 #include <mico/flow/blocks/streamers/StreamWebcam.h>

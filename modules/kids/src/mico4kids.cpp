@@ -42,6 +42,7 @@ void registerDataModels(FlowVisualInterface::RegistryType_ &_register) {
     // Streamers
     _register->registerModel<FlowVisualBlock<StreamDataset, true>>         ("Streamers");
     _register->registerModel<FlowVisualBlock<StreamRealSense, true>>       ("Streamers");
+    _register->registerModel<FlowVisualBlock<StreamKinect, true>>       ("Streamers");
     _register->registerModel<FlowVisualBlock<StreamPixhawk, true>>         ("Streamers");
     _register->registerModel<FlowVisualBlock<StreamWebcam, true>>          ("Streamers");
 

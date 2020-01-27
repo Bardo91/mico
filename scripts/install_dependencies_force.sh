@@ -156,6 +156,7 @@ fi
 ###################################################################
 # install_git_repo "MAVSDK" "https://github.com/mavlink/MAVSDK"
 
+install_git_repo "libfreenect" "https://github.com/OpenKinect/libfreenect"
 
 install_git_repo "flow" "https://github.com/Bardo91/flow"
 
