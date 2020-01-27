@@ -107,7 +107,7 @@ namespace mico{
             layout->addWidget(spinBox_);
             QWidget::connect(spinBox_, QOverload<int>::of(&QSpinBox::valueChanged), [this](int _n){ 
                     this->nTrajs_ = _n; 
-                    std::cout << this->nTrajs_ << std::endl;
+                    // std::cout << this->nTrajs_ << std::endl;
                     this->preparePolicy();
                 });
             return layout;

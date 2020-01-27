@@ -40,7 +40,7 @@ namespace mico{
             return typeList_->currentText().toStdString();
         }
 
-    private:
+    public:
         QComboBox *typeList_;
         QLineEdit *label_;
     };
@@ -51,6 +51,11 @@ namespace mico{
         InterfaceSelectorWidget(std::string _title, bool _hasInputs = true, bool _hasOutputs = true, QWidget *parent = nullptr);
 
         std::map<std::string, std::string> getInterfaces(INTERFACE_TYPE _type) const;
+
+        // Ugly method but I cannot find another way by now.
+        void callThisIfSmthChangeInside(std::function<void(void)> _fn){
+            callbackIfChangeInside_ = _fn;
+        }
 
     private:
         void updateInterfacesIn(int _nInterfaces);
@@ -66,6 +71,7 @@ namespace mico{
 
         bool hasInputs_ = false, hasOutputs_ = false;
 
+        std::function<void(void)>callbackIfChangeInside_;
     };
 
 
