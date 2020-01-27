@@ -149,30 +149,30 @@ namespace mico {
 
         // Draw covisibility.
         // std::cout << "Drawing covisibility. Existing prevous "<< mExistingDf.size() << " nodes." << std::endl;
-        Eigen::Vector3f origin = {position.x, position.y, position.z};
-        if(mExistingDf.find(_df->id()) != mExistingDf.end()){
-            // std::cout << "Updating existing covisibility" << std::endl;
-            updateNodeCovisibility(_df->id(), origin);
-            if(_df->covisibility().size() != unsigned(mNodeCovisibilityCheckSum[_df->id()])){
-                // std::vector<int> newCov(_df->covisibility().begin()+ mNodeCovisibilityCheckSum[_df->id()], 
-                //                         _df->covisibility().end());
-                // addCovisibility(_df->id(), newCov);
-                // mNodeCovisibilityCheckSum[_df->id()] = _df->covisibility().size();
-                assert(false);; //what is this?....
-            }
-        }else{
-            // std::cout << "Created new node" << std::endl;
-            insertNodeCovisibility(origin);
-            addCovisibility(_df->id(), _df->covisibility());
-            mNodeCovisibilityCheckSum[_df->id()] = _df->covisibility().size();
+        // Eigen::Vector3f origin = {position.x, position.y, position.z};
+        // if(mExistingDf.find(_df->id()) != mExistingDf.end()){
+        //     // std::cout << "Updating existing covisibility" << std::endl;
+        //     updateNodeCovisibility(_df->id(), origin);
+        //     if(_df->covisibility().size() != unsigned(mNodeCovisibilityCheckSum[_df->id()])){
+        //         // std::vector<int> newCov(_df->covisibility().begin()+ mNodeCovisibilityCheckSum[_df->id()], 
+        //         //                         _df->covisibility().end());
+        //         // addCovisibility(_df->id(), newCov);
+        //         // mNodeCovisibilityCheckSum[_df->id()] = _df->covisibility().size();
+        //         assert(false);; //what is this?....
+        //     }
+        // }else{
+        //     // std::cout << "Created new node" << std::endl;
+        //     insertNodeCovisibility(origin);
+        //     addCovisibility(_df->id(), _df->covisibility());
+        //     mNodeCovisibilityCheckSum[_df->id()] = _df->covisibility().size();
             
-            mCovisibilityGraph->SetPoints(mCovisibilityNodes);
-            mCovisibilityGraph->GetPointData()->SetScalars(mCovisibilityNodeColors);
-        }
-        mExistingDf[_df->id()] = true;
-        mDataframes[_df->id()] = _df; // 666 Duplicated.....
+        //     mCovisibilityGraph->SetPoints(mCovisibilityNodes);
+        //     mCovisibilityGraph->GetPointData()->SetScalars(mCovisibilityNodeColors);
+        // }
+        // mExistingDf[_df->id()] = true;
+        // mDataframes[_df->id()] = _df; // 666 Duplicated.....
 
-        mCovisibilityNodes->Modified();
+        // mCovisibilityNodes->Modified();
 
         mViewer->spinOnce(10, true);
     }
@@ -328,7 +328,7 @@ namespace mico {
         mViewer->addCoordinateSystem(0.02, Eigen::Affine3f(_pose), "current_pose");
         mViewer->removeText3D("current_pose_text");
         pcl::PointXYZ position(_pose(0, 3), _pose(1, 3), _pose(2, 3));
-        mViewer->addText3D("current_pose", position, 0.01, 1.0, 0.2, 0.2, "current_pose_text");
+        mViewer->addText3D("current_pose", position, 0.1, 1.0, 0.2, 0.2, "current_pose_text");
         return true;
     }
 
