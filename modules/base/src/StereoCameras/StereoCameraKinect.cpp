@@ -108,17 +108,15 @@ bool StereoCameraKinect::init(const cjson::Json & _json){
             });
 
 
-            if(_json.contains("calibFile") && std::string(_json["calibFile"]) != ""){
+            if(mConfig.contains("calibFile") && std::string(mConfig["calibFile"]) != ""){
                 mHasCalibration = true;
 
-                cv::FileStorage fs((std::string)_json["calibFile"], cv::FileStorage::READ);
+                cv::FileStorage fs((std::string)mConfig["calibFile"], cv::FileStorage::READ);
 
                 fs["MatrixLeft"]            >> mMatrixLeft;
                 fs["DistCoeffsLeft"]        >> mDistCoefLeft;
                 fs["MatrixRight"]           >> mMatrixRight;
                 fs["DistCoeffsRight"]       >> mDistCoefRight;
-                fs["Rotation"]              >> mRot;
-                fs["Translation"]           >> mTrans;
                 fs["DisparityToDepthScale"] >> mDispToDepth;
 
             }else{

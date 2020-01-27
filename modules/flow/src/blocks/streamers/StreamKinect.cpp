@@ -38,7 +38,7 @@ namespace mico{
             cjson::Json jParams = {};
             for(auto &p:_params){
                 if(p.first == "calibFile"){
-                    jParams["calibFile"] = atoi(p.second.c_str());
+                    jParams["calibFile"] = p.second.c_str();
                 }
             }
 
