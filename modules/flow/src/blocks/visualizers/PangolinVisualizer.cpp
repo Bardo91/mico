@@ -39,7 +39,10 @@ namespace mico{
         }
 
         PangolinVisualizer::~PangolinVisualizer(){
-
+            running_ = false;
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            if(renderThread_.joinable())
+                renderThread_.join();
         }
 
         void PangolinVisualizer::addLine(const Eigen::Vector3f &_p0, const Eigen::Vector3f &_p1, const Eigen::Vector4f &_color){
@@ -97,7 +100,7 @@ namespace mico{
                 tree.Render();
             });
 
-            while( !pangolin::ShouldQuit() ) {
+            while(running_ && !pangolin::ShouldQuit() ) {
 
                 // Clear screen and activate view to render into
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -109,6 +112,8 @@ namespace mico{
                 pangolin::FinishFrame();
                 usleep(1000);
             }
+            
+            pangolin::DestroyWindow(windowName_);
         }
 
         void PangolinVisualizer::drawLines(){

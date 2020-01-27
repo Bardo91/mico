@@ -56,7 +56,7 @@ namespace mico{
             void drawPointClouds();
 
         private:
-            bool idle_ = true;
+            bool running_ = true;
             std::string windowName_ = "";
 
             std::thread renderThread_;
