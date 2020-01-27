@@ -43,6 +43,8 @@ namespace mico{
         private:
             void poseCallback(flow::DataFlow  _data, int _id);
 
+            void preparePolicy();
+
         private:
             int nTrajs_ = 1;
 

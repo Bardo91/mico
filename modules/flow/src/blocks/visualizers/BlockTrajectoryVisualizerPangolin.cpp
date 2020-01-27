@@ -32,24 +32,7 @@ namespace mico{
 
 
         BlockTrajectoryVisualizerPangolin::BlockTrajectoryVisualizerPangolin(){
-            lastPositions_.resize(nTrajs_);
-            isFirst_.resize(nTrajs_, true);
-
-            std::map<std::string, std::string> policyInputs;
-            for(unsigned i = 0; i < nTrajs_; i++){
-                policyInputs["Camera Pose " +std::to_string(i)] = "mat44";
-            }
-
-            createPolicy(policyInputs);
-            for(unsigned i = 0; i < nTrajs_; i++){
-                registerCallback({"Camera Pose " +std::to_string(i)}, 
-                                        std::bind([&](flow::DataFlow  _data, int _id){
-                                            this->poseCallback(_data, _id);
-                                        }, 
-                                        std::placeholders::_1, 
-                                        i)
-                                    );
-            }
+            this->preparePolicy();           
         }
         
         BlockTrajectoryVisualizerPangolin::~BlockTrajectoryVisualizerPangolin(){
@@ -89,6 +72,28 @@ namespace mico{
             return box;
         }
 
+        void BlockTrajectoryVisualizerPangolin::preparePolicy(){
+            lastPositions_.resize(nTrajs_);
+            isFirst_.resize(nTrajs_, true);
+
+            std::map<std::string, std::string> policyInputs;
+            for(unsigned i = 0; i < nTrajs_; i++){
+                policyInputs["Camera Pose " +std::to_string(i)] = "mat44";
+            }
+            
+            removePolicy();
+            createPolicy(policyInputs);
+            for(unsigned i = 0; i < nTrajs_; i++){
+                registerCallback({"Camera Pose " +std::to_string(i)}, 
+                                        std::bind([&](flow::DataFlow  _data, int _id){
+                                            this->poseCallback(_data, _id);
+                                        }, 
+                                        std::placeholders::_1, 
+                                        i)
+                                    );
+            }
+        }
+
 
         QBoxLayout * BlockTrajectoryVisualizerPangolin::creationWidget(){
             QBoxLayout *layout = new QVBoxLayout();
@@ -101,7 +106,9 @@ namespace mico{
             spinBox_->setMaximum(6);
             layout->addWidget(spinBox_);
             QWidget::connect(spinBox_, QOverload<int>::of(&QSpinBox::valueChanged), [this](int _n){ 
-                this->nTrajs_ = _n; 
+                    this->nTrajs_ = _n; 
+                    std::cout << this->nTrajs_ << std::endl;
+                    this->preparePolicy();
                 });
             return layout;
         }
