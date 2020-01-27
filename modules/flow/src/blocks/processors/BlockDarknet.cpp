@@ -31,7 +31,7 @@ namespace mico{
     BlockDarknet::BlockDarknet(){
 
         createPipe("Color Image", "image");
-        createPipe("Entities", "v-entity");
+        createPipe("Entities", "v_entity");
 
         createPolicy({ {"Color Image", "image"}, 
                         {"Dataframe", "dataframe"}});

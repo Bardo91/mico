@@ -25,6 +25,10 @@
 
 #include <flow/Block.h>
 
+#ifdef HAS_DARKNET
+    #include <mico/dnn/map3d/Entity.h>
+#endif
+
 namespace mico{
 
     class BlockEntityDatabase: public flow::Block{
@@ -38,7 +42,9 @@ namespace mico{
         std::vector<std::string> parameters() override;        
 
     private:
-        std::map<int, std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>> entities_;
+        #ifdef HAS_DARKNET
+            std::map<int, std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>> entities_;
+        #endif
         bool hasPrev_ = false;
         bool idle_ = true;
     };

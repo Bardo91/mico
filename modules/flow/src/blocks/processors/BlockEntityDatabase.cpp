@@ -21,22 +21,24 @@
 
 #include <mico/flow/blocks/processors/BlockEntityDatabase.h>
 #include <flow/Policy.h>
-#include <flow/OutPipe.h>
+#include <flow/Outpipe.h>
+#include <flow/DataFlow.h>
 
 #include <sstream>
 
 namespace mico{
 
-    BlockEntityDatabase::BlockEntityDatabase(){
-        iPolicy_ = new flow::Policy({"v_entity"});
-
-        opipes_["v_entity"] = new flow::OutPipe("v_entity");
+    BlockEntityDatabase::BlockEntityDatabase(){ 
+        createPipe("Entities", "v_entity");
         
-        iPolicy_->registerCallback({"v_entity"}, 
-                                [&](std::unordered_map<std::string,std::any> _data){
+        createPolicy({{"Entities", "v_entity"}});
+
+        registerCallback({"Entities"}, 
+                                [&](flow::DataFlow _data){
                                     if(idle_){
                                         idle_ = false;
-                                        std::vector<std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>> entities = std::any_cast<std::vector<std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>>>(_data["v_entity"]); 
+                                        #ifdef HAS_DARKNET
+                                        auto entities = _data.get<std::vector<std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>>>("v_entity"); 
                                         
                                         if(!entities_.empty()){
                                             for(auto queryE: entities){
@@ -44,7 +46,7 @@ namespace mico{
                                                 auto eDfs = queryE->dfs();
                                                 auto queryBoundingCube = queryE->boundingCube(eDfs[0]);
                                                 for(auto trainE: entities_){
-                                                    auto queryBoundingCube = trainE->boundingCube(eDfs[0]);
+                                                    auto trainBoundingCube = trainE.second->boundingCube(eDfs[0]);
                                                     double minXOverlap = std::max(trainBoundingCube[0], queryBoundingCube[0]);
                                                     double minYOverlap = std::max(trainBoundingCube[1], queryBoundingCube[1]);
                                                     double minZOverlap = std::max(trainBoundingCube[2], queryBoundingCube[2]);
@@ -59,9 +61,9 @@ namespace mico{
                                             }
                                         }
 
-                                        if(opipes_["v_entity"]->registrations() !=0 )
-                                            opipes_["v_entity"]->flush(entities);
+                                        getPipe("v_entity")->flush(entities);
                                         idle_ = true;
+                                        #endif
                                     }
                                 }
         );
