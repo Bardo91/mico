@@ -38,6 +38,10 @@ namespace mico{
             
             registerCallback(   {"pose"}, 
                                 [&](flow::DataFlow  _data){
+                                    if(!visualizer_){
+                                        visualizer_ = new PangolinVisualizer();
+                                    }
+
                                     Eigen::Matrix4f pose = _data.get<Eigen::Matrix4f>("pose");
                                     if(isFirst_){
                                         lastPosition_ = pose.block<3,1>(0,3);
@@ -52,6 +56,9 @@ namespace mico{
 
             registerCallback({ "Dataframe" }, 
                                 [&](flow::DataFlow  _data){
+                                    if(!visualizer_){
+                                        visualizer_ = new PangolinVisualizer();
+                                    }
                                     auto df = _data.get<Dataframe<pcl::PointXYZRGBNormal>::Ptr>("Dataframe");
                                     
                                     pcl::PointCloud<pcl::PointXYZRGBNormal> cloud; 
@@ -63,6 +70,9 @@ namespace mico{
 
             registerCallback({ "Cloud" }, 
                                 [&](flow::DataFlow  _data){
+                                    if(!visualizer_){
+                                        visualizer_ = new PangolinVisualizer();
+                                    }
                                     auto cloud = _data.get<pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr>("Cloud"); 
                                     visualizer_->addPointCloud(cloud);
                                 }

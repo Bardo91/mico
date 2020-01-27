@@ -86,6 +86,9 @@ namespace mico{
             for(unsigned i = 0; i < nTrajs_; i++){
                 registerCallback({"Camera Pose " +std::to_string(i)}, 
                                         std::bind([&](flow::DataFlow  _data, int _id){
+                                            if(!visualizer_){
+                                                visualizer_ = new PangolinVisualizer();
+                                            }
                                             this->poseCallback(_data, _id);
                                         }, 
                                         std::placeholders::_1, 
