@@ -117,10 +117,12 @@ namespace mico{
                     referenceFrame = currentKeyframe_;
                 else  // Just sequential odometry
                     referenceFrame = prevDf_;
+
+                df->pose(pose);
                 
                 if(odom_.computeOdometry(referenceFrame, df)){
                     // memoryDf_[df->id()] = df;   // 666 safety reasons, but memory consumption.
-                    df->pose(pose);
+                    
                     getPipe("Estimated Dataframe")->flush(df);  
                 }
                 prevDf_ = df;
