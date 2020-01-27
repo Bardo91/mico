@@ -33,7 +33,7 @@
 namespace mico{
     class BlockSceneVisualizer: public flow::Block{
     public:
-        static std::string name() { return "Scene Visualizer"; }
+        virtual std::string name() override { return "Scene Visualizer"; }
 
         BlockSceneVisualizer();
         ~BlockSceneVisualizer();

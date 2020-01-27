@@ -32,7 +32,7 @@
 namespace mico{
     class BlockTransformCloud: public flow::Block {
     public:
-        static std::string name() {return "Transform Cloud";}
+        virtual std::string name() override {return "Transform Cloud";}
 
         BlockTransformCloud();
 
@@ -42,7 +42,7 @@ namespace mico{
 
     class BlockVoxelFiltering: public flow::Block {
     public:
-        static std::string name() {return "Voxel Filtering";}
+        virtual std::string name() override {return "Voxel Filtering";}
 
         BlockVoxelFiltering();
 

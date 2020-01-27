@@ -25,22 +25,30 @@
 
 #include <flow/Block.h>
 #include <mico/flow/blocks/visualizers/PangolinVisualizer.h>
+#include <QSpinBox>
 
 namespace mico{
 
     #ifdef MICO_HAS_PANGOLIN
         class BlockTrajectoryVisualizerPangolin: public flow::Block {
         public:
-            static std::string name() {return "Pangolin Trajectory Visualizer";}
+            virtual std::string name() override {return "Pangolin Trajectory Visualizer";}
 
             BlockTrajectoryVisualizerPangolin();
             ~BlockTrajectoryVisualizerPangolin();
 
+            virtual QWidget * customWidget() override;
+            virtual QBoxLayout * creationWidget() override;
+
         private:
             void poseCallback(flow::DataFlow  _data, int _id);
 
+            void preparePolicy();
+
         private:
             int nTrajs_ = 1;
+
+            QSpinBox * spinBox_;
 
             std::vector<Eigen::Vector3f> lastPositions_;
             std::vector<Eigen::Vector4f> colorLines_ = {{0.0f, 1.0f, 0.0f, 0.6f}, 
@@ -51,7 +59,7 @@ namespace mico{
                                                         {0.0f, 0.6f, 0.6f, 0.6f}};
             std::vector<bool> isFirst_;
             
-            PangolinVisualizer visualizer_;
+            PangolinVisualizer *visualizer_ = nullptr;
 
         };
 

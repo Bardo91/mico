@@ -42,6 +42,7 @@ void registerDataModels(FlowVisualInterface::RegistryType_ &_register) {
     // Streamers
     _register->registerModel<FlowVisualBlock<StreamDataset, true>>         ("Streamers");
     _register->registerModel<FlowVisualBlock<StreamRealSense, true>>       ("Streamers");
+    _register->registerModel<FlowVisualBlock<StreamKinect, true>>       ("Streamers");
     _register->registerModel<FlowVisualBlock<StreamPixhawk, true>>         ("Streamers");
     _register->registerModel<FlowVisualBlock<StreamWebcam, true>>          ("Streamers");
 
@@ -76,10 +77,10 @@ void registerDataModels(FlowVisualInterface::RegistryType_ &_register) {
     
     // Visualizers
     _register->registerModel<FlowVisualBlock<BlockImageVisualizer>>         ("Visualizers");
-    _register->registerModel<FlowVisualBlock<BlockTrayectoryVisualizer>>    ("Visualizers");
-    _register->registerModel<FlowVisualBlock<BlockPointCloudVisualizer>>    ("Visualizers");
+    //_register->registerModel<FlowVisualBlock<BlockTrayectoryVisualizer>>    ("Visualizers");
+    //_register->registerModel<FlowVisualBlock<BlockPointCloudVisualizer>>    ("Visualizers");
     _register->registerModel<FlowVisualBlock<BlockDatabaseVisualizer>>      ("Visualizers");
-    _register->registerModel<FlowVisualBlock<BlockSceneVisualizer>>         ("Visualizers");
+    //_register->registerModel<FlowVisualBlock<BlockSceneVisualizer>>         ("Visualizers");
     #ifdef MICO_HAS_PANGOLIN
         _register->registerModel<FlowVisualBlock<BlockTrajectoryVisualizerPangolin>>   ("Visualizers");
         _register->registerModel<FlowVisualBlock<BlockSceneVisualizerPangolin>>        ("Visualizers");

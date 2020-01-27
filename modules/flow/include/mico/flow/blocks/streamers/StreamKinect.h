@@ -20,43 +20,38 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-#ifndef MICO_FLOW_STREAMERS_BLOCKS_BLOCKLOOPCLOSURE_H_
-#define MICO_FLOW_STREAMERS_BLOCKS_BLOCKLOOPCLOSURE_H_
+
+#ifndef MICO_FLOW_BLOCKS_STREAMERS_STREAMKINECT_H_
+#define MICO_FLOW_BLOCKS_STREAMERS_STREAMKINECT_H_
 
 #include <flow/Block.h>
-#include <mico/base/map3d/LoopClosureDetectorDorian.h>
 
-#include <mico/base/map3d/Dataframe.h>
-
-#include <pcl/point_cloud.h>
-#include <pcl/point_types.h>
+#include <mico/base/StereoCameras/StereoCameraKinect.h>
 
 namespace mico{
 
-    class BlockLoopClosure: public flow::Block{
+    class StreamKinect:public flow::Block{
     public:
-        virtual std::string name() override {return "Loop closure detector";}
-
-        BlockLoopClosure();
-        ~BlockLoopClosure();
-    
-        bool configure(std::unordered_map<std::string, std::string> _params) override;
+        virtual std::string name() override {return "Kinect Streamer";}
+        
+        StreamKinect();
+        // ~StreamKinect(){};
+        
+        virtual bool configure(std::unordered_map<std::string, std::string> _params) override;
         std::vector<std::string> parameters() override;
-        
-        std::string description() const override {return    "Block for detecting loops by using 2D visual features on sequences of images using DBOW2.\n"
-                                                            "   - Inputs: \n"
+    
+        std::string description() const override {return    "Streamer block that reads from an Intel realsense device and streams its flows of images.\n"
                                                             "   - Outputs: \n";};
-    private:
-        
+    protected:
+        virtual void loopCallback() override;
 
     private:
-        bool hasPrev_ = false;
-        int nextDfId_ = 0;
-        LoopClosureDetectorDorian</*DebugLevels::Debug, OutInterfaces::Cout*/> loopDetector_;
-        std::map<int, std::shared_ptr<Dataframe<pcl::PointXYZRGBNormal>>> dataframes_;
-        bool idle_ = true;
+        StereoCameraKinect camera_;
+        bool hasInitCamera_ = false;
     };
 
 }
+
+
 
 #endif

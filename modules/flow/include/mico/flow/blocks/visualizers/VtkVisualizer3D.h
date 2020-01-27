@@ -70,6 +70,14 @@ namespace mico{
             runLock_.unlock();
         }
 
+        void addActor(vtkSmartPointer<vtkActor> &_actor){
+            renderer->AddActor(_actor);
+        }
+
+        void removeActor(vtkSmartPointer<vtkActor> &_actor){
+            renderer->RemoveActor(_actor);
+        }
+
     protected:
         // Setup render window, renderer, and interactor
         vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();

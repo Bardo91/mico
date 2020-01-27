@@ -22,51 +22,57 @@
 #include <mico/flow/blocks/visualizers/BlockTrajectoryVisualizerPangolin.h>
 
 #include <QDialog>
-#include <QSpinBox>
-#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QGroupBox>
 #include <QLabel>
+#include <QPushButton>
 
 namespace mico{
     #ifdef MICO_HAS_PANGOLIN
 
-        class SpinWidgetWindow: public QDialog{
-        public:
-            SpinWidgetWindow(QWidget *parent = nullptr){
-                layout_ = new QVBoxLayout();
-                setLayout(layout_);
-                
-                layout_->addWidget(new QLabel("Select number of trajectories to be displayed."));
-
-                spinBox_ = new QSpinBox();
-                spinBox_->setMinimum(1);
-                spinBox_->setMaximum(6);
-                layout_->addWidget(spinBox_);
-                connect(spinBox_, QOverload<int>::of(&QSpinBox::valueChanged), [this](int _n){ this->n_ = _n; });
-
-                setModal(true);
-                setFocusPolicy(Qt::StrongFocus);
-                setFocus();
-                setWindowTitle("Trajectory selector");
-            }
-
-            int number() const{
-                return n_;
-            }
-
-        private:
-            int n_ = 1;
-            QSpinBox * spinBox_;
-            QVBoxLayout *layout_;
-        };
-
 
         BlockTrajectoryVisualizerPangolin::BlockTrajectoryVisualizerPangolin(){
+            this->preparePolicy();           
+        }
+        
+        BlockTrajectoryVisualizerPangolin::~BlockTrajectoryVisualizerPangolin(){
+            if(visualizer_){
+                delete visualizer_;
+            }
+        }
+
+        void BlockTrajectoryVisualizerPangolin::poseCallback(flow::DataFlow  _data, int _id){
+            Eigen::Matrix4f pose = _data.get<Eigen::Matrix4f>("Camera Pose " + std::to_string(_id));
+            if(isFirst_[_id]){
+                lastPositions_[_id] = pose.block<3,1>(0,3);
+                isFirst_[_id] = false;
+            }else{
+                Eigen::Vector3f currPosition = pose.block<3,1>(0,3);
+                visualizer_->addLine(lastPositions_[_id], currPosition, colorLines_[_id]);
+                lastPositions_[_id] = currPosition;
+            }
+        }
+
+
+        QWidget * BlockTrajectoryVisualizerPangolin::customWidget() {
+            QGroupBox * box = new QGroupBox;
             
-            SpinWidgetWindow nTrajSelector;
-            nTrajSelector.exec();
+            QHBoxLayout * layout = new QHBoxLayout;
+            QPushButton *button = new QPushButton("Start Visualizer");
+            layout->addWidget(button);
+            
+            box->setLayout(layout);
 
-            nTrajs_ = nTrajSelector.number();
+            QWidget::connect(button, &QPushButton::clicked, [this](){
+                if(!visualizer_){
+                    visualizer_ = new PangolinVisualizer();
+                }
+            });
 
+            return box;
+        }
+
+        void BlockTrajectoryVisualizerPangolin::preparePolicy(){
             lastPositions_.resize(nTrajs_);
             isFirst_.resize(nTrajs_, true);
 
@@ -74,7 +80,8 @@ namespace mico{
             for(unsigned i = 0; i < nTrajs_; i++){
                 policyInputs["Camera Pose " +std::to_string(i)] = "mat44";
             }
-
+            
+            removePolicy();
             createPolicy(policyInputs);
             for(unsigned i = 0; i < nTrajs_; i++){
                 registerCallback({"Camera Pose " +std::to_string(i)}, 
@@ -86,22 +93,26 @@ namespace mico{
                                     );
             }
         }
-        
-        BlockTrajectoryVisualizerPangolin::~BlockTrajectoryVisualizerPangolin(){
 
+
+        QBoxLayout * BlockTrajectoryVisualizerPangolin::creationWidget(){
+            QBoxLayout *layout = new QVBoxLayout();
+            
+            
+            layout->addWidget(new QLabel("Select number of trajectories to be displayed."));
+
+            spinBox_ = new QSpinBox();
+            spinBox_->setMinimum(1);
+            spinBox_->setMaximum(6);
+            layout->addWidget(spinBox_);
+            QWidget::connect(spinBox_, QOverload<int>::of(&QSpinBox::valueChanged), [this](int _n){ 
+                    this->nTrajs_ = _n; 
+                    // std::cout << this->nTrajs_ << std::endl;
+                    this->preparePolicy();
+                });
+            return layout;
         }
 
-        void BlockTrajectoryVisualizerPangolin::poseCallback(flow::DataFlow  _data, int _id){
-            Eigen::Matrix4f pose = _data.get<Eigen::Matrix4f>("Camera Pose " + std::to_string(_id));
-            if(isFirst_[_id]){
-                lastPositions_[_id] = pose.block<3,1>(0,3);
-                isFirst_[_id] = false;
-            }else{
-                Eigen::Vector3f currPosition = pose.block<3,1>(0,3);
-                visualizer_.addLine(lastPositions_[_id], currPosition, colorLines_[_id]);
-                lastPositions_[_id] = currPosition;
-            }
-        }
 
     #endif
 }

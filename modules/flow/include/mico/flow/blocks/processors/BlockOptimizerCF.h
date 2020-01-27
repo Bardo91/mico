@@ -33,7 +33,7 @@ namespace mico{
 
     class BlockOptimizerCF: public flow::Block{
     public:
-        static std::string name() {return "Optimizer CFs (g2o)";}
+        virtual std::string name() override {return "Optimizer CFs (g2o)";}
 
         BlockOptimizerCF();
         // ~BlockOptimizerCF(){};

@@ -30,14 +30,16 @@
 #include <QVBoxLayout>
 #include <QPushButton>
 #include <mico/flow/blocks/misc/python/PythonSyntaxHighlighter.h>
+#include <mico/flow/blocks/misc/InterfaceSelectorWidget.h>
 
 #include <pybind11/embed.h> // everything needed for embedding
 #include <pybind11/eigen.h>
 
+
 namespace mico{
     class BlockPython: public flow::Block {
     public:
-        static std::string name() {return "Python";}
+        virtual std::string name() override {return "Python";}
 
         BlockPython();
         ~BlockPython();
@@ -46,9 +48,13 @@ namespace mico{
             return blockInterpreter_;
         }
 
+        virtual QBoxLayout * creationWidget() override;
+
         bool resizable() const override { return true; }
 
     private:
+        void prepareInterfaces();
+
         void runPythonCode(flow::DataFlow _data, bool _useData);
 
         void encodeInput(pybind11::dict, flow::DataFlow _data, std::string _tag, std::string _typeTag);
@@ -57,6 +63,8 @@ namespace mico{
     private:
         bool idle_ = true;
         bool isReady_ = false;
+
+        InterfaceSelectorWidget *interfaceSelector_;
 
         std::map<std::string, std::string> inputInfo_, outputInfo_;
         
