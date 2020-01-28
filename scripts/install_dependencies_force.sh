@@ -167,4 +167,5 @@ install_git_repo "Pangolin" "https://github.com/stevenlovegrove/Pangolin"
 
 sudo apt-get install -y python3 python3-pip
 pip3 install -U pytest
+sudo apt-get install python3-numpy
 install_git_repo "pybind11" "https://github.com/pybind/pybind11"
