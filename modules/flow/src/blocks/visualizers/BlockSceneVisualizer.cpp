@@ -51,7 +51,7 @@ namespace mico{
         createPolicy({
             {"Camera Pose", "mat44"},
             {"Dataframe", "dataframe"},
-            {"Objects", "v-entity"}
+            {"Objects", "v_entity"}
         });
 
         registerCallback({ "Camera Pose" }, 

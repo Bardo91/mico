@@ -78,8 +78,7 @@ namespace mico{
         for(auto &param: _params){
             if(param.second == "")
                 return false;
-
-            }if(param.first == "score"){
+            if(param.first == "score"){
                 std::istringstream istr(_params["score"]);
                 float score;
                 istr >> score;

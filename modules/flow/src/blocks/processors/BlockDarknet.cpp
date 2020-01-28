@@ -75,7 +75,7 @@ namespace mico{
                                             if(getPipe("Color Image")->registrations() !=0 )
                                                 getPipe("Color Image")->flush(image);
                                             // send entities
-                                            if(getPipe("Entities")->registrations() !=0 )
+                                            if(entities.size()>0 && getPipe("Entities")->registrations() !=0 )
                                                 getPipe("Entities")->flush(entities);
                                             
                                         }else{
@@ -172,7 +172,7 @@ namespace mico{
                                                 }
                                             }
                                             // send entities
-                                            if(getPipe("Entities")->registrations() !=0 )
+                                            if(entities.size() > 0 && getPipe("Entities")->registrations() !=0 )
                                                 getPipe("Entities")->flush(entities);
                                             // send image with detections
                                             if(getPipe("Color Image")->registrations() !=0 )

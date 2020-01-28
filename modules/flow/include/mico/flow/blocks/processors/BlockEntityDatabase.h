@@ -24,7 +24,7 @@
 #define MICO_FLOW_STREAMERS_BLOCKS_BLOCKENTITYDATABASE_H_
 
 #include <flow/Block.h>
-
+#include <mico/base/cjson/json.h>
 #ifdef HAS_DARKNET
     #include <mico/dnn/map3d/Entity.h>
 #endif
