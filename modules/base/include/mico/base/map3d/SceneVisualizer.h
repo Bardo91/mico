@@ -57,7 +57,6 @@ namespace mico {
         // Draw every word optimized
         bool draw3DMatches(pcl::PointCloud<PointType_> _pc1, pcl::PointCloud<PointType_> _pc2);
         
-        // Draw every word optimized
         bool updateCurrentPose(const Eigen::Matrix4f &_pose);
 
         void pause();

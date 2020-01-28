@@ -30,15 +30,24 @@ namespace mico{
         createPolicy({    {"Color Image", "image"}, 
                             {"Depth Image", "image"}, 
                             {"Point Cloud", "cloud"}, 
-                            {"Keyframe", "dataframe" }});
+                            {"Keyframe", "dataframe" },
+                            {"Pose","mat44"}});
 
         createPipe("Estimated Dataframe" , "dataframe");
 
         featureDetector_ = cv::ORB::create(1000);
         
+        // registerCallback({  "Color Image", 
+        //                     "Depth Image", 
+        //                     "Point Cloud" }, 
+        //                         [this](flow::DataFlow _data){
+        //                             this->callbackOdometry(_data);
+        //                         });
+        
         registerCallback({  "Color Image", 
                             "Depth Image", 
-                            "Point Cloud" }, 
+                            "Point Cloud",
+                            "Pose" }, 
                                 [this](flow::DataFlow _data){
                                     this->callbackOdometry(_data);
                                 });
@@ -85,12 +94,14 @@ namespace mico{
                 // Create dataframe from input data
                 std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> df(new Dataframe<pcl::PointXYZRGBNormal>(nextDfId_));
                 nextDfId_++;
+                Eigen::Matrix4f pose = Eigen::Matrix4f::Identity();
                 try{
                     df->leftImage(_data.get<cv::Mat>("Color Image"));
                     df->depthImage(_data.get<cv::Mat>("Depth Image"));
                     df->cloud(_data.get<pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr>("Point Cloud")); 
                     df->intrinsics(matrixLeft_);
                     df->distCoeff(distCoefLeft_);
+                    pose = _data.get<Eigen::Matrix4f>("Pose");
                 }catch(std::exception& e){
                     std::cout << "Failure OdometryRGBD. " <<  e.what() << std::endl;
                     idle_ = true;
@@ -106,9 +117,12 @@ namespace mico{
                     referenceFrame = currentKeyframe_;
                 else  // Just sequential odometry
                     referenceFrame = prevDf_;
+
+                df->pose(pose);
                 
                 if(odom_.computeOdometry(referenceFrame, df)){
                     // memoryDf_[df->id()] = df;   // 666 safety reasons, but memory consumption.
+                    
                     getPipe("Estimated Dataframe")->flush(df);  
                 }
                 prevDf_ = df;
