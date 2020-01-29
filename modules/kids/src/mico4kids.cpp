@@ -107,6 +107,9 @@ void registerDataModels(FlowVisualInterface::RegistryType_ &_register) {
     _register->registerModel<FlowVisualBlock<BlocksFilters2D>>                  ("Utils 2D");
     _register->registerModel<FlowVisualBlock<BlocksImageConversion>>            ("Utils 2D");
 
+    // Debuggers
+    _register->registerModel<FlowVisualBlock<BlockSlamDebugger>>            ("Debuggers");
+
 }
 
 
