@@ -31,7 +31,7 @@ namespace mico{
     #ifdef MICO_HAS_PANGOLIN
         class BlockSceneVisualizerPangolin: public flow::Block {
         public:
-            virtual std::string name() override {return "Pangolin Scene Visualizer";}
+            virtual std::string name() const override {return "Pangolin Scene Visualizer";}
 
             BlockSceneVisualizerPangolin();
             ~BlockSceneVisualizerPangolin();

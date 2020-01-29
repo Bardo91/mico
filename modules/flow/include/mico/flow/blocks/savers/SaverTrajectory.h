@@ -32,7 +32,7 @@ namespace mico{
 
     class SaverTrajectory:public flow::Block{
     public:
-        virtual std::string name() override {return "Saver Trajectory";}
+        virtual std::string name() const override {return "Saver Trajectory";}
         
         SaverTrajectory();
         // ~SaverTrajectory(){};

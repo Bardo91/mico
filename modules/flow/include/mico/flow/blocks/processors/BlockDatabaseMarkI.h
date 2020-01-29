@@ -30,7 +30,7 @@ namespace mico{
 
     class BlockDatabaseMarkI: public flow::Block{
     public:
-        virtual std::string name() override {return "Database Mark I";}
+        virtual std::string name() const override {return "Database Mark I";}
 
         BlockDatabaseMarkI();
         ~BlockDatabaseMarkI();

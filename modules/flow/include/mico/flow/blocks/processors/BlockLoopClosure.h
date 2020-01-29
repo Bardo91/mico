@@ -35,7 +35,7 @@ namespace mico{
 
     class BlockLoopClosure: public flow::Block{
     public:
-        virtual std::string name() override {return "Loop closure detector";}
+        virtual std::string name() const override {return "Loop closure detector";}
 
         BlockLoopClosure();
         ~BlockLoopClosure();

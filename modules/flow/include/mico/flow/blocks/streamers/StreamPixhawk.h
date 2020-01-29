@@ -33,7 +33,7 @@ namespace mico{
 
     class StreamPixhawk:public flow::Block{
     public:
-        virtual std::string name() override {return "Pixhawk Streamer";}
+        virtual std::string name() const override {return "Pixhawk Streamer";}
         
         StreamPixhawk();
         // ~StreamPixhawk(){};

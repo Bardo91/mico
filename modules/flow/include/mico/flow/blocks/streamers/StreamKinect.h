@@ -32,7 +32,7 @@ namespace mico{
 
     class StreamKinect:public flow::Block{
     public:
-        virtual std::string name() override {return "Kinect Streamer";}
+        virtual std::string name() const override {return "Kinect Streamer";}
         
         StreamKinect();
         // ~StreamKinect(){};

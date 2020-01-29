@@ -39,7 +39,7 @@
 namespace mico{
     class BlockPython: public flow::Block {
     public:
-        virtual std::string name() override {return "Python";}
+        virtual std::string name() const override {return "Python";}
 
         BlockPython();
         ~BlockPython();
