@@ -109,6 +109,7 @@ void registerDataModels(FlowVisualInterface::RegistryType_ &_register) {
 
     // Debuggers
     _register->registerModel<FlowVisualBlock<BlockSlamDebugger>>            ("Debuggers");
+    _register->registerModel<FlowVisualBlock<BlockDataframeInspector>>            ("Debuggers");
 
 }
 
