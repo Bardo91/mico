@@ -58,10 +58,10 @@ namespace mico{
             for(auto &[wid, word]:_df->words()){
                 if(word->isInFrame(otherId)){
                     cv::circle(imgOther, word->cvProjectionf(otherId), 3, cv::Scalar(0,255,0));
-                    cv::putText(imgOther, std::to_string(word->id) , word->cvProjectionf(otherId), 0, 1, cv::Scalar(0,255,0), 2);
+                    cv::putText(imgOther, std::to_string(word->id) , word->cvProjectionf(otherId), 2, 0.5, cv::Scalar(0,255,0), 0.5);
 
                     cv::circle(imgThis, word->cvProjectionf(thisId), 3, cv::Scalar(0,255,0));
-                    cv::putText(imgThis, std::to_string(word->id), word->cvProjectionf(thisId), 0, 1, cv::Scalar(0,255,0), 2);
+                    cv::putText(imgThis, std::to_string(word->id), word->cvProjectionf(thisId), 2, 0.5, cv::Scalar(0,255,0), 0.5);
                 }
             }
             cv::Mat finalImage;
