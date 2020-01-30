@@ -37,10 +37,14 @@ cv::Mat    StereoCameraKinect::mLastDepthInColor;
 //-----------------------------------------------------------------------------------------------------------------
 StereoCameraKinect::~StereoCameraKinect() {
 	#ifdef ENABLE_LIBFREENECT
-		freenect_stop_depth(mFreenectDevice);
-		freenect_stop_video(mFreenectDevice);
-		freenect_close_device(mFreenectDevice);
-		freenect_shutdown(mFreenectContext);
+        if(mFreenectDevice){
+            freenect_stop_depth(mFreenectDevice);
+            freenect_stop_video(mFreenectDevice);
+            freenect_close_device(mFreenectDevice);
+        }
+        if(mFreenectContext){
+            freenect_shutdown(mFreenectContext);
+        }
 	#endif
 }
 
@@ -104,17 +108,15 @@ bool StereoCameraKinect::init(const cjson::Json & _json){
             });
 
 
-            if(_json.contains("calibFile") && std::string(_json["calibFile"]) != ""){
+            if(mConfig.contains("calibFile") && std::string(mConfig["calibFile"]) != ""){
                 mHasCalibration = true;
 
-                cv::FileStorage fs((std::string)_json["calibFile"], cv::FileStorage::READ);
+                cv::FileStorage fs((std::string)mConfig["calibFile"], cv::FileStorage::READ);
 
                 fs["MatrixLeft"]            >> mMatrixLeft;
                 fs["DistCoeffsLeft"]        >> mDistCoefLeft;
                 fs["MatrixRight"]           >> mMatrixRight;
                 fs["DistCoeffsRight"]       >> mDistCoefRight;
-                fs["Rotation"]              >> mRot;
-                fs["Translation"]           >> mTrans;
                 fs["DisparityToDepthScale"] >> mDispToDepth;
 
             }else{
@@ -122,44 +124,6 @@ bool StereoCameraKinect::init(const cjson::Json & _json){
                 // FILL CALIB WITH SOME STANDART VALUES
             }
 
-            //mRsDepthIntrinsic = new rs::intrinsics();
-            //auto tempDepthIntrinsic = mRsDevice->get_stream_intrinsics(rs::stream::depth);
-            //memcpy(mRsDepthIntrinsic, &tempDepthIntrinsic, sizeof(rs::intrinsics));
-            //
-            //mRsDepthToColor = new rs::extrinsics();
-            //auto tempDepth2Color = mRsDevice->get_extrinsics(rs::stream::depth, rs::stream::color);
-            //memcpy(mRsDepthToColor, &tempDepth2Color, sizeof(rs::extrinsics));
-            //
-            //
-            //mRsColorToDepth = new rs::extrinsics();
-            //auto tempColor2Depth = mRsDevice->get_extrinsics(rs::stream::color, rs::stream::depth);
-            //memcpy(mRsColorToDepth, &tempColor2Depth, sizeof(rs::extrinsics));
-            //
-            //mRsColorIntrinsic = new rs::intrinsics();
-            //auto tempColorIntrinsic = mRsDevice->get_stream_intrinsics(rs::stream::color);
-            //memcpy(mRsColorIntrinsic, &tempColorIntrinsic, sizeof(rs::intrinsics));
-            //
-            //mRsDepthScale		= mRsDevice->get_depth_scale();
-            //
-            //
-            //// Projection matrix Depth
-            //mCvDepthIntrinsic = cv::Mat::eye(3,3,CV_32F);
-            //mCvDepthIntrinsic.at<float>(0,0) = mRsDepthIntrinsic->fx;
-            //mCvDepthIntrinsic.at<float>(1,1) = mRsDepthIntrinsic->fy;
-            //mCvDepthIntrinsic.at<float>(0,2) = mRsDepthIntrinsic->ppx;
-            //mCvDepthIntrinsic.at<float>(1,2) = mRsDepthIntrinsic->ppy;
-            //
-            //// Projection matrix Color
-            //mCvColorIntrinsic= cv::Mat::eye(3,3,CV_32F);
-            //mCvColorIntrinsic.at<float>(0,0) = mRsColorIntrinsic->fx;
-            //mCvColorIntrinsic.at<float>(1,1) = mRsColorIntrinsic->fy;
-            //mCvColorIntrinsic.at<float>(0,2) = mRsColorIntrinsic->ppx;
-            //mCvColorIntrinsic.at<float>(1,2) = mRsColorIntrinsic->ppy;
-            //
-            //mExtrinsicColorToDepth = cv::Mat::eye(4,4,CV_32F);
-            //cv::Mat(3,3,CV_32F, &mRsColorToDepth->rotation[0]).copyTo(mExtrinsicColorToDepth(cv::Rect(0,0,3,3)));
-            //mExtrinsicColorToDepth(cv::Rect(0,0,3,3)) = mExtrinsicColorToDepth(cv::Rect(0,0,3,3)).t(); // RS use color major instead of row mayor.
-            //cv::Mat(3,1,CV_32F, &mRsColorToDepth->translation[0]).copyTo(mExtrinsicColorToDepth(cv::Rect(3,0,1,3)));
 			return true;
 		#else
 			return false;

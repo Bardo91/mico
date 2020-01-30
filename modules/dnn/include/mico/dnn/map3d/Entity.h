@@ -48,6 +48,9 @@ public:
     void pose(int _dataframeId, Eigen::Matrix4f &_pose);
     Eigen::Matrix4f pose(int _dataframeId);
 
+    void dfpose(int _dataframeId, Eigen::Matrix4f &_pose);
+    Eigen::Matrix4f dfpose(int _dataframeId);
+
     void cloud(int _dataframeId, typename pcl::PointCloud<PointType_>::Ptr &_cloud);
     typename pcl::PointCloud<PointType_>::Ptr cloud(int _dataframeId);
 
@@ -73,7 +76,7 @@ private:
     size_t id_;
     std::vector<int> dfs_;
 
-    /// spatial data
+    /// pose from dataframe view
     std::map<int, Eigen::Matrix4f> poses_;
     std::map<int, Eigen::Vector3f> positions_;
     std::map<int, Eigen::Quaternionf> orientations_;

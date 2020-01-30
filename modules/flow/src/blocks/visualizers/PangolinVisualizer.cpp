@@ -100,7 +100,7 @@ namespace mico{
                 tree.Render();
             });
 
-            while( running_ && !pangolin::ShouldQuit() ) {
+            while(running_ && !pangolin::ShouldQuit() ) {
 
                 // Clear screen and activate view to render into
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -112,6 +112,7 @@ namespace mico{
                 pangolin::FinishFrame();
                 usleep(1000);
             }
+            
             pangolin::DestroyWindow(windowName_);
         }
 

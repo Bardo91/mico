@@ -33,7 +33,7 @@ namespace mico{
     template<typename Trait_>
     class BlockQueuer: public flow::Block{
     public:
-        static std::string name() {return Trait_::Name_;}
+        virtual std::string name() const override {return Trait_::Name_;}
 
         BlockQueuer(){
             createPipe(Trait_::OutputName_, Trait_::OutputType_);

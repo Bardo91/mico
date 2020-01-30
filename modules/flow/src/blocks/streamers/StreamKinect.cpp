@@ -20,29 +20,25 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-#include <mico/flow/blocks/streamers/StreamRealSense.h>
+#include <mico/flow/blocks/streamers/StreamKinect.h>
 #include <flow/Outpipe.h>
 
 namespace mico{
 
-        StreamRealSense::StreamRealSense(){
+        StreamKinect::StreamKinect(){
             createPipe("Color", "image");
             createPipe("Depth", "image");
             createPipe("Cloud", "cloud");
         }
 
-        bool StreamRealSense::configure(std::unordered_map<std::string, std::string> _params) {
+        bool StreamKinect::configure(std::unordered_map<std::string, std::string> _params) {
             if(isRunningLoop() || hasInitCamera_) // Cant configure if already running.
                 return true;
 
             cjson::Json jParams = {};
             for(auto &p:_params){
-                if(p.first == "devide_id"){
-                    jParams["deviceId"] = atoi(p.second.c_str());
-                }else if(p.first == "cloudDownsampleStep"){
-                    jParams["cloudDownsampleStep"] = atoi(p.second.c_str());
-                }else if(p.first == "useUncolorizedPoints"){
-                    jParams["useUncolorizedPoints"] = p.second == "true" ? true : false;
+                if(p.first == "calibFile"){
+                    jParams["calibFile"] = p.second.c_str();
                 }
             }
 
@@ -51,15 +47,15 @@ namespace mico{
             return hasInitCamera_;
         }
         
-        std::vector<std::string> StreamRealSense::parameters(){
+        std::vector<std::string> StreamKinect::parameters(){
             return {
-                "devide_id" 
+                "calibFile" 
             };
         }
 
-        void StreamRealSense::loopCallback() {
+        void StreamKinect::loopCallback() {
             if(!hasInitCamera_){
-                std::cout << "Cant init Realsense camera if not configured first" << std::endl;
+                std::cout << "Cant init Kinect camera if not configured first" << std::endl;
                 return;
             }
                 

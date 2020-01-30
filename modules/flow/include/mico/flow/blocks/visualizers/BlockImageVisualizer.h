@@ -40,7 +40,7 @@ namespace mico{
 
     class BlockImageVisualizer: public flow::Block{
     public:
-        static std::string name() {return "Image Visualizer";}
+        virtual std::string name() const override {return "Image Visualizer";}
 
         BlockImageVisualizer();
         // ~BlockImageVisualizer(){};

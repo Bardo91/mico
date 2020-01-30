@@ -20,62 +20,38 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-#ifndef MICO_FLOW_STREAMERS_BLOCKS_BLOCKSCENEVISUALIZER_H_
-#define MICO_FLOW_STREAMERS_BLOCKS_BLOCKSCENEVISUALIZER_H_
+
+#ifndef MICO_FLOW_BLOCKS_STREAMERS_STREAMKINECT_H_
+#define MICO_FLOW_BLOCKS_STREAMERS_STREAMKINECT_H_
 
 #include <flow/Block.h>
 
-#include <mutex>
-#include <deque>
-
-#include <mico/base/map3d/SceneVisualizer.h>
+#include <mico/base/StereoCameras/StereoCameraKinect.h>
 
 namespace mico{
-    class BlockSceneVisualizer: public flow::Block{
+
+    class StreamKinect:public flow::Block{
     public:
-        virtual std::string name() const override { return "Scene Visualizer"; }
-
-        BlockSceneVisualizer();
-        ~BlockSceneVisualizer();
-
-
-
-    bool configure(std::unordered_map<std::string, std::string> _params) override;
-    std::vector<std::string> parameters() override;
-
-
-    private:
-        SceneVisualizer<pcl::PointXYZRGBNormal> sceneVisualizer_;
-
-        void init();
-
-    private:
-        static bool sAlreadyExisting_;
-        bool sBelonger_;
-
-        std::thread spinnerThread_;
-        bool run_ = true;
-        bool idle_ = true;
-        bool hasBeenInitialized_ = false;
-
-
-        std::deque<Dataframe<pcl::PointXYZRGBNormal>::Ptr> queueDfs_;
-        std::mutex queueDfGuard_;
+        virtual std::string name() const override {return "Kinect Streamer";}
         
-#ifdef HAS_DARKNET
-        std::deque<std::vector<std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>>> queueEntities_;
-        std::mutex queueEntitiesGuard_;
-#endif
-        bool hasPose = false;
-        Eigen::Matrix4f lastPose_;
-        std::mutex poseGuard_;
+        StreamKinect();
+        // ~StreamKinect(){};
+        
+        virtual bool configure(std::unordered_map<std::string, std::string> _params) override;
+        std::vector<std::string> parameters() override;
+    
+        std::string description() const override {return    "Streamer block that reads from an Intel realsense device and streams its flows of images.\n"
+                                                            "   - Outputs: \n";};
+    protected:
+        virtual void loopCallback() override;
 
-        // Parameters
-        float voxelSize_ = -1;
-        bool useOctree = false;
-        bool octreeDepth = 4;
+    private:
+        StereoCameraKinect camera_;
+        bool hasInitCamera_ = false;
     };
 
 }
+
+
 
 #endif

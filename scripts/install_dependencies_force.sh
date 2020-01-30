@@ -50,7 +50,9 @@ sudo apt-get install -y libboost-all-dev curl
 sudo apt-get install -y qt5-default
 sudo apt-get install -y libqt5opengl5 libqt5opengl5-dev
 
-install_git_repo "nodeeditor" "https://github.com/bardo91/nodeeditor"
+install_git_repo "nodeeditor" "https://github.com/mico-corp/nodeeditor"
+
+install_git_repo "flow" "https://github.com/mico-corp/flow"
 
 ###################################################################
 ###########				INSTALL CUDA 10 		        ###########
@@ -157,11 +159,13 @@ fi
 ###################################################################
 # install_git_repo "MAVSDK" "https://github.com/mavlink/MAVSDK"
 
-
-install_git_repo "flow" "https://github.com/Bardo91/flow"
+install_git_repo "libfreenect" "https://github.com/OpenKinect/libfreenect"
 
 sudo apt-get install -y libglew-dev libxkbcommon-dev
 
 install_git_repo "Pangolin" "https://github.com/stevenlovegrove/Pangolin"
 
+sudo apt-get install -y python3 python3-pip
+pip3 install -U pytest
+sudo apt-get install python3-numpy
 install_git_repo "pybind11" "https://github.com/pybind/pybind11"

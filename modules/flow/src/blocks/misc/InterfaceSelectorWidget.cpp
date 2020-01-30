@@ -119,6 +119,9 @@ namespace mico{
         while(interfacesInput_.size() < _nInterfaces){
             interfacesInput_.push_back(new InterfaceElement("in_"+std::to_string(interfacesInput_.size())));
             interfacesLayoutIn_->addWidget(interfacesInput_.back());
+            QWidget::connect(   interfacesInput_.back()->typeList_, 
+                                QOverload<int>::of(&QComboBox::currentIndexChanged), 
+                                [this](int _idx){this->callbackIfChangeInside_();});   // 666 More ugly code...;
         }
         
         while(interfacesInput_.size() > _nInterfaces){
@@ -127,7 +130,8 @@ namespace mico{
             interfacesInput_.pop_back();
         }
 
-        this->adjustSize();
+        // this->adjustSize();
+        callbackIfChangeInside_();
     }
 
 
@@ -135,6 +139,9 @@ namespace mico{
         while(interfacesOutput_.size() < _nInterfaces){
             interfacesOutput_.push_back(new InterfaceElement("out_"+std::to_string(interfacesOutput_.size())));
             interfacesLayoutOut_->addWidget(interfacesOutput_.back());
+            QWidget::connect(   interfacesOutput_.back()->typeList_, 
+                                QOverload<int>::of(&QComboBox::currentIndexChanged), 
+                                [this](int _idx){this->callbackIfChangeInside_();});   // 666 More ugly code...;
         }
         
         while(interfacesOutput_.size() > _nInterfaces){
@@ -143,6 +150,7 @@ namespace mico{
             interfacesOutput_.pop_back();
         }
 
-        this->adjustSize();
+        // this->adjustSize();
+        callbackIfChangeInside_();
     }
 }

@@ -30,7 +30,7 @@ namespace mico{
 
     class BlockOdometryRGBD: public flow::Block{
     public:
-        static std::string name() {return "Odometry RGBD";}
+        virtual std::string name() const override {return "Odometry RGBD";}
 
         BlockOdometryRGBD();
         // ~BlockOdometryRGBD(){};

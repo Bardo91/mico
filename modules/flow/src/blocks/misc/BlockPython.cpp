@@ -32,8 +32,6 @@
 #include <QtWidgets>
 #include <QPushButton>
 
-#include <mico/flow/blocks/misc/InterfaceSelectorWidget.h>
-
 #ifdef slots
 #undef slots
 #endif
@@ -53,29 +51,12 @@ namespace mico{
         pybind11::initialize_interpreter();
         gilReleaser_ = new pybind11::gil_scoped_release;
 
-        // Instantiate outputs
-        InterfaceSelectorWidget interfaceSelector("Python interface Selector");
-        interfaceSelector.exec();
+        // Interface constructor
+        interfaceSelector_ = new InterfaceSelectorWidget("Python interface Selector");
+        interfaceSelector_->callThisIfSmthChangeInside([this](){this->prepareInterfaces();});
 
-        outputInfo_ = interfaceSelector.getInterfaces(InterfaceSelectorWidget::INTERFACE_TYPE::OUTPUT);
-        for(auto &output: outputInfo_){
-            createPipe(output.first, output.second);
-        }
 
-        inputInfo_ = interfaceSelector.getInterfaces(InterfaceSelectorWidget::INTERFACE_TYPE::INPUT);
-        if(inputInfo_.size() > 0){
-            createPolicy(inputInfo_);
-
-            std::vector<std::string> inTags;
-            for(auto input: inputInfo_){
-                inTags.push_back(input.first);
-            }
-
-            registerCallback(inTags, [&](flow::DataFlow _data){
-                this->runPythonCode(_data, true);
-            });
-        }
-
+        // Base layout
         blockInterpreter_ = new QGroupBox("");
         blockInterpreterLayout_ = new QVBoxLayout();
         blockInterpreter_->setLayout(blockInterpreterLayout_);
@@ -90,10 +71,18 @@ namespace mico{
                 flow::DataFlow data({}, [](flow::DataFlow _data){});
                 this->runPythonCode(data, false);
             });
+
     }
     BlockPython::~BlockPython(){
         delete gilReleaser_;
         pybind11::finalize_interpreter();
+    }
+
+
+    QBoxLayout * BlockPython::creationWidget(){
+        QBoxLayout *layout = new QVBoxLayout();
+        layout->addWidget(interfaceSelector_);
+        return layout;
     }
 
     void replaceAll(std::string& str, const std::string& from, const std::string& to) {
@@ -104,6 +93,34 @@ namespace mico{
             str.replace(start_pos, from.length(), to);
             start_pos += to.length(); // In case 'to' contains 'from', like replacing 'x' with 'yx'
         }
+    }
+
+
+    void BlockPython::prepareInterfaces(){
+        // Clean previous policies and pipes if exist
+        removePolicy();
+        removePipes();
+
+
+        outputInfo_ = interfaceSelector_->getInterfaces(InterfaceSelectorWidget::INTERFACE_TYPE::OUTPUT);
+        for(auto &output: outputInfo_){
+            createPipe(output.first, output.second);
+        }
+
+        inputInfo_ = interfaceSelector_->getInterfaces(InterfaceSelectorWidget::INTERFACE_TYPE::INPUT);
+        if(inputInfo_.size() > 0){
+            createPolicy(inputInfo_);
+
+            std::vector<std::string> inTags;
+            for(auto input: inputInfo_){
+                inTags.push_back(input.first);
+            }
+
+            registerCallback(inTags, [&](flow::DataFlow _data){
+                this->runPythonCode(_data, true);
+            });
+        }
+
     }
 
     void BlockPython::runPythonCode(flow::DataFlow _data, bool _useData){

@@ -34,7 +34,7 @@ namespace mico{
 
     class BlockEKFIMU: public flow::Block{
     public:
-        static std::string name() {return "Inertial EKF";}
+        virtual std::string name() const override {return "Inertial EKF";}
 
         BlockEKFIMU();
         // ~BlockEKFIMU(){};

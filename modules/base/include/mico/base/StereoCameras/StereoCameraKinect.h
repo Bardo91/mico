@@ -104,8 +104,8 @@ namespace mico {
 		cjson::Json mConfig;
         static cv::Mat mLastRGB, mRight, mLastDepthInColor;
 		#ifdef ENABLE_LIBFREENECT
-			freenect_context *mFreenectContext;
-			freenect_device *mFreenectDevice;
+			freenect_context *mFreenectContext = nullptr;
+			freenect_device *mFreenectDevice = nullptr;
 		#endif        
 		static std::mutex mRgbMutex, mDepthMutex;
         std::thread mFreenectEventProcessor;

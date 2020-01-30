@@ -33,7 +33,7 @@ namespace mico{
 
     class BlockEntityDatabase: public flow::Block{
     public:
-        static std::string name() {return "Entity Database";}
+        virtual std::string name() const override {return "Entity Database";}
 
         BlockEntityDatabase();
         ~BlockEntityDatabase();

@@ -44,7 +44,7 @@ namespace mico{
     
     class BlockTrayectoryVisualizer: public flow::Block, VtkVisualizer3D {
     public:
-        static std::string name() {return "Trajectory Visualizer";}
+        virtual std::string name() const override {return "Trajectory Visualizer";}
 
         BlockTrayectoryVisualizer();
         ~BlockTrayectoryVisualizer();

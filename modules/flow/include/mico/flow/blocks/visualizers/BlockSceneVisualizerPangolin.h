@@ -31,16 +31,18 @@ namespace mico{
     #ifdef MICO_HAS_PANGOLIN
         class BlockSceneVisualizerPangolin: public flow::Block {
         public:
-            static std::string name() {return "Pangolin Scene Visualizer";}
+            virtual std::string name() const override {return "Pangolin Scene Visualizer";}
 
             BlockSceneVisualizerPangolin();
             ~BlockSceneVisualizerPangolin();
+
+            virtual QWidget * customWidget() override;
 
         private:
             Eigen::Vector3f lastPosition_;
             bool isFirst_ = true;
             
-            PangolinVisualizer visualizer_;
+            PangolinVisualizer *visualizer_ = nullptr;
 
         };
 

@@ -80,6 +80,16 @@ namespace mico {
     }
 
     template<typename PointType_>
+    inline void Entity<PointType_>::dfpose(int _dataframeId, Eigen::Matrix4f &_pose){
+            covisibility_[_dataframeId]   = _pose;
+    }
+
+    template<typename PointType_>
+    inline Eigen::Matrix4f Entity<PointType_>::dfpose(int _dataframeId){
+        return covisibility_[_dataframeId];
+    }
+
+    template<typename PointType_>
     inline void Entity<PointType_>::projections(int _dataframeId, std::vector<cv::Point2f> _projections){
         projections_[_dataframeId] = _projections;
         // check for new dataframe

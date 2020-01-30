@@ -35,7 +35,7 @@ namespace mico{
 
     class StreamDataset:public flow::Block{
     public:
-        static std::string name() {return "Dataset Streamer";}
+        virtual std::string name() const override {return "Dataset Streamer";}
         
         StreamDataset();
         // ~StreamDataset(){};

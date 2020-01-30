@@ -32,10 +32,10 @@ namespace mico{
 
     class StreamRealSense:public flow::Block{
     public:
-        static std::string name() {return "RealSense Streamer";}
+        virtual std::string name() const override {return "RealSense Streamer";}
         
         StreamRealSense();
-        // ~StreamRealSense(){};
+        ~StreamRealSense(){};
         
         virtual bool configure(std::unordered_map<std::string, std::string> _params) override;
         std::vector<std::string> parameters() override;

@@ -44,7 +44,7 @@ namespace mico{
 
     class BlocksFilters2D: public flow::Block {
     public:
-        static std::string name() {return "Filters 2D";}
+        virtual std::string name() const override {return "Filters 2D";}
 
         BlocksFilters2D();
 
@@ -76,7 +76,7 @@ namespace mico{
 
     class BlocksImageConversion: public flow::Block {
     public:
-        static std::string name() {return "Image Conversion";}
+        virtual std::string name() const override {return "Image Conversion";}
 
         BlocksImageConversion();
 

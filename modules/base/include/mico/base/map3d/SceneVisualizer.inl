@@ -198,10 +198,12 @@ namespace mico {
             }
 
             Eigen::Matrix4f ePose = e->pose(firstDf);
-            mViewer->addCoordinateSystem(0.1, Eigen::Affine3f(ePose), "e_cs_" + std::to_string(id));
+            Eigen::Matrix4f dfPose = e->dfpose(firstDf);
+
+            mViewer->addCoordinateSystem(0.5, Eigen::Affine3f(ePose), "e_cs_" + std::to_string(id));
             
             pcl::PointXYZ position(ePose(0, 3), ePose(1, 3), ePose(2, 3));
-            mViewer->addText3D(std::to_string(id), position, 0.015, 1,0,0, "e_text_" + std::to_string(id));
+            mViewer->addText3D(std::to_string(id), position, 0.5, 1,0,0, "e_text_" + std::to_string(id));
 
             // Draw cloud
             if (e->cloud(firstDf) != nullptr && _drawPoints){ 
@@ -241,7 +243,7 @@ namespace mico {
                     }else{
                         mViewer->addPointCloud<PointType_>(e->cloud(firstDf), "e_cloud_" + std::to_string(id));
                     }
-                    mViewer->updatePointCloudPose("e_cloud_" + std::to_string(id), Eigen::Affine3f(ePose));
+                    mViewer->updatePointCloudPose("e_cloud_" + std::to_string(id), Eigen::Affine3f(dfPose));
                 }
             }
             // Draw cube
