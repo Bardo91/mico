@@ -1,5 +1,5 @@
 //---------------------------------------------------------------------------------------------------------------------
-//  mico
+//  mico_TOOLS
 //---------------------------------------------------------------------------------------------------------------------
 //  Copyright 2018 Pablo Ramon Soria (a.k.a. Bardo91) pabramsor@gmail.com
 //---------------------------------------------------------------------------------------------------------------------
@@ -19,43 +19,40 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
+#ifndef MICO_FLOW_STREAMERS_BLOCKS_VISUALIZERS_IMPL_DATAVISUALIZER_H_
+#define MICO_FLOW_STREAMERS_BLOCKS_VISUALIZERS_IMPL_DATAVISUALIZER_H_
 
+#include <QDialog>
+#include <QTreeWidget>
 
-#ifndef MICO_FLOW_BLOCKS_STREAMERS_STREAMDATASET_H_
-#define MICO_FLOW_BLOCKS_STREAMERS_STREAMDATASET_H_
+#include <mico/base/map3d/Dataframe.h>
+#include <pcl/point_types.h>
 
-#include <flow/Block.h>
-#include <mico/base/StereoCameras/StereoCameraVirtual.h>
+#include <mico/base/map3d/Word.h>
+
 
 namespace mico{
+    class DataVisualizer : public QDialog {
+        // Q_OBJECT
 
-    class StreamDataset:public flow::Block{
-    public:
-        virtual std::string name() const override {return "Dataset Streamer";}
-        
-        StreamDataset();
-        // ~StreamDataset(){};
-        
-        virtual bool configure(std::unordered_map<std::string, std::string> _params) override;
-        std::vector<std::string> parameters() override;
+        public:
+        explicit DataVisualizer(QWidget *parent = 0);
 
-        std::string description() const override {return    "Streamer block that reads data from a dataset (in split files format) and streams it syncronously."
-                                                            "It assumes that all the files are sequentially indexed.\n"
-                                                            "   - Outputs: \n";};
-        
 
-        virtual QWidget * customWidget() override;
+            void updateData(std::map<int, std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>>> &_data);
+            void updateData(std::shared_ptr<mico::Dataframe<pcl::PointXYZRGBNormal>> _data);
+            void updateData(std::map<int, std::shared_ptr<mico::Word<pcl::PointXYZRGBNormal>>> &_data);
 
-    protected:
-        virtual void loopCallback() override;
+        std::unordered_map<int, std::shared_ptr<mico::Word<pcl::PointXYZRGBNormal>>> mWordDictionary;
 
-    private:
-        StereoCameraVirtual camera_;
-        float targetRate_ = 30; // FPS
+        // public slots:
+            void wordClicked(QTreeWidgetItem *item, int column);
+        protected:
+            QTreeWidget *mTree;
+            public:
     };
-
 }
 
 
 
-#endif
+#endif // DATAVISUALIZER_H_

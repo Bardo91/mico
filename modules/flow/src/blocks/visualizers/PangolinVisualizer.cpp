@@ -34,6 +34,8 @@ namespace mico{
         PangolinVisualizer::PangolinVisualizer(){
             windowName_ = "pangolin_"+std::to_string(sWinId);
             sWinId++;
+            
+            voxelFilter_.setLeafSize (0.1f, 0.1f, 0.1f);
         
             renderThread_ = std::thread(&PangolinVisualizer::renderCallback, this);    
         }
@@ -43,6 +45,12 @@ namespace mico{
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
             if(renderThread_.joinable())
                 renderThread_.join();
+        }
+
+        void PangolinVisualizer::currentPose(const Eigen::Matrix4f &_pose){
+            renderGuard_.lock();
+            currentPose_ = _pose;
+            renderGuard_.unlock();
         }
 
         void PangolinVisualizer::addLine(const Eigen::Vector3f &_p0, const Eigen::Vector3f &_p1, const Eigen::Vector4f &_color){
@@ -58,6 +66,9 @@ namespace mico{
 
         void PangolinVisualizer::addPointCloud(const pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr &_cloud){
             renderGuard_.lock();
+            absoluteCloud_ += *_cloud;
+            voxelFilter_.setInputCloud (absoluteCloud_.makeShared());
+            voxelFilter_.filter(absoluteCloud_);
             cloudsToDraw_.push_back(_cloud);
             renderGuard_.unlock();
         }
@@ -105,6 +116,7 @@ namespace mico{
                 // Clear screen and activate view to render into
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+                drawCurrentPose();
                 drawLines();
                 drawPointClouds();
                 
@@ -114,6 +126,42 @@ namespace mico{
             }
             
             pangolin::DestroyWindow(windowName_);
+        }
+
+        void PangolinVisualizer::drawCurrentPose(){
+            renderGuard_.lock();
+            auto pose = currentPose_;
+            renderGuard_.unlock();
+
+            glLineWidth(2);
+            // X
+            glColor4f(1,0,0,1);
+            glBegin(GL_LINES);
+            glVertex3f(pose(0,3), pose(1,3), pose(2,3));
+            glVertex3f( pose(0,3) + pose(0,0)*0.2, 
+                        pose(1,3) + pose(1,0)*0.2, 
+                        pose(2,3) + pose(2,0)*0.2);
+            glEnd();
+            // X
+
+            glColor4f(0,1,0,1);
+            glBegin(GL_LINES);
+            glVertex3f(pose(0,3), pose(1,3), pose(2,3));
+            glVertex3f( pose(0,3) + pose(0,1)*0.2, 
+                        pose(1,3) + pose(1,1)*0.2, 
+                        pose(2,3) + pose(2,1)*0.2);
+            glEnd();
+            
+            // Z
+            glColor4f(0,0,1,1);
+            glBegin(GL_LINES);
+            glVertex3f(pose(0,3), pose(1,3), pose(2,3));
+            glVertex3f( pose(0,3) + pose(0,2)*0.2, 
+                        pose(1,3) + pose(1,2)*0.2, 
+                        pose(2,3) + pose(2,2)*0.2);
+            glEnd();
+
+
         }
 
         void PangolinVisualizer::drawLines(){
@@ -139,17 +187,16 @@ namespace mico{
             renderGuard_.lock();
             auto clouds = cloudsToDraw_;
             renderGuard_.unlock();
-            
-            for(auto &cloud: clouds){
+
+            // for(auto &cloud: clouds){
                 glPointSize(1);
                 glBegin(GL_POINTS);
-                for(auto &p: cloud->points){
+                for(auto &p: absoluteCloud_.points){
                     glColor3f(p.r/255.0f,p.g/255.0f,p.b/255.0f);
                     glVertex3f(p.x,p.y,p.z);
                 }
                 glEnd();
-
-            }
+            // }
         }
 
     #endif

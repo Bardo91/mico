@@ -19,43 +19,65 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
+#include <mico/flow/blocks/visualizers/BlockSlamDebugger.h>
 
+#include <QDialog>
+#include <QSpinBox>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QGroupBox>
+#include <QLabel>
+#include <QPushButton>
 
-#ifndef MICO_FLOW_BLOCKS_STREAMERS_STREAMDATASET_H_
-#define MICO_FLOW_BLOCKS_STREAMERS_STREAMDATASET_H_
-
-#include <flow/Block.h>
-#include <mico/base/StereoCameras/StereoCameraVirtual.h>
+#include <mico/base/map3d/Dataframe.h>
+#include <mico/flow/blocks/visualizers/impl/DataVisualizer.h>
 
 namespace mico{
-
-    class StreamDataset:public flow::Block{
-    public:
-        virtual std::string name() const override {return "Dataset Streamer";}
-        
-        StreamDataset();
-        // ~StreamDataset(){};
-        
-        virtual bool configure(std::unordered_map<std::string, std::string> _params) override;
-        std::vector<std::string> parameters() override;
-
-        std::string description() const override {return    "Streamer block that reads data from a dataset (in split files format) and streams it syncronously."
-                                                            "It assumes that all the files are sequentially indexed.\n"
-                                                            "   - Outputs: \n";};
+    BlockSlamDebugger::BlockSlamDebugger(){
+        createPolicy({{"Dataframe", "dataframe"}});
         
 
-        virtual QWidget * customWidget() override;
+        registerCallback({ "Dataframe" }, 
+                            [&](flow::DataFlow  _data){
+                                lastDataframe_ = _data.get<Dataframe<pcl::PointXYZRGBNormal>::Ptr>("Dataframe");
+                                dataframesMap_[lastDataframe_->id()] = lastDataframe_;
+                            }
+                        );
 
-    protected:
-        virtual void loopCallback() override;
 
-    private:
-        StereoCameraVirtual camera_;
-        float targetRate_ = 30; // FPS
-    };
+    }
+    
+    BlockSlamDebugger::~BlockSlamDebugger(){
+    
+    }
+
+
+    QWidget * BlockSlamDebugger::customWidget() {
+        QGroupBox * box = new QGroupBox;
+        
+        QHBoxLayout * layout = new QHBoxLayout;
+        QPushButton *visLastDf_ = new QPushButton("Visualize last Df");
+        QPushButton *visAllDf_ = new QPushButton("Visualize all Dfs");
+        layout->addWidget(visLastDf_);
+        layout->addWidget(visAllDf_);
+        
+        box->setLayout(layout);
+
+        QWidget::connect(visLastDf_, &QPushButton::clicked, [this](){
+            DataVisualizer dv;
+            dv.updateData(lastDataframe_);
+            dv.show();
+            dv.exec();
+        });
+        QWidget::connect(visAllDf_, &QPushButton::clicked, [this](){
+            DataVisualizer dv;
+            dv.updateData(dataframesMap_);
+            dv.show();
+            dv.exec();
+        });
+
+        return box;
+    }
 
 }
 
-
-
-#endif

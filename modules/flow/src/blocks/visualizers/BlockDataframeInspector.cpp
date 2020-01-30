@@ -19,43 +19,55 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
+#include <mico/flow/blocks/visualizers/BlockDataframeInspector.h>
 
+#include <QDialog>
+#include <QSpinBox>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QGroupBox>
+#include <QLabel>
+#include <QPushButton>
 
-#ifndef MICO_FLOW_BLOCKS_STREAMERS_STREAMDATASET_H_
-#define MICO_FLOW_BLOCKS_STREAMERS_STREAMDATASET_H_
-
-#include <flow/Block.h>
-#include <mico/base/StereoCameras/StereoCameraVirtual.h>
+#include <mico/base/map3d/Dataframe.h>
+#include <mico/flow/blocks/visualizers/impl/DataframeVisualizer.h>
 
 namespace mico{
-
-    class StreamDataset:public flow::Block{
-    public:
-        virtual std::string name() const override {return "Dataset Streamer";}
-        
-        StreamDataset();
-        // ~StreamDataset(){};
-        
-        virtual bool configure(std::unordered_map<std::string, std::string> _params) override;
-        std::vector<std::string> parameters() override;
-
-        std::string description() const override {return    "Streamer block that reads data from a dataset (in split files format) and streams it syncronously."
-                                                            "It assumes that all the files are sequentially indexed.\n"
-                                                            "   - Outputs: \n";};
+    BlockDataframeInspector::BlockDataframeInspector(){
+        createPolicy({{"Dataframe", "dataframe"}});
         
 
-        virtual QWidget * customWidget() override;
+        registerCallback({ "Dataframe" }, 
+                            [&](flow::DataFlow  _data){
+                                auto df = _data.get<Dataframe<pcl::PointXYZRGBNormal>::Ptr>("Dataframe");
+                                dataframes_[df->id()] = df;
 
-    protected:
-        virtual void loopCallback() override;
+                                QTreeWidgetItem *dfTreeItem = new QTreeWidgetItem(dfList_);
+                                dfTreeItem->setText(0, std::to_string(df->id()).c_str());
+                            }
+                        );
 
-    private:
-        StereoCameraVirtual camera_;
-        float targetRate_ = 30; // FPS
-    };
+
+    }
+    
+    BlockDataframeInspector::~BlockDataframeInspector(){
+    
+    }
+
+
+    QWidget * BlockDataframeInspector::customWidget() {
+        dfList_ = new QTreeWidget();
+
+        
+        QWidget::connect(dfList_, &QTreeWidget::itemClicked, [this](QTreeWidgetItem* _item, int _id){
+            auto id = _item->text(0).toInt();
+            DataframeVisualizer dv(this->dataframes_[id]);
+            dv.show();
+            dv.exec();
+        });
+
+        return dfList_;
+    }
 
 }
 
-
-
-#endif

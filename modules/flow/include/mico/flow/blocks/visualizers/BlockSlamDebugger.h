@@ -20,42 +20,38 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-
-#ifndef MICO_FLOW_BLOCKS_STREAMERS_STREAMDATASET_H_
-#define MICO_FLOW_BLOCKS_STREAMERS_STREAMDATASET_H_
+#ifndef MICO_FLOW_STREAMERS_BLOCKS_VISUALIZERS_BLOCKSLAMDEBUGGER_H_
+#define MICO_FLOW_STREAMERS_BLOCKS_VISUALIZERS_BLOCKSLAMDEBUGGER_H_
 
 #include <flow/Block.h>
-#include <mico/base/StereoCameras/StereoCameraVirtual.h>
+#include <QPushButton>
+
+#include <mico/base/map3d/Dataframe.h>
 
 namespace mico{
 
-    class StreamDataset:public flow::Block{
+    class BlockSlamDebugger: public flow::Block {
     public:
-        virtual std::string name() const override {return "Dataset Streamer";}
-        
-        StreamDataset();
-        // ~StreamDataset(){};
-        
-        virtual bool configure(std::unordered_map<std::string, std::string> _params) override;
-        std::vector<std::string> parameters() override;
+        virtual std::string name() const override {return "Slam Debugger";}
 
-        std::string description() const override {return    "Streamer block that reads data from a dataset (in split files format) and streams it syncronously."
-                                                            "It assumes that all the files are sequentially indexed.\n"
-                                                            "   - Outputs: \n";};
-        
+        BlockSlamDebugger();
+        ~BlockSlamDebugger();
 
         virtual QWidget * customWidget() override;
 
-    protected:
-        virtual void loopCallback() override;
-
     private:
-        StereoCameraVirtual camera_;
-        float targetRate_ = 30; // FPS
+        std::map<int, Dataframe<pcl::PointXYZRGBNormal>::Ptr> dataframesMap_;
+        Dataframe<pcl::PointXYZRGBNormal>::Ptr lastDataframe_;
+        // std::map<int, std::shared_ptr<mico::Word<pcl::PointXYZRGBNormal>>> wordsMap_;
+
+        QPushButton *visLastDf_;
+        QPushButton *visAllDf_;
+
     };
 
+
+
+
 }
-
-
 
 #endif
