@@ -148,10 +148,10 @@ namespace mico{
 
                 while(queueDfs_.size() > 0){
                     queueDfGuard_.lock();
-                    auto cf = queueDfs_.front();
+                    auto df = queueDfs_.front();
                     queueDfs_.pop_front();
                     queueDfGuard_.unlock();
-                    sceneVisualizer_.drawDataframe(cf);
+                    sceneVisualizer_.drawDataframe(df);
                 }
 
             #ifdef HAS_DARKNET

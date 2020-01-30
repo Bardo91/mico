@@ -152,8 +152,8 @@ namespace mico{
 
                                                         e->projections(df->id(), entityProjections);
                                                         if(entityCloud->size() > 3){
-                                                            pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr transformedEntityCloud(new pcl::PointCloud<pcl::PointXYZRGBNormal>());
-                                                            pcl::transformPointCloud(*entityCloud, *transformedEntityCloud, df->pose());
+                                                            // pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr transformedEntityCloud(new pcl::PointCloud<pcl::PointXYZRGBNormal>());
+                                                            // pcl::transformPointCloud(*entityCloud, *transformedEntityCloud, df->pose());
                                                             e->cloud(df->id(), entityCloud);
                                                             Eigen::Matrix4f dfPose = df->pose();
                                                             e->updateCovisibility(df->id(), dfPose);
