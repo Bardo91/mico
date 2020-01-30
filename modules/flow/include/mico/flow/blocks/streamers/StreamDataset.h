@@ -43,11 +43,15 @@ namespace mico{
                                                             "It assumes that all the files are sequentially indexed.\n"
                                                             "   - Outputs: \n";};
         
+
+        virtual QWidget * customWidget() override;
+
     protected:
         virtual void loopCallback() override;
 
     private:
         StereoCameraVirtual camera_;
+        float targetRate_ = 30; // FPS
     };
 
 }
