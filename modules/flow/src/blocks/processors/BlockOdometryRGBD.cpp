@@ -120,10 +120,10 @@ namespace mico{
 
                 if(odom_.computeOdometry(referenceFrame, df)){
                     // memoryDf_[df->id()] = df;   // 666 safety reasons, but memory consumption.
-                    df->pose(pose);
+                    //df->pose(pose);
                     getPipe("Estimated Dataframe")->flush(df);  
                 }
-                df->pose(pose);
+                //df->pose(pose);
                 prevDf_ = df;
 
             }else{

@@ -144,8 +144,8 @@ namespace mico {
                     mViewer->addPointCloud<PointType_>(_df->cloud(), "df_cloud_" + std::to_string(_df->id()));
                 }
                 mViewer->updatePointCloudPose("df_cloud_" + std::to_string(_df->id()), Eigen::Affine3f(dfPose));
-                std::cout << "[SceneVisualizer] Drawing df cloud: " << _df->id()<< "\n";
-                std::cout << "[SceneVisualizer] Pose: " << dfPose << "\n";
+                // std::cout << "[SceneVisualizer] Drawing df cloud: " << _df->id()<< "\n";
+                // std::cout << "[SceneVisualizer] Pose: " << dfPose << "\n";
             }
         }
 
@@ -201,10 +201,13 @@ namespace mico {
 
             Eigen::Matrix4f ePose = e->pose(firstDf);
             Eigen::Matrix4f dfPose = e->dfpose(firstDf);
-            mViewer->addCoordinateSystem(0.03, Eigen::Affine3f(ePose), "e_cs_" + std::to_string(id));
+            
+            ePose =  dfPose * ePose;
+
+            mViewer->addCoordinateSystem(0.1, Eigen::Affine3f(ePose), "e_cs_" + std::to_string(id));
             
             pcl::PointXYZ position(ePose(0, 3), ePose(1, 3), ePose(2, 3));
-            mViewer->addText3D(std::to_string(id), position, 0.015, 1,0,0, "e_text_" + std::to_string(id));
+            mViewer->addText3D(std::to_string(id), position, 0.03, 1,0,0, "e_text_" + std::to_string(id));
 
             // Draw cloud
             if (e->cloud(firstDf) != nullptr && _drawPoints){ 
@@ -247,15 +250,15 @@ namespace mico {
                     mViewer->updatePointCloudPose("e_cloud_" + std::to_string(id), Eigen::Affine3f(dfPose));
                 }
             }
-            // // Draw cube
-            // if (e->cloud(firstDf) != nullptr){
-            //     const Eigen::Matrix3f rotMat = ePose.block(0,0,3,3);
-            //     const Eigen::Quaternionf bboxQuaternion(rotMat);
-            //     const Eigen::Vector3f bboxTransform = ePose.block(0,3,3,1);
-            //     const std::vector<float> bc = e->boundingCube(firstDf);
-            //     mViewer->addCube(bboxTransform, bboxQuaternion, bc[0] - bc[1], bc[2] - bc[3], bc[4] - bc[5], "e_box_" + std::to_string(id), 0);
-            //     mViewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_OPACITY, _opacity ,"e_box_" + std::to_string(id));
-            // }
+            // Draw cube
+            if (e->cloud(firstDf) != nullptr){
+                const Eigen::Matrix3f rotMat = ePose.block(0,0,3,3);
+                const Eigen::Quaternionf bboxQuaternion(rotMat);
+                const Eigen::Vector3f bboxTransform = ePose.block(0,3,3,1);
+                const std::vector<float> bc = e->boundingCube(firstDf);
+                mViewer->addCube(bboxTransform, bboxQuaternion, bc[0] - bc[1], bc[2] - bc[3], bc[4] - bc[5], "e_box_" + std::to_string(id), 0);
+                mViewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_OPACITY, _opacity ,"e_box_" + std::to_string(id));
+            }
 
             mViewer->spinOnce(10, true);
         }
