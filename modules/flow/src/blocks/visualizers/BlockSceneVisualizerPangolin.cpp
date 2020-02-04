@@ -43,14 +43,7 @@ namespace mico{
                                     }
 
                                     Eigen::Matrix4f pose = _data.get<Eigen::Matrix4f>("pose");
-                                    if(isFirst_){
-                                        lastPosition_ = pose.block<3,1>(0,3);
-                                        isFirst_ = false;
-                                    }else{
-                                        Eigen::Vector3f currPosition = pose.block<3,1>(0,3);
-                                        visualizer_->addLine(lastPosition_, currPosition);
-                                        lastPosition_ = currPosition;
-                                    }
+                                    visualizer_->currentPose(pose);
                                 }
                                 );
 
@@ -64,6 +57,14 @@ namespace mico{
                                     pcl::PointCloud<pcl::PointXYZRGBNormal> cloud; 
                                     pcl::transformPointCloudWithNormals(*df->cloud(), cloud, df->pose());
                                     visualizer_->addPointCloud(cloud.makeShared());
+                                    
+                                    // Draw covisibility
+                                    auto cov = df->covisibility();
+                                    for(auto &odf:cov){
+                                        Eigen::Vector3f pose = df->pose().block<3,1>(0,3);
+                                        Eigen::Vector3f oPose = odf->pose().block<3,1>(0,3);
+                                        visualizer_->addLine(pose, oPose, {1,0,0,0.6});
+                                    }
                                 }
                             );
 

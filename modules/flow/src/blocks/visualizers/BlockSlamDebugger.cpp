@@ -19,63 +19,65 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
+#include <mico/flow/blocks/visualizers/BlockSlamDebugger.h>
 
-#ifndef MICO_FLOW_STREAMERS_BLOCKS_VISUALIZERS_BLOCKSCENEVISUALIZER_H_
-#define MICO_FLOW_STREAMERS_BLOCKS_VISUALIZERS_BLOCKSCENEVISUALIZER_H_
+#include <QDialog>
+#include <QSpinBox>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QGroupBox>
+#include <QLabel>
+#include <QPushButton>
 
-#include <flow/Block.h>
-
-#include <mutex>
-#include <deque>
-
-#include <mico/base/map3d/SceneVisualizer.h>
+#include <mico/base/map3d/Dataframe.h>
+#include <mico/flow/blocks/visualizers/impl/DataVisualizer.h>
 
 namespace mico{
-    class BlockSceneVisualizer: public flow::Block{
-    public:
-        virtual std::string name() const override { return "Scene Visualizer"; }
-
-        BlockSceneVisualizer();
-        ~BlockSceneVisualizer();
-
-
-
-    bool configure(std::unordered_map<std::string, std::string> _params) override;
-    std::vector<std::string> parameters() override;
-
-
-    private:
-        SceneVisualizer<pcl::PointXYZRGBNormal> sceneVisualizer_;
-
-        void init();
-
-    private:
-        static bool sAlreadyExisting_;
-        bool sBelonger_;
-
-        std::thread spinnerThread_;
-        bool run_ = true;
-        bool idle_ = true;
-        bool hasBeenInitialized_ = false;
-
-
-        std::deque<Dataframe<pcl::PointXYZRGBNormal>::Ptr> queueDfs_;
-        std::mutex queueDfGuard_;
+    BlockSlamDebugger::BlockSlamDebugger(){
+        createPolicy({{"Dataframe", "dataframe"}});
         
-#ifdef HAS_DARKNET
-        std::deque<std::vector<std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>>> queueEntities_;
-        std::mutex queueEntitiesGuard_;
-#endif
-        bool hasPose = false;
-        Eigen::Matrix4f lastPose_;
-        std::mutex poseGuard_;
 
-        // Parameters
-        float voxelSize_ = -1;
-        bool useOctree = false;
-        bool octreeDepth = 4;
-    };
+        registerCallback({ "Dataframe" }, 
+                            [&](flow::DataFlow  _data){
+                                lastDataframe_ = _data.get<Dataframe<pcl::PointXYZRGBNormal>::Ptr>("Dataframe");
+                                dataframesMap_[lastDataframe_->id()] = lastDataframe_;
+                            }
+                        );
+
+
+    }
+    
+    BlockSlamDebugger::~BlockSlamDebugger(){
+    
+    }
+
+
+    QWidget * BlockSlamDebugger::customWidget() {
+        QGroupBox * box = new QGroupBox;
+        
+        QHBoxLayout * layout = new QHBoxLayout;
+        QPushButton *visLastDf_ = new QPushButton("Visualize last Df");
+        QPushButton *visAllDf_ = new QPushButton("Visualize all Dfs");
+        layout->addWidget(visLastDf_);
+        layout->addWidget(visAllDf_);
+        
+        box->setLayout(layout);
+
+        QWidget::connect(visLastDf_, &QPushButton::clicked, [this](){
+            DataVisualizer dv;
+            dv.updateData(lastDataframe_);
+            dv.show();
+            dv.exec();
+        });
+        QWidget::connect(visAllDf_, &QPushButton::clicked, [this](){
+            DataVisualizer dv;
+            dv.updateData(dataframesMap_);
+            dv.show();
+            dv.exec();
+        });
+
+        return box;
+    }
 
 }
 
-#endif

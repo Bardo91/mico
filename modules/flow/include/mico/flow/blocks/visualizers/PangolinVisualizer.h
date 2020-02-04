@@ -34,6 +34,10 @@
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 
+#include <pcl/octree/octree_pointcloud_density.h>
+#include <pcl/filters/voxel_grid.h>
+
+
 namespace mico{
 
     #ifdef MICO_HAS_PANGOLIN
@@ -41,6 +45,8 @@ namespace mico{
         public:
             PangolinVisualizer();
             ~PangolinVisualizer();
+
+            void currentPose(const Eigen::Matrix4f &_pose);
 
             void addLine(const Eigen::Vector3f &_p0, const Eigen::Vector3f &_p1, const Eigen::Vector4f &_color = {0.0f,1.0f,0.0f,0.6f});
             void addLines(const std::vector<Eigen::Vector3f> &_pts, const Eigen::Vector4f &_color = {0.0f,1.0f,0.0f,0.6f});
@@ -54,6 +60,7 @@ namespace mico{
             void renderCallback();
             void drawLines();
             void drawPointClouds();
+            void drawCurrentPose();
 
         private:
             bool running_ = true;
@@ -65,6 +72,10 @@ namespace mico{
             std::vector<Eigen::Vector4f> colorLines_;
 
             std::vector<pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr> cloudsToDraw_;
+            pcl::PointCloud<pcl::PointXYZRGBNormal> absoluteCloud_;
+            pcl::VoxelGrid<pcl::PointXYZRGBNormal> voxelFilter_;
+
+            Eigen::Matrix4f currentPose_;
 
             static int sWinId;
         };

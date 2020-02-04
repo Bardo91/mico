@@ -20,61 +20,37 @@
 //---------------------------------------------------------------------------------------------------------------------
 
 
-#ifndef MICO_FLOW_STREAMERS_BLOCKS_VISUALIZERS_BLOCKSCENEVISUALIZER_H_
-#define MICO_FLOW_STREAMERS_BLOCKS_VISUALIZERS_BLOCKSCENEVISUALIZER_H_
+#ifndef MICO_FLOW_STREAMERS_BLOCKS_VISUALIZERS_BLOCKSLAMDEBUGGER_H_
+#define MICO_FLOW_STREAMERS_BLOCKS_VISUALIZERS_BLOCKSLAMDEBUGGER_H_
 
 #include <flow/Block.h>
+#include <QPushButton>
 
-#include <mutex>
-#include <deque>
-
-#include <mico/base/map3d/SceneVisualizer.h>
+#include <mico/base/map3d/Dataframe.h>
 
 namespace mico{
-    class BlockSceneVisualizer: public flow::Block{
+
+    class BlockSlamDebugger: public flow::Block {
     public:
-        virtual std::string name() const override { return "Scene Visualizer"; }
+        virtual std::string name() const override {return "Slam Debugger";}
 
-        BlockSceneVisualizer();
-        ~BlockSceneVisualizer();
+        BlockSlamDebugger();
+        ~BlockSlamDebugger();
 
-
-
-    bool configure(std::unordered_map<std::string, std::string> _params) override;
-    std::vector<std::string> parameters() override;
-
+        virtual QWidget * customWidget() override;
 
     private:
-        SceneVisualizer<pcl::PointXYZRGBNormal> sceneVisualizer_;
+        std::map<int, Dataframe<pcl::PointXYZRGBNormal>::Ptr> dataframesMap_;
+        Dataframe<pcl::PointXYZRGBNormal>::Ptr lastDataframe_;
+        // std::map<int, std::shared_ptr<mico::Word<pcl::PointXYZRGBNormal>>> wordsMap_;
 
-        void init();
+        QPushButton *visLastDf_;
+        QPushButton *visAllDf_;
 
-    private:
-        static bool sAlreadyExisting_;
-        bool sBelonger_;
-
-        std::thread spinnerThread_;
-        bool run_ = true;
-        bool idle_ = true;
-        bool hasBeenInitialized_ = false;
-
-
-        std::deque<Dataframe<pcl::PointXYZRGBNormal>::Ptr> queueDfs_;
-        std::mutex queueDfGuard_;
-        
-#ifdef HAS_DARKNET
-        std::deque<std::vector<std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>>> queueEntities_;
-        std::mutex queueEntitiesGuard_;
-#endif
-        bool hasPose = false;
-        Eigen::Matrix4f lastPose_;
-        std::mutex poseGuard_;
-
-        // Parameters
-        float voxelSize_ = -1;
-        bool useOctree = false;
-        bool octreeDepth = 4;
     };
+
+
+
 
 }
 

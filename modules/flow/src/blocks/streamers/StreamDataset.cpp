@@ -23,6 +23,11 @@
 #include <mico/flow/blocks/streamers/StreamDataset.h>
 #include <flow/Outpipe.h>
 #include <Eigen/Eigen>
+#include <QSpinBox>
+#include <QGroupBox>
+#include <QHBoxLayout>
+#include <QLabel>
+
 
 namespace mico{
         StreamDataset::StreamDataset(){
@@ -57,19 +62,46 @@ namespace mico{
                 }else if(p.first == "groundtruth"){
                     groundtruth_ = new std::ifstream (p.second);
                 }
+
             }
+            
             return camera_.init(jParams);
 
         }
         
         std::vector<std::string> StreamDataset::parameters(){
             return {
+                "color", "depth", "calibration"
                 "color", "depth", "calibration", "groundtruth"
             };
         }
 
+        QWidget * StreamDataset::customWidget(){
+            QGroupBox *box = new QGroupBox;
+            QHBoxLayout *layout = new QHBoxLayout;
+            box->setLayout(layout);
+            QLabel *label = new QLabel("Target Hz");
+            layout->addWidget(label);
+
+            QSpinBox *rateController = new QSpinBox;
+            rateController->setMinimum(1);
+            rateController->setValue(int(targetRate_));
+            layout->addWidget(rateController);
+
+            QWidget::connect(rateController, QOverload<int>::of(&QSpinBox::valueChanged), [this](int _val){
+                targetRate_ = _val;
+            });
+
+            return box;
+        }
+
         void StreamDataset::loopCallback() {
+            auto t0  = std::chrono::steady_clock::now();
             while(isRunningLoop()){
+                auto t1  = std::chrono::steady_clock::now();
+                float incT = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
+                if(incT / 1000 > 1/targetRate_){
+                    t0 = t1;
                 cv::Mat left, right, depth;
                 pcl::PointCloud<pcl::PointXYZRGBNormal> colorNormalCloud;
                 camera_.grab();

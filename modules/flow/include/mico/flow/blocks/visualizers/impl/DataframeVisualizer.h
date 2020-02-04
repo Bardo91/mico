@@ -1,5 +1,5 @@
 //---------------------------------------------------------------------------------------------------------------------
-//  mico
+//  mico_TOOLS
 //---------------------------------------------------------------------------------------------------------------------
 //  Copyright 2018 Pablo Ramon Soria (a.k.a. Bardo91) pabramsor@gmail.com
 //---------------------------------------------------------------------------------------------------------------------
@@ -19,63 +19,30 @@
 //  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //---------------------------------------------------------------------------------------------------------------------
 
+#ifndef MICO_FLOW_STREAMERS_BLOCKS_VISUALIZERS_IMPL_DATAFRAMEVISUALIZER_H_
+#define MICO_FLOW_STREAMERS_BLOCKS_VISUALIZERS_IMPL_DATAFRAMEVISUALIZER_H_
 
-#ifndef MICO_FLOW_STREAMERS_BLOCKS_VISUALIZERS_BLOCKSCENEVISUALIZER_H_
-#define MICO_FLOW_STREAMERS_BLOCKS_VISUALIZERS_BLOCKSCENEVISUALIZER_H_
+#include <QDialog>
+#include <QTreeWidget>
 
-#include <flow/Block.h>
+#include <mico/base/map3d/Dataframe.h>
+#include <pcl/point_types.h>
 
-#include <mutex>
-#include <deque>
+#include <mico/base/map3d/Word.h>
 
-#include <mico/base/map3d/SceneVisualizer.h>
+#include <QTabWidget>
 
 namespace mico{
-    class BlockSceneVisualizer: public flow::Block{
+    class DataframeVisualizer : public QDialog {
     public:
-        virtual std::string name() const override { return "Scene Visualizer"; }
-
-        BlockSceneVisualizer();
-        ~BlockSceneVisualizer();
-
-
-
-    bool configure(std::unordered_map<std::string, std::string> _params) override;
-    std::vector<std::string> parameters() override;
-
+        explicit DataframeVisualizer(Dataframe<pcl::PointXYZRGBNormal>::Ptr , QWidget *parent = 0);
 
     private:
-        SceneVisualizer<pcl::PointXYZRGBNormal> sceneVisualizer_;
+        QTabWidget *tabWidget_;
 
-        void init();
-
-    private:
-        static bool sAlreadyExisting_;
-        bool sBelonger_;
-
-        std::thread spinnerThread_;
-        bool run_ = true;
-        bool idle_ = true;
-        bool hasBeenInitialized_ = false;
-
-
-        std::deque<Dataframe<pcl::PointXYZRGBNormal>::Ptr> queueDfs_;
-        std::mutex queueDfGuard_;
-        
-#ifdef HAS_DARKNET
-        std::deque<std::vector<std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>>> queueEntities_;
-        std::mutex queueEntitiesGuard_;
-#endif
-        bool hasPose = false;
-        Eigen::Matrix4f lastPose_;
-        std::mutex poseGuard_;
-
-        // Parameters
-        float voxelSize_ = -1;
-        bool useOctree = false;
-        bool octreeDepth = 4;
     };
-
 }
 
-#endif
+
+
+#endif // DataframeVisualizer_H_
