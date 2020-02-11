@@ -36,11 +36,15 @@ namespace mico{
         virtual std::string name() const override {return "Entity Database";}
 
         BlockEntityDatabase();
-        ~BlockEntityDatabase();
+        // ~BlockEntityDatabase();
     
         bool configure(std::unordered_map<std::string, std::string> _params) override;
         std::vector<std::string> parameters() override;        
 
+        std::string description() const override {return    "Block that implements a semantic database.\n"
+                                                            "   - Inputs: \n"
+                                                            "   - Outputs: \n";};
+                                                            
     private:
         #ifdef HAS_DARKNET
             std::map<int, std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>> entities_;

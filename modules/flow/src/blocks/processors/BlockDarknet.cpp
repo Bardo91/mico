@@ -24,6 +24,7 @@
 #include <flow/Outpipe.h>
 #include <flow/DataFlow.h>
 #include <boost/math/special_functions/fpclassify.hpp>
+#include <pcl/filters/radius_outlier_removal.h>
 #include <chrono>
 #include <iostream>
 namespace mico{
@@ -152,9 +153,23 @@ namespace mico{
 
                                                         e->projections(df->id(), entityProjections);
                                                         if(entityCloud->size() > 3){
-                                                            // pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr transformedEntityCloud(new pcl::PointCloud<pcl::PointXYZRGBNormal>());
-                                                            // pcl::transformPointCloud(*entityCloud, *transformedEntityCloud, df->pose());
-                                                            e->cloud(df->id(), entityCloud);
+
+                                                            pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud_out(new pcl::PointCloud<pcl::PointXYZRGBNormal>());
+
+                                                            // radius filtering
+                                                            pcl::RadiusOutlierRemoval<pcl::PointXYZRGBNormal> rorfilter (true); // Initializing with true will allow us to extract the removed indices
+                                                            rorfilter.setInputCloud (entityCloud);
+                                                            rorfilter.setRadiusSearch (radiusSearch_);
+                                                            rorfilter.setMinNeighborsInRadius (20);
+                                                            rorfilter.setNegative (false);
+                                                            rorfilter.filter (*cloud_out);
+                                                            auto indices_rem = rorfilter.getRemovedIndices ();
+                                                            float removed = (float)cloud_out->points.size() / (float)entityCloud->points.size();
+                                                            std::cout << "[BlockDarknet]Removed " << " input cloud: " << entityCloud->points.size()
+                                                                      << " output cloud: " << cloud_out->points.size()
+                                                                      << " %  " << removed << " indices\n";
+
+                                                            e->cloud(df->id(), cloud_out);
                                                             Eigen::Matrix4f dfPose = df->pose();
                                                             e->updateCovisibility(df->id(), dfPose);
                                                             if(e->computePose(df->id())){
@@ -207,32 +222,53 @@ namespace mico{
                 }else{
                     useDenseCloud_ = false;
                 }
-            }  
+            }else if(p.first == "radius_removal"){
+                if(!p.second.compare("true")){
+                    filterCloud_ = true;
+                    std::cout << "[Block Darknet]Filter Cloud: " << filterCloud_ << "\n";
+                }else{
+                    filterCloud_ = false;
+                }
+            }else if(p.first == "radius_search"){
+                if(p.second.compare("radius_search") && p.second != ""){
+                    std::istringstream istr(_params["radius_search"]);
+                    istr >> radiusSearch_;
+                    //radiusSearch_ = stof(p.second);
+                    std::cout << "[Block Darknet]Radius search: " << radiusSearch_ << "\n";
+                }
+            }
+            else if(p.first == "minimun_neighbors"){
+                if(p.second.compare("minimun_neighbors") && p.second != ""){
+                    std::istringstream istr(_params["minimun_neighbors"]);
+                    istr >> minNeighbors_;
+                    //minNeighbors_ = stof(p.second);
+                    std::cout << "[Block Darknet]Minimun neighbors: " << minNeighbors_ << "\n";
+                }
+            }   
         }
 
         // cfg file provided?
         if(!cfgFile.compare("cfg") || !cfgFile.compare("")){
-            std::cout << "Cfg not provided \n";                    
+            std::cout << "[Block Darknet]Cfg not provided \n";                    
             cfgFile = getenv("HOME") + std::string("/.mico/downloads/yolov3-tiny.cfg");
             // cfg file already downloaded?
             if(!std::experimental::filesystem::exists(cfgFile)){
-                std::cout << "Downloading yolov3-tiny.cfg \n";
+                std::cout << "[Block Darknet]Downloading yolov3-tiny.cfg \n";
                 system("wget -P ~/.mico/downloads https://raw.githubusercontent.com/pjreddie/darknet/master/cfg/yolov3-tiny.cfg");
             }
         }   
 
         // weights file provided?
         if(!weightsFile.compare("weights") || !weightsFile.compare("")){    
-            std::cout << "Weights not provided \n";                    
+            std::cout << "[Block Darknet]Weights not provided \n";                    
             weightsFile = getenv("HOME") + std::string("/.mico/downloads/yolov3-tiny.weights");
             // cfg file already downloaded?
             if(!std::experimental::filesystem::exists(weightsFile)){
-                std::cout << "Downloading yolov3-tiny.weights \n";
+                std::cout << "[Block Darknet]Downloading yolov3-tiny.weights \n";
                 system("wget -P ~/.mico/downloads https://pjreddie.com/media/files/yolov3-tiny.weights");
             }
         }
 
-        std::cout << "[Block Darknet]Cfg file : " << cfgFile << "\n";
         std::cout << "[Block Darknet]WeightsFile : " << weightsFile << "\n";
         std::cout << "[Block Darknet]Confidence threshold : " << confidenceThreshold << "\n";
         std::cout << "[Block Darknet]Use dense cloud : " << useDenseCloud_ << "\n";
@@ -251,7 +287,7 @@ namespace mico{
     }
     
     std::vector<std::string> BlockDarknet::parameters(){
-        return {"cfg", "weights", "confidence_threshold", "dense_cloud"};
+        return {"cfg", "weights", "confidence_threshold", "dense_cloud", "radius_removal", "radius_search", "minimun_neighbors"};
     }
 
 

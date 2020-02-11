@@ -450,13 +450,13 @@ namespace mico {
     //---------------------------------------------------------------------------------------------------------------------
     template <typename PointType_>
     inline void SceneVisualizer<PointType_>::pointPickedCallback(const pcl::visualization::PointPickingEvent &event, void*viewer_void) {
-        // event.getPoint(x,y,z);
+        event.getPoint(x,y,z);
         // for(auto &w: mDatabase->wordDictionary_){
         //     if(w.second->point[0]==x && w.second->point[1]==y && w.second->point[2]==z){
         //         std::cout << " Clicked word: " + std::to_string(w.second->id()) << std::endl;
         //     }
         // }
-        // std::cout << "Point clicked at position (" << x << ", " << y << ", " << z << ")" << std::endl;  
+        std::cout << "Point clicked at position (" << x << ", " << y << ", " << z << ")" << std::endl;  
     }; 
 
     //---------------------------------------------------------------------------------------------------------------------

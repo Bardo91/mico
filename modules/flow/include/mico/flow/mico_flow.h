@@ -62,7 +62,8 @@
 
 // DNN
 #ifdef HAS_DARKNET
-    #include <mico/flow/blocks/processors/BlockDarknet.h> // 666 HAS DARKNET
+    #include <mico/flow/blocks/processors/BlockDarknet.h> 
+    #include <mico/flow/blocks/processors/BlockEntityDatabase.h>
 #endif
 
 // Misc

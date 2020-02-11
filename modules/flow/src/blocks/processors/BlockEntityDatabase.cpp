@@ -58,6 +58,7 @@ namespace mico{
                                         }else{
                                             for(auto e: entities){
                                                 entities_[e->id()] = e;
+                                                // check overlapping here maybe
                                             }
                                         }
 
@@ -69,9 +70,8 @@ namespace mico{
         );
     }
 
-    BlockEntityDatabase::~BlockEntityDatabase(){
-
-    } 
+    // BlockEntityDatabase::~BlockEntityDatabase(){
+    // } 
 
     bool BlockEntityDatabase::configure(std::unordered_map<std::string, std::string> _params){
         cjson::Json jParams;

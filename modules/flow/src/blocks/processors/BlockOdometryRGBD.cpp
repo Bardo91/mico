@@ -118,13 +118,16 @@ namespace mico{
                 else  // Just sequential odometry
                     referenceFrame = prevDf_;
 
+                // df->pose(pose);
                 if(odom_.computeOdometry(referenceFrame, df)){
                     // memoryDf_[df->id()] = df;   // 666 safety reasons, but memory consumption.
                     //df->pose(pose);
-                    getPipe("Estimated Dataframe")->flush(df);  
+                    getPipe("Estimated Dataframe")->flush(df); 
+                    prevDf_ = df; 
                 }
-                //df->pose(pose);
-                prevDf_ = df;
+
+                if(prevDf_ == nullptr)
+                    prevDf_ = df; 
 
             }else{
                 std::cout << "Please, configure Odometry RGBD with the path to the calibration file {\"Calibration\":\"/path/to/file\"}" << std::endl;

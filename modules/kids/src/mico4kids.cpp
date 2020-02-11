@@ -66,7 +66,8 @@ void registerDataModels(FlowVisualInterface::RegistryType_ &_register) {
 
     // DNN
     #ifdef HAS_DARKNET
-        _register->registerModel<FlowVisualBlock<BlockDarknet>>             ("Detector");
+        _register->registerModel<FlowVisualBlock<BlockDarknet>>             ("DNN");
+        _register->registerModel<FlowVisualBlock<BlockEntityDatabase>>      ("DNN");
     #endif    
     // SLAM
     _register->registerModel<FlowVisualBlock<BlockOdometryRGBD>>            ("SLAM");

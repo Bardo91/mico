@@ -52,9 +52,16 @@ namespace mico{
     private:
         bool idle_ = true;
         bool hasParameters_ = false; //weights, cfg, confidence threshold and use dense cloud
+        
         float confidenceThreshold = 0.7;
         int numEntities_ = 0;
         bool useDenseCloud_ = false;
+
+        // radius outlier removal parameters
+        bool filterCloud_ = false;
+        double radiusSearch_ = 0.1;
+        int minNeighbors_ = 20;
+
         #ifdef HAS_DARKNET
         mico::WrapperDarknet detector_;
         #endif
