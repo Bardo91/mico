@@ -79,7 +79,11 @@ target_link_libraries(${COMPONENT_NAME} PRIVATE "stdc++fs")
 # PYTHON
 find_package(pybind11 REQUIRED)
 target_link_libraries(${COMPONENT_NAME} PRIVATE pybind11::embed)
-
+find_package(VTK REQUIRED)
+if (${VTK_FOUND})
+  target_include_directories(${COMPONENT_NAME} PUBLIC ${VTK_INCLUDE_DIRS})
+  target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC ${VTK_LIBRARIES})
+endif(${VTK_FOUND})
 #########################################
 ######			SAMPLES 		   ######
 #########################################

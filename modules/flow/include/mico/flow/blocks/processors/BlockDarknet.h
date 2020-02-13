@@ -46,14 +46,20 @@ namespace mico{
 
 
         std::string description() const override {return    "Block that implements darknet deep neuronal network for multiple 2D object detection.\n"
-                                                            "   - Inputs: \n"
-                                                            "   - Outputs: \n";};
+                                                            "   - Inputs: Confidence threshold: Minimun confidence treshold to detect an object \n"
+                                                            "             Dense cloud: (true/false) Use dense cloud or feature cloud \n"
+                                                            "             Radius removal: (true/false) Aply filter removal \n"
+                                                            "             Radius search: (0.1) Radius in meters to search neighbors \n"
+                                                            "             Minimum neighbors: (20) Minimun neighbors in a radius to be considered inliner \n"
+                                                            "   - Outputs: \n"
+                                                            "              Color Image: Color image with detected objects in a bounding box \n"
+                                                            "              Entities: Vector of entities \n";};
 
     private:
         bool idle_ = true;
         bool hasParameters_ = false; //weights, cfg, confidence threshold and use dense cloud
         
-        float confidenceThreshold = 0.7;
+        float confidenceThreshold_ = 0.7;
         int numEntities_ = 0;
         bool useDenseCloud_ = false;
 

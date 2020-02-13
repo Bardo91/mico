@@ -30,12 +30,14 @@
 #include <QPushButton>
 
 #include <mico/base/map3d/Dataframe.h>
+#ifdef HAS_DARKNET
+    #include <mico/dnn/map3d/Entity.h>
+#endif
 
 namespace mico{
     #ifdef MICO_HAS_PANGOLIN
         BlockSceneVisualizerPangolin::BlockSceneVisualizerPangolin(){
-            createPolicy({{"pose", "mat44"},{"Dataframe", "dataframe"}, {"Cloud", "cloud"}});
-            
+            createPolicy({{"pose", "mat44"},{"Dataframe", "dataframe"}, {"Cloud", "cloud"},{"Entities", "v_entity"}});
             registerCallback(   {"pose"}, 
                                 [&](flow::DataFlow  _data){
                                     if(!visualizer_){
@@ -67,8 +69,22 @@ namespace mico{
                                     }
                                 }
                             );
-
-
+#ifdef HAS_DARKNET
+            registerCallback({ "Entities" }, 
+                                [&](flow::DataFlow  _data){
+                                    if(!visualizer_){
+                                        visualizer_ = new PangolinVisualizer();
+                                    }
+                                    auto entities = _data.get<std::vector<std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>>>("Entities"); 
+                                    for(auto &e: entities){
+                                        pcl::PointCloud<pcl::PointXYZRGBNormal> cloud; 
+                                        int firstDf = e->dfs()[0];
+                                        pcl::transformPointCloudWithNormals(*e->cloud(firstDf), cloud, e->dfpose(firstDf));
+                                        visualizer_->addPointCloud(cloud.makeShared());
+                                    }
+                                }
+                            );
+#endif             
             registerCallback({ "Cloud" }, 
                                 [&](flow::DataFlow  _data){
                                     if(!visualizer_){

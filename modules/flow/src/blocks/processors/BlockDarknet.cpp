@@ -60,7 +60,7 @@ namespace mico{
                                             // detection -> label, confidence, left, top, right, bottom
                                             for(auto &detection: detections){
                                                 // confidence threshold 
-                                                if(detection[1]>confidenceThreshold){
+                                                if(detection[1]>confidenceThreshold_){
                                                     std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>> e(new mico::Entity<pcl::PointXYZRGBNormal>(
                                                          numEntities_, detection[0], detection[1], {detection[2],detection[3],detection[4],detection[5]}));                                                                                          
                                                     entities.push_back(e);
@@ -120,7 +120,7 @@ namespace mico{
                                             std::vector<cv::Point2f> featureProjections = df->featureProjections();
 
                                             for(auto &detection: detections){
-                                               if(detection[1] > confidenceThreshold){
+                                               if(detection[1] > confidenceThreshold_){
                                                     std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>> e(new mico::Entity<pcl::PointXYZRGBNormal>(
                                                          numEntities_, df->id(), detection[0], detection[1], {detection[2],detection[3],detection[4],detection[5]}));  
                                                     pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr entityCloud(new pcl::PointCloud<pcl::PointXYZRGBNormal>());
@@ -214,7 +214,8 @@ namespace mico{
                 weightsFile = p.second;
             }else if(p.first == "confidence_threshold"){
                 if(p.second.compare("confidence_threshold") && p.second != ""){
-                    confidenceThreshold = stof(p.second);
+                    std::istringstream istr(_params["confidence_threshold"]);
+                    istr >> confidenceThreshold_;
                 }
             }else if(p.first == "dense_cloud"){
                 if(!p.second.compare("true")){
@@ -225,7 +226,6 @@ namespace mico{
             }else if(p.first == "radius_removal"){
                 if(!p.second.compare("true")){
                     filterCloud_ = true;
-                    std::cout << "[Block Darknet]Filter Cloud: " << filterCloud_ << "\n";
                 }else{
                     filterCloud_ = false;
                 }
@@ -233,16 +233,12 @@ namespace mico{
                 if(p.second.compare("radius_search") && p.second != ""){
                     std::istringstream istr(_params["radius_search"]);
                     istr >> radiusSearch_;
-                    //radiusSearch_ = stof(p.second);
-                    std::cout << "[Block Darknet]Radius search: " << radiusSearch_ << "\n";
                 }
             }
-            else if(p.first == "minimun_neighbors"){
-                if(p.second.compare("minimun_neighbors") && p.second != ""){
-                    std::istringstream istr(_params["minimun_neighbors"]);
+            else if(p.first == "minimum_neighbors"){
+                if(p.second.compare("minimum_neighbors") && p.second != ""){
+                    std::istringstream istr(_params["minimum_neighbors"]);
                     istr >> minNeighbors_;
-                    //minNeighbors_ = stof(p.second);
-                    std::cout << "[Block Darknet]Minimun neighbors: " << minNeighbors_ << "\n";
                 }
             }   
         }
@@ -268,9 +264,9 @@ namespace mico{
                 system("wget -P ~/.mico/downloads https://pjreddie.com/media/files/yolov3-tiny.weights");
             }
         }
-
+        std::cout << "[Block Darknet]CfgFile : " << cfgFile << "\n";
         std::cout << "[Block Darknet]WeightsFile : " << weightsFile << "\n";
-        std::cout << "[Block Darknet]Confidence threshold : " << confidenceThreshold << "\n";
+        std::cout << "[Block Darknet]Confidence threshold : " << confidenceThreshold_ << "\n";
         std::cout << "[Block Darknet]Use dense cloud : " << useDenseCloud_ << "\n";
 
         hasParameters_ = true;  
@@ -287,7 +283,7 @@ namespace mico{
     }
     
     std::vector<std::string> BlockDarknet::parameters(){
-        return {"cfg", "weights", "confidence_threshold", "dense_cloud", "radius_removal", "radius_search", "minimun_neighbors"};
+        return {"cfg", "weights", "confidence_threshold", "dense_cloud", "radius_removal", "radius_search", "minimum_neighbors"};
     }
 
 

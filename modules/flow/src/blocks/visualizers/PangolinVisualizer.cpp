@@ -35,7 +35,7 @@ namespace mico{
             windowName_ = "pangolin_"+std::to_string(sWinId);
             sWinId++;
             
-            voxelFilter_.setLeafSize (0.1f, 0.1f, 0.1f);
+            voxelFilter_.setLeafSize (0.01f, 0.01f, 0.01f);
         
             renderThread_ = std::thread(&PangolinVisualizer::renderCallback, this);    
         }
