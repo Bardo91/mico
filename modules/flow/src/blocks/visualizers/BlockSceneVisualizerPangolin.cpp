@@ -81,6 +81,43 @@ namespace mico{
                                         int firstDf = e->dfs()[0];
                                         pcl::transformPointCloudWithNormals(*e->cloud(firstDf), cloud, e->dfpose(firstDf));
                                         visualizer_->addPointCloud(cloud.makeShared());
+
+                                        auto cube = e->boundingCube(firstDf);  // 0->xmax 1->xmin 2->ymax 3>ymin 4->zmax 5->zmin
+                                        Eigen::Vector4f v1(cube[0], cube[3], cube[5], 0);
+                                        Eigen::Vector4f v2(cube[0], cube[3], cube[4], 0);
+                                        Eigen::Vector4f v3(cube[0], cube[2], cube[5], 0);
+                                        Eigen::Vector4f v4(cube[0], cube[2], cube[4], 0);
+                                        Eigen::Vector4f v5(cube[1], cube[3], cube[5], 0);
+                                        Eigen::Vector4f v6(cube[1], cube[3], cube[4], 0);
+                                        Eigen::Vector4f v7(cube[1], cube[2], cube[5], 0);
+                                        Eigen::Vector4f v8(cube[1], cube[2], cube[4], 0);
+                                        Eigen::Matrix4f ePose = e->pose(firstDf);
+                                        Eigen::Matrix4f dfPose = e->dfpose(firstDf);
+                                        ePose = ePose * dfPose;
+                                        v1 = ePose * v1;
+                                        v2 = ePose * v2;
+                                        v3 = ePose * v3;
+                                        v4 = ePose * v4;
+                                        v5 = ePose * v5;
+                                        v6 = ePose * v6;
+                                        v7 = ePose * v7;
+                                        v8 = ePose * v8;
+                                        // draw cube
+                                        // up face
+                                        visualizer_->addLine({v1(0),v1(1),v1(2)}, {v2(0),v2(1),v2(2)}, {1,0,0,0.6});
+                                        visualizer_->addLine({v2(0),v2(1),v2(2)}, {v4(0),v4(1),v4(2)}, {1,0,0,0.6});
+                                        visualizer_->addLine({v4(0),v4(1),v4(2)}, {v3(0),v3(1),v3(2)}, {1,0,0,0.6});
+                                        visualizer_->addLine({v3(0),v3(1),v3(2)}, {v1(0),v1(1),v1(2)}, {1,0,0,0.6});
+                                        // down face
+                                        visualizer_->addLine({v5(0),v5(1),v5(2)}, {v6(0),v6(1),v6(2)}, {1,0,0,0.6});
+                                        visualizer_->addLine({v6(0),v6(1),v6(2)}, {v8(0),v8(1),v8(2)}, {1,0,0,0.6});
+                                        visualizer_->addLine({v8(0),v8(1),v8(2)}, {v7(0),v7(1),v7(2)}, {1,0,0,0.6});
+                                        visualizer_->addLine({v7(0),v7(1),v7(2)}, {v5(0),v5(1),v5(2)}, {1,0,0,0.6});
+                                        // the other lines
+                                        visualizer_->addLine({v1(0),v1(1),v1(2)}, {v5(0),v5(1),v5(2)}, {1,0,0,0.6});
+                                        visualizer_->addLine({v3(0),v3(1),v3(2)}, {v2(0),v2(1),v2(2)}, {1,0,0,0.6});
+                                        visualizer_->addLine({v2(0),v2(1),v2(2)}, {v6(0),v6(1),v6(2)}, {1,0,0,0.6});
+                                        visualizer_->addLine({v4(0),v4(1),v4(2)}, {v8(0),v8(1),v8(2)}, {1,0,0,0.6});
                                     }
                                 }
                             );
