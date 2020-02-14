@@ -93,7 +93,7 @@ namespace mico{
                                         Eigen::Vector4f v8(cube[1], cube[2], cube[4], 0);
                                         Eigen::Matrix4f ePose = e->pose(firstDf);
                                         Eigen::Matrix4f dfPose = e->dfpose(firstDf);
-                                        ePose = ePose * dfPose;
+                                        ePose = dfPose * ePose;
                                         v1 = ePose * v1;
                                         v2 = ePose * v2;
                                         v3 = ePose * v3;
