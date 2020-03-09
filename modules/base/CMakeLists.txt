@@ -59,6 +59,7 @@ option(USE_MAVLINK 			"Compile MAVLINK interface classes"			ON)
 option(BUILD_TOOLS			"Compile mico-base tools" 					OFF)
 option(BUILD_EXAMPLES		"Compile mico-base examples"				OFF)
 option(BUILD_TESTS		"Compile mico-base tests"				OFF)
+option(USE_OPTITRACK 		"Compile optitrack module for tools"		ON)
 
 #########################################
 ###### Loading 3rd party libraries.######

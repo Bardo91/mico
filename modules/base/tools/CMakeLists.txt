@@ -2,7 +2,12 @@ macro(build_tool tool_name tool_files)
     add_executable(${tool_name} ${tool_files})
     target_include_directories(${tool_name} PRIVATE ../include)
     target_link_libraries(${tool_name} LINK_PRIVATE mico::mico-base)
-	
+	## Load optitrack
+	if(${USE_OPTITRACK})
+		find_package(optitrack_flexible_framework REQUIRED) 
+		target_compile_definitions(${tool_name} PUBLIC "ENABLE_OPTITRACK")
+		target_link_libraries(${tool_name} LINK_PUBLIC optitrack_flexible_framework::optitrack_flexible_framework)
+	endif()
 	if (${USE_DARKNET})
 		target_include_directories(${tool_name} PRIVATE "../ThirdParty/darknet/include")
 		target_include_directories(${tool_name} PRIVATE "../ThirdParty/darknet/src")

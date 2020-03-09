@@ -29,6 +29,10 @@
 #include <pcl/io/pcd_io.h>
 #include <fstream>
 
+#ifdef ENABLE_OPTITRACK
+    #include <Optitrack_Flexible_Framework/Optiwrap.h>
+#endif
+
 #ifdef _WIN32
 #include <Windows.h>
     inline void do_mkdir(std::string _filename) {
@@ -44,6 +48,14 @@
 
 
 int main(int _argc, char** _argv){
+    #ifdef ENABLE_OPTITRACK
+    Optiwrap optitrack;
+    optitrack.set_IPs("192.168.1.103", "192.168.1.102");
+    optitrack.start_communication();
+    std::string name = "RS";
+    int rigid_body_id = 666 ;
+    bool check_rigid_body = true;
+    #endif 
 	cjson::Json mConfigFile;
 	mico::StereoCamera *mCamera;
 
@@ -82,10 +94,11 @@ int main(int _argc, char** _argv){
 	// Create storage folder
 	mStoreFolder = "dataset_" + std::to_string(time(NULL));
 	do_mkdir(mStoreFolder);
-
-	// Store calibration matrices
+    #ifdef ENABLE_OPTITRACK
+    std::ofstream dataset("dataset_" + std::to_string(time(NULL)) + "/1optitrack.txt");
+	#endif
+    // Store calibration matrices
 	cv::FileStorage fs(mStoreFolder+"/CalibrationFile.xml", cv::FileStorage::WRITE);
-
 	cv::Mat matrixLeft, distCoefLeft, matrixRight, distCoefRight, rot, trans;
 
 	if(mCamera->leftCalibration(matrixLeft, distCoefLeft)){
@@ -141,5 +154,17 @@ int main(int _argc, char** _argv){
         } else if (mConfigFile["store"]["cloud"] == "normal" && mCamera->cloud(cloudNormal)) {
             pcl::io::savePCDFileBinaryCompressed(mStoreFolder + "/cloud_" + std::to_string(mStoreIndex) + ".pcd", cloudNormal);
         }
+        #ifdef ENABLE_OPTITRACK
+            optitrack.run(check_rigid_body, rigid_body_id, name);
+            auto rb = optitrack.getRigidBody(rigid_body_id);
+            if(rb){
+                auto position = rb->position();
+                Eigen::Quaternionf quat;
+                rb->orientation(quat);
+                dataset << mStoreIndex << " " << position.x() << " " << position.y() << " " << position.z()  << " " << quat.x() << " " 
+                        << quat.y() << " " << quat.z() << " " << quat.w() << "\n";
+            }
+        #endif
+
 	}
 }
