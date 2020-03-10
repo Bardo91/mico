@@ -38,7 +38,7 @@ namespace mico{
                                     if(idle_){
                                         idle_ = false;
                                         #ifdef HAS_DARKNET
-                                        auto entities = _data.get<std::vector<std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>>>("v_entity"); 
+                                        auto entities = _data.get<std::vector<std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>>>("Entities"); 
                                         
                                         if(!entities_.empty()){
                                             for(auto queryE: entities){
@@ -46,13 +46,19 @@ namespace mico{
                                                 auto eDfs = queryE->dfs();
                                                 auto queryBoundingCube = queryE->boundingCube(eDfs[0]);
                                                 for(auto trainE: entities_){
-                                                    auto trainBoundingCube = trainE.second->boundingCube(eDfs[0]);
-                                                    double minXOverlap = std::max(trainBoundingCube[0], queryBoundingCube[0]);
-                                                    double minYOverlap = std::max(trainBoundingCube[1], queryBoundingCube[1]);
-                                                    double minZOverlap = std::max(trainBoundingCube[2], queryBoundingCube[2]);
-                                                    double maxXOverlap = std::min(trainBoundingCube[3], queryBoundingCube[3]);
-                                                    double maxYOverlap = std::min(trainBoundingCube[4], queryBoundingCube[4]);
-                                                    double maxZOverlap = std::min(trainBoundingCube[5], queryBoundingCube[5]);  
+
+                                                    // auto trainBoundingCube = trainE.second->boundingCube(eDfs[0]);
+                                                    // double minXOverlap = std::max(trainBoundingCube[0], queryBoundingCube[0]);
+                                                    // double minYOverlap = std::max(trainBoundingCube[1], queryBoundingCube[1]);
+                                                    // double minZOverlap = std::max(trainBoundingCube[2], queryBoundingCube[2]);
+                                                    // double maxXOverlap = std::min(trainBoundingCube[3], queryBoundingCube[3]);
+                                                    // double maxYOverlap = std::min(trainBoundingCube[4], queryBoundingCube[4]);
+                                                    // double maxZOverlap = std::min(trainBoundingCube[5], queryBoundingCube[5]);
+                                                    float overlaped = queryE->percentageOverlapped(trainE.second);
+                                                    std::cout << "Overlapped percentage between: " << queryE->id() << " and " << trainE.second->id() << " " << 
+                                                        overlaped << std::endl;
+                                                    // if(overlaped > score_)
+
                                                 }
                                             }
                                         }else{
@@ -80,9 +86,8 @@ namespace mico{
                 return false;
             if(param.first == "score"){
                 std::istringstream istr(_params["score"]);
-                float score;
-                istr >> score;
-                jParams["score"] = score;
+                istr >> score_;
+                jParams["score"] = score_;
             }
         }
     }

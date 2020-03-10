@@ -71,6 +71,9 @@ public:
 
     void updateCovisibility(int _dataframeId, Eigen::Matrix4f &_pose);
 
+    std::shared_ptr<Cube> cube();
+    
+    float percentageOverlapped(std::shared_ptr<mico::Entity<PointType_>> _e);
 private:
     Entity(){};
 

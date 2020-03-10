@@ -163,4 +163,22 @@ namespace mico {
     inline std::vector<int> Entity<PointType_>::dfs(){
         return dfs_;
     };
+
+    template<typename PointType_>    
+    inline std::shared_ptr<Cube> Entity<PointType_>::cube(){
+        return cube_;
+    };
+
+    template<typename PointType_>    
+    inline float Entity<PointType_>::percentageOverlapped(std::shared_ptr<mico::Entity<PointType_>> _e){
+
+        std::vector<Eigen::Vector3f> inter;
+        auto queryCube = _e->cube();
+        // compute intersection of two cubes
+        queryCube->clipConvexPolyhedron(cube_, inter);
+        // calculate volume overlapped
+        float percentage = 100 * (queryCube->computeVolumeFromPoints(inter) / queryCube->getVolume());
+
+        return percentage;
+    };
 }
