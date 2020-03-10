@@ -28,6 +28,7 @@
 #include <cmath>
 #include <opencv2/opencv.hpp>
 #include <mico/base/map3d/utils3d.h>
+#include <mico/dnn/utils/Cube.h>
 
 namespace mico {
 
@@ -93,6 +94,9 @@ private:
     std::map<int, float> confidence_;
     std::map<int, std::vector<float>> boundingbox_;  // left top right bottom
     std::map<int, std::vector<float>> boundingcube_; // xmax xmin ymax ymin zmax zmin
+
+    // cube
+    std::shared_ptr<Cube> cube_ = nullptr;
 
     /// visibility
     std::map<int, Eigen::Matrix4f> covisibility_; // dataframe id and pose

@@ -50,6 +50,12 @@ namespace mico {
         Eigen::Quaternionf q(pose.block<3,3>(0,0));
         orientations_[_dataframeId] = q;
         boundingcube_[_dataframeId] = bc;
+
+        float width = bc[0] - bc[1]; 
+        float heigth = bc[2] - bc[3]; 
+        float deep = bc[4] - bc[5];
+        auto globalCubePose = covisibility_[_dataframeId] * pose;
+        cube_ = std::make_shared<Cube>(1, globalCubePose, width, heigth, deep);
         return true;
     }
 
