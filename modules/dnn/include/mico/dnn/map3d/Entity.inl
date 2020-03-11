@@ -183,4 +183,10 @@ namespace mico {
             return selfPercentage;
         return percentage;
     };
+
+    template<typename PointType_>    
+    inline void Entity<PointType_>::update(std::shared_ptr<mico::Entity<PointType_>> _e){
+        
+
+    }
 }

@@ -41,7 +41,7 @@ namespace mico{
                                         auto entities = _data.get<std::vector<std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>>>("Entities"); 
                                         // store the new entities
                                         std::vector<std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>> newEntities;
-                                        
+
                                         if(!entities_.empty()){
                                             // candidates
                                             for(auto queryE: entities){
@@ -50,19 +50,19 @@ namespace mico{
                                                 auto queryBoundingCube = queryE->boundingCube(eDfs[0]);
 
                                                 bool newEntity = true;
-                                                unsigned int parentEntity = 0;
+                                                std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>> parentEntity = nullptr;
                                                 float affinity = 0;
 
                                                 // entities in database
                                                 for(auto trainE: entities_){
                                                     if(queryE->id() != trainE.second->id()){
                                                         float overlaped = queryE->percentageOverlapped(trainE.second);
-                                                        std::cout << "Overlapped percentage between " << queryE->id() << " and " << trainE.second->id() << " : " << 
-                                                            overlaped << std::endl;
+                                                        // std::cout << "Overlapped percentage between " << queryE->id() << " and " << trainE.second->id() << " : " << 
+                                                        //     overlaped << std::endl;
 
                                                         // if the entity overlaps with other created dont create a new one and update the first
-                                                        if(overlaped > score_ && overlaped > affinity){
-                                                            parentEntity = trainE.second->id();
+                                                        if(overlaped > overlapScore_ && overlaped > affinity){
+                                                            parentEntity = trainE.second;
                                                             affinity = overlaped;
                                                             newEntity = false;
                                                         }
@@ -73,11 +73,11 @@ namespace mico{
                                                 if(newEntity){
                                                     entities_[queryE->id()] = queryE;
                                                     newEntities.push_back(queryE);
-                                                    nEntities_++;
-                                                    std::cout << "--------------Created new entity " << queryE->id() << std::endl;
+                                                    std::cout << "Created new entity " << queryE->id() << std::endl;
                                                 }
                                                 else{
                                                     // update entity 
+                                                    parentEntity->update(queryE);
                                                     //std::cout << "--------------Created new entity associated with " << parentEntity << " and overlaped% " << affinity << std::endl;
                                                 }
                                             }
@@ -85,7 +85,6 @@ namespace mico{
                                             for(auto e: entities){
                                                 entities_[e->id()] = e;
                                                 newEntities.push_back(e);
-                                                nEntities_++;
                                                 // check overlapping here maybe
                                             }
                                         }
@@ -106,16 +105,16 @@ namespace mico{
         for(auto &param: _params){
             if(param.second == "")
                 return false;
-            if(param.first == "score"){
-                std::istringstream istr(_params["score"]);
-                istr >> score_;
-                jParams["score"] = score_;
+            if(param.first == "overlapScore"){
+                std::istringstream istr(_params["overlapScore"]);
+                istr >> overlapScore_;
+                jParams["overlapScore"] = overlapScore_;
             }
         }
-        std::cout << "[BlockEntityDatabase]Score selected: " << score_ << std::endl;
+        std::cout << "[BlockEntityDatabase]Score selected: " << overlap_ << std::endl;
     }
     
     std::vector<std::string> BlockEntityDatabase::parameters(){
-        return {"score"};
+        return {"overlapScore"};
     }
 }

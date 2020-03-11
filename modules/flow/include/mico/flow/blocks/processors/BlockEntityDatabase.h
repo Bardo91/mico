@@ -49,8 +49,7 @@ namespace mico{
         #ifdef HAS_DARKNET
             std::map<int, std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>> entities_;
         #endif
-        float score_ = 1;
-        unsigned int nEntities_ = 0;
+        float overlapScore_ = 1;
         bool hasPrev_ = false;
         bool idle_ = true;
     };

@@ -74,6 +74,9 @@ public:
     std::shared_ptr<Cube> cube();
     
     float percentageOverlapped(std::shared_ptr<mico::Entity<PointType_>> _e);
+
+    // update the entity with anoter entity
+    void update(std::shared_ptr<mico::Entity<PointType_>> _e);
 private:
     Entity(){};
 
