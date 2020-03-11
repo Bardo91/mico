@@ -177,8 +177,10 @@ namespace mico {
         // compute intersection of two cubes
         queryCube->clipConvexPolyhedron(cube_, inter);
         // calculate volume overlapped
-        float percentage = 100 * (queryCube->computeVolumeFromPoints(inter) / queryCube->getVolume());
-
+        float percentage = queryCube->computeVolumeFromPoints(inter) / queryCube->getVolume();
+        float selfPercentage = cube_->computeVolumeFromPoints(inter) / cube_->getVolume();
+        if(selfPercentage < percentage)
+            return selfPercentage;
         return percentage;
     };
 }
