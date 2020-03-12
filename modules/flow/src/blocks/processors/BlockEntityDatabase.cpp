@@ -115,11 +115,18 @@ namespace mico{
                 istr >> overlapScore_;
                 jParams["overlapScore"] = overlapScore_;
             }
+            if(param.first == "compared_entities"){
+                std::istringstream istr(_params["compared_entities"]);
+                istr >> comparedEntities_;
+                jParams["compared_entities"] = comparedEntities_;
+            }
+            
         }
         std::cout << "[BlockEntityDatabase]Score selected: " << overlapScore_ << std::endl;
+        std::cout << "[BlockEntityDatabase]Entities compared: " << comparedEntities_ << std::endl;
     }
     
     std::vector<std::string> BlockEntityDatabase::parameters(){
-        return {"overlapScore"};
+        return {"overlapScore","compared_entities"};
     }
 }
