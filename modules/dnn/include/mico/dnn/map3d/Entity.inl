@@ -186,7 +186,27 @@ namespace mico {
 
     template<typename PointType_>    
     inline void Entity<PointType_>::update(std::shared_ptr<mico::Entity<PointType_>> _e){
-        
-
+        for(auto &df: _e->dfs()){
+            confidence_[df] = _e->confidence(df);
+            boundingCube(df, boundingCube(df));
+            dfs_.push_back(df);
+        }
     }
+
+    template<typename PointType_>    
+    inline void Entity<PointType_>::confidence(int _df, float _confidence){
+        if ( m.find(_df) == m.end() ) {
+            // not found 
+            confidence_[_df] = _confidence;
+        } else {
+            // found
+            std::cerr << "[Entity] Trying to change the confidences of an already created object" << std::endl;
+        }
+    }
+
+    template<typename PointType_>    
+    inline float Entity<PointType_>::confidence(int _df){
+        return confidence_[_df];
+    }
+
 }

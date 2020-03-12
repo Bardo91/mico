@@ -75,6 +75,10 @@ public:
     
     float percentageOverlapped(std::shared_ptr<mico::Entity<PointType_>> _e);
 
+    void confidence(int _df, float _confidence);
+
+    float confidence(int _df);
+
     // update the entity with anoter entity
     void update(std::shared_ptr<mico::Entity<PointType_>> _e);
 private:
