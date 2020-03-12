@@ -152,7 +152,7 @@ namespace mico{
                                                         }
 
                                                         e->projections(df->id(), entityProjections);
-                                                        if(entityCloud->size() > 3){
+                                                        if(entityCloud->size() > 400){
 
                                                             pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud_out(new pcl::PointCloud<pcl::PointXYZRGBNormal>());
 

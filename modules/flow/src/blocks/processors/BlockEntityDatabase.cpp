@@ -52,23 +52,28 @@ namespace mico{
                                                 bool newEntity = true;
                                                 std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>> parentEntity = nullptr;
                                                 float affinity = 0;
-
+                                                auto t1 = std::chrono::high_resolution_clock::now();
                                                 // entities in database
-                                                for(auto trainE: entities_){
-                                                    if(queryE->id() != trainE.second->id()){
-                                                        float overlaped = queryE->percentageOverlapped(trainE.second);
+                                                //for(auto trainE: entities_){
+                                                int i = 0;
+                                                for(auto trainE = entities_.rbegin(); trainE != entities_.rend() && i < comparedEntities_; ++trainE, i++){
+                                                    if(queryE->id() != (*trainE).second->id()){
+                                                        float overlaped = queryE->percentageOverlapped((*trainE).second);
                                                         // std::cout << "Overlapped percentage between " << queryE->id() << " and " << trainE.second->id() << " : " << 
                                                         //     overlaped << std::endl;
 
                                                         // if the entity overlaps with other created dont create a new one and update the first
                                                         if(overlaped > overlapScore_ && overlaped > affinity){
-                                                            parentEntity = trainE.second;
+                                                            parentEntity = (*trainE).second;
                                                             affinity = overlaped;
                                                             newEntity = false;
                                                         }
                                                     }   
                                                 }
 
+                                                auto t2 = std::chrono::high_resolution_clock::now();
+                                                std::chrono::duration<float,std::milli> overlapTime = (t2 - t1);
+                                                std::cout << "[BlockEntityDatabase]Time checking overlaping between cubes: " << overlapTime.count()/1000 << std::endl;
                                                 // create new entity associated to the most related parent
                                                 if(newEntity){
                                                     entities_[queryE->id()] = queryE;
@@ -111,7 +116,7 @@ namespace mico{
                 jParams["overlapScore"] = overlapScore_;
             }
         }
-        std::cout << "[BlockEntityDatabase]Score selected: " << overlap_ << std::endl;
+        std::cout << "[BlockEntityDatabase]Score selected: " << overlapScore_ << std::endl;
     }
     
     std::vector<std::string> BlockEntityDatabase::parameters(){

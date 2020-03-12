@@ -50,6 +50,7 @@ namespace mico{
             std::map<int, std::shared_ptr<mico::Entity<pcl::PointXYZRGBNormal>>> entities_;
         #endif
         float overlapScore_ = 1;
+        int comparedEntities_ = 8;
         bool hasPrev_ = false;
         bool idle_ = true;
     };

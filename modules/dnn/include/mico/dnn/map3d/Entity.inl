@@ -195,7 +195,7 @@ namespace mico {
 
     template<typename PointType_>    
     inline void Entity<PointType_>::confidence(int _df, float _confidence){
-        if ( m.find(_df) == m.end() ) {
+        if ( confidence_.find(_df) == confidence_.end() ) {
             // not found 
             confidence_[_df] = _confidence;
         } else {
